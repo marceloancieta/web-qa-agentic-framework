@@ -8,3 +8,4 @@ blob-report/
 *.md
 .claude/worktrees/
 reports/
+scripts/__fixtures__/

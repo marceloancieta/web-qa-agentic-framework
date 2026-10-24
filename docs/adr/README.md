@@ -12,3 +12,4 @@ decision changes through a new ADR that supersedes the old one; accepted ADRs ar
 | [0005](0005-layered-ui-test-architecture.md) | Page objects, components, role fixtures and optional flows | Accepted |
 | [0006](0006-branching-and-traceability.md) | Branching model and change traceability | Accepted |
 | [0007](0007-locator-policy.md) | Locator policy, and no self-healing locators | Accepted |
+| [0008](0008-per-pack-configuration.md) | Configuration per app pack and per environment | Accepted |

@@ -1,0 +1,369 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/marceloancieta/web-qa-agentic-framework/schemas/qa-config.schema.json",
+  "title": "qa-config",
+  "description": "Per-project configuration of the web QA framework. Copy qa-config.example.json to qa-config.json (git-ignored) and adjust it. Secrets never go here: they live in the environment or the local .env file and are referenced by variable name.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["project", "app", "test_management"],
+  "properties": {
+    "$schema": {
+      "type": "string"
+    },
+    "project": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["name"],
+      "properties": {
+        "name": {
+          "type": "string",
+          "pattern": "^[a-z0-9][a-z0-9-]*$"
+        }
+      }
+    },
+    "app": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["default_environment", "environments"],
+      "properties": {
+        "default_environment": {
+          "description": "The environment a run uses when QA_ENV is not set.",
+          "type": "string",
+          "minLength": 1
+        },
+        "environments": {
+          "type": "object",
+          "minProperties": 1,
+          "propertyNames": {
+            "pattern": "^[a-z][a-z0-9-]*$"
+          },
+          "additionalProperties": {
+            "$ref": "#/$defs/environment"
+          }
+        },
+        "accessibility": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "tags": {
+              "description": "The axe rule tags every accessibility check runs.",
+              "type": "array",
+              "minItems": 1,
+              "uniqueItems": true,
+              "items": {
+                "type": "string",
+                "pattern": "^[a-z0-9.-]+$"
+              },
+              "default": ["wcag2a", "wcag2aa", "wcag21aa"]
+            }
+          }
+        }
+      }
+    },
+    "test_management": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["provider"],
+      "properties": {
+        "provider": {
+          "description": "Adapter under scripts/tm/adapters/<provider>.",
+          "enum": ["local", "allure-report", "allure-testops"]
+        },
+        "options": {
+          "type": "object"
+        }
+      }
+    },
+    "tracker": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "provider": {
+          "description": "Adapter under scripts/tracker/adapters/<provider>; none disables every tracker call.",
+          "enum": ["none", "local", "github", "jira"],
+          "default": "none"
+        },
+        "options": {
+          "description": "Provider options, defined with the adapters.",
+          "type": "object"
+        },
+        "key_pattern": {
+          "description": "Regex (JavaScript syntax) of an issue key, e.g. \"PROJ-\\d+\". null disables every tracker-key rule.",
+          "type": ["string", "null"]
+        },
+        "base_url": {
+          "type": ["string", "null"],
+          "format": "uri"
+        },
+        "issue_url": {
+          "description": "Link to one issue, with {key} where the key goes, e.g. \"https://tracker.example/browse/{key}\".",
+          "type": ["string", "null"],
+          "pattern": "\\{key\\}"
+        }
+      }
+    },
+    "policies": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "commit": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "require_tracker_key": {
+              "type": "boolean",
+              "default": false
+            },
+            "max_tracker_keys": {
+              "type": "integer",
+              "minimum": 1,
+              "default": 1
+            },
+            "conventional_commits": {
+              "type": "boolean",
+              "default": false
+            },
+            "protected_branches": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "default": []
+            }
+          }
+        },
+        "pull_request": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "required_labels": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "default": []
+            }
+          }
+        }
+      }
+    },
+    "quality_gate": {
+      "description": "Thresholds of the quality gate. Every check is optional; each one yields PASS, REVIEW (publish the artifact, keep the build green) or FAIL.",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "pass_rate": {
+          "description": "Share of executed tests that passed, in percent.",
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["fail_below_pct"],
+          "properties": {
+            "fail_below_pct": {
+              "$ref": "#/$defs/percent"
+            },
+            "review_below_pct": {
+              "$ref": "#/$defs/percent"
+            }
+          }
+        },
+        "accessibility": {
+          "description": "New accessibility violations (not in the pack's baseline), counted per axe impact. A threshold is the largest count still allowed.",
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["fail_above"],
+          "properties": {
+            "fail_above": {
+              "$ref": "#/$defs/impactCounts"
+            },
+            "review_above": {
+              "$ref": "#/$defs/impactCounts"
+            }
+          }
+        },
+        "visual": {
+          "description": "Screenshots of the visual lane that differ from their baseline.",
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["fail_above"],
+          "properties": {
+            "fail_above": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "review_above": {
+              "type": "integer",
+              "minimum": 0
+            }
+          }
+        }
+      }
+    }
+  },
+  "$defs": {
+    "percent": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 100
+    },
+    "impactCounts": {
+      "type": "object",
+      "additionalProperties": false,
+      "minProperties": 1,
+      "properties": {
+        "critical": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "serious": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "moderate": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "minor": {
+          "type": "integer",
+          "minimum": 0
+        }
+      }
+    },
+    "environment": {
+      "description": "A named place to run: the projects (browsers and devices) it runs and one entry per app pack it serves. A pack without an entry here cannot run in this environment.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["packs"],
+      "properties": {
+        "projects": {
+          "description": "The device projects this environment runs. Default: desktop-chromium and mobile-chrome.",
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "$ref": "#/$defs/device"
+          }
+        },
+        "packs": {
+          "type": "object",
+          "minProperties": 1,
+          "propertyNames": {
+            "description": "The pack's folder name under apps/.",
+            "pattern": "^[a-z][a-z0-9-]*$"
+          },
+          "additionalProperties": {
+            "$ref": "#/$defs/pack"
+          }
+        }
+      }
+    },
+    "device": {
+      "description": "A device project of the core catalog (helpers/devices.ts).",
+      "enum": [
+        "desktop-chromium",
+        "desktop-firefox",
+        "desktop-webkit",
+        "tablet",
+        "tablet-landscape",
+        "mobile-chrome",
+        "mobile-chrome-landscape",
+        "mobile-safari",
+        "mobile-safari-landscape"
+      ]
+    },
+    "pack": {
+      "description": "Where one app pack runs in one environment and which accounts its actors use. QA_<PACK>_BASE_URL overrides base_url for one run (pack name upper-cased, hyphens as underscores). How a session is opened (an API login, a cookie) is the pack's own code; this entry only says where the accounts come from.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["base_url", "actors"],
+      "properties": {
+        "base_url": {
+          "type": "string",
+          "format": "uri"
+        },
+        "allow_writes": {
+          "description": "false marks a shared or public environment: cases that change data skip there.",
+          "type": "boolean",
+          "default": false
+        },
+        "recovery": {
+          "description": "How the destructive lane brings the application back after each @destructive case: a shell command (for a local container, a restart) and how long to wait for it to answer again.",
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["command"],
+          "properties": {
+            "command": {
+              "type": "string",
+              "minLength": 1
+            },
+            "ready_timeout_s": {
+              "type": "integer",
+              "minimum": 1,
+              "default": 60
+            }
+          }
+        },
+        "actors": {
+          "description": "The roles of this pack, by name. \"anonymous\" (no session) is built in.",
+          "type": "object",
+          "minProperties": 1,
+          "propertyNames": {
+            "pattern": "^[a-z][a-z0-9-]*$",
+            "not": {
+              "const": "anonymous"
+            }
+          },
+          "additionalProperties": {
+            "$ref": "#/$defs/actor"
+          }
+        },
+        "default_actor": {
+          "description": "The actor a test gets when it names none. Default: the first actor listed.",
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9-]*$"
+        }
+      }
+    },
+    "actor": {
+      "oneOf": [
+        {
+          "description": "The pack creates a fresh account for this role through its API, one per worker, and removes it afterwards. Needs allow_writes.",
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["account"],
+          "properties": {
+            "account": {
+              "const": "provisioned"
+            },
+            "role": {
+              "description": "The application's own role name, when it differs from the actor name.",
+              "type": "string",
+              "minLength": 1
+            }
+          }
+        },
+        {
+          "description": "An existing account whose username and password come from the environment.",
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["account", "username_env", "password_env"],
+          "properties": {
+            "account": {
+              "const": "existing"
+            },
+            "username_env": {
+              "$ref": "#/$defs/envVar"
+            },
+            "password_env": {
+              "$ref": "#/$defs/envVar"
+            }
+          }
+        }
+      ]
+    },
+    "envVar": {
+      "description": "Name of the environment variable that holds the value (never the value itself).",
+      "type": "string",
+      "pattern": "^[A-Z][A-Z0-9_]*$"
+    }
+  }
+}

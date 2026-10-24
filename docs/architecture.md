@@ -121,15 +121,16 @@ web-qa-agentic-framework/
   qa-config.example.json  qa-config.schema.json  playwright.config.ts
 ```
 
-`qa-config` mirrors the API framework, with `api` renamed to `app`:
+`qa-config` follows the API framework's shape, with `api` renamed to `app` (decided in
+[ADR 0008](adr/0008-per-pack-configuration.md)):
 
-- `app.default_environment`
+- `app.default_environment`, and `app.accessibility.tags` for axe
+- `app.environments.<env>.projects`: the device projects the environment runs
 - `app.environments.<env>.packs.<pack>`: `base_url`, `allow_writes`,
-  `recovery{command, ready_timeout_s}`, `auth{strategy, ..._env}`, `actors{<role>: {...}}`
-- `app.projects`: the browsers and devices each environment runs
+  `recovery{command, ready_timeout_s}`, `actors{<role>: {account, ...}}` and `default_actor`
 - `test_management`, `tracker`, `policies` as in the API framework
-- `quality_gate`: `pass_rate`, new critical accessibility violations, visual diff limits, optional
-  web vitals
+- `quality_gate`: `pass_rate`, new accessibility violations per impact, visual differences; web
+  vitals in v0.2
 
 ## 2. Devices and selectors
 

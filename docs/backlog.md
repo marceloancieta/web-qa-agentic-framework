@@ -26,9 +26,8 @@ regression in a container, network mocking and state injection, proven on Juice 
 
 | Id | Stage | Item | Origin | Status |
 |---|---|---|---|---|
-| REPO-01 | W0 | Bootstrap and safety: Apache-2.0 and NOTICE, gitleaks and the local denylist in the git hooks, Claude Code hooks and settings, minimal gates, agent guides, ADRs 0001 to 0007. | plan | in-progress |
-| CORE-01 | W1 | qa-config schema with app packs (`app.environments.<env>.packs.<pack>`, `app.projects`, `quality_gate`), `qa-config.example.json` with the commit rules on, and `config:check` in the gates. | plan | todo |
-| CORE-02 | W1 | `playwright.config.ts` built from qa-config: desktop Chromium, WebKit and Firefox, tablet, mobile Chrome and Safari, landscape variants; `@desktop-only` and `@mobile-only` filtered per project. | plan | todo |
+| CORE-01 | W1 | qa-config schema with app packs (`app.environments.<env>.packs.<pack>`, `app.projects`, `quality_gate`), `qa-config.example.json` with the commit rules on, and `config:check` in the gates. | plan | in-progress |
+| CORE-02 | W1 | `playwright.config.ts` built from qa-config: desktop Chromium, WebKit and Firefox, tablet, mobile Chrome and Safari, landscape variants; `@desktop-only` and `@mobile-only` filtered per project. | plan | in-progress |
 | CORE-03 | W1 | Actor fixture: a user per worker created through the pack's API, `storageState` under `.auth/`, the pack's API client bound to the same user, cleanup in `finally`. | plan | todo |
 | CORE-04 | W1 | Accessibility fixture on axe with the WCAG tags from qa-config and a per-pack baseline (`a11y-known.json`: rule, target, tracker key, expiry). | practice | todo |
 | CORE-05 | W1 | Visual fixture: masks owned by page objects, per-pack `stylePath` and `maxDiffPixelRatio`, animations and caret off. | plan | todo |
@@ -36,9 +35,9 @@ regression in a container, network mocking and state injection, proven on Juice 
 | CORE-07 | W1 | Evidence and redaction: traces and screenshots mask sensitive fields; HAR files pass the secret scan. | exp | todo |
 | CORE-08 | W1 | Page health guard on every test, with an opt-out that needs a reason: broken images, failed same-origin requests, console errors, uncaught exceptions. | plan | todo |
 | CORE-09 | W1 | Keyboard helper (tab order by accessible name, visible focus, no traps), overflow and no-horizontal-scroll checks, `page.clock` helpers, upload and download helpers. | plan | todo |
-| CORE-10 | W1 | Per-pack preflight: every entry point names a missing secret before the run starts. | exp | todo |
-| CORE-11 | W1 | Generic script libraries from the sibling framework: registry, tags, env, env-names, results, playwright-lane, container, pairwise, decision-table, and the anonymization, rng, clock, run-lock and data-gate helpers. | plan | todo |
-| GATE-01 | W1 | `lint:layers`: no `page.locator`, `page.route` or CSS in specs, no `expect` in page objects, no import of `apps/` from the core. | ADR 0005 | todo |
+| CORE-10 | W1 | Per-pack preflight: every entry point names a missing secret before the run starts. | exp | in-progress |
+| CORE-11 | W1 | The script libraries the core uses from the start: env, env-names, tags, lint, corpus. The other generic libraries arrive with their first consumer: results, playwright-lane and container with the gates and lanes (W3), registry with the suite linter (W3), pairwise and decision-table with the design phase (W5), and the anonymization, rng, clock, run-lock and data-gate helpers with the fixtures that use them. | plan | in-progress |
+| GATE-01 | W1 | `lint:layers`: no `page.locator`, `page.route` or CSS in specs, no `expect` in page objects, no import of `apps/` from the core. | ADR 0005 | in-progress |
 | JS-01 | W2 | Juice Shop pack: compose with the image pinned by digest, `app.json`, `recovery`, `npm run juice-shop:up`. | plan | todo |
 | JS-02 | W2 | Juice Shop `api/` clients (sign-up, login) and actors; cookies that dismiss the welcome and cookie banners. | plan | todo |
 | JS-03 | W2 | First Juice Shop pages and components, including a `NavigationMenu` that picks its strategy from the project. | plan | todo |
@@ -69,7 +68,7 @@ regression in a container, network mocking and state injection, proven on Juice 
 | CI-02 | W8 | GitHub Actions workflow and a Jenkinsfile that only call the npm scripts. | plan | todo |
 | SD-01 | W9 | SauceDemo pack, read-only: cookie and `localStorage` injection, `visual_user` proves the visual lane fails, `performance_glitch_user` for anti-flake, `locked_out_user`. | plan | todo |
 | DOC-01 | W9 | README, onboarding and guides. | plan | todo |
-| DOC-02 | W9 | Read-only documentation review before the release. | exp | todo |
+| DOC-02 | W9 | Read-only documentation review before the release. It also removes the temporary "What arrives when" table from `CLAUDE.md`, reduces architecture section 8 to one line on what is shared with the sibling API framework, and moves architecture section 9 to `docs/lessons-learned.md` or drops it, so the public docs describe how the framework works, not how it was built. The backlog rows and the lessons describe technical work only, with no personal notes, comments about third parties or hints of where a lesson came from (the denylist scan catches names and hosts, not tone). | exp | todo |
 | CI-03 | W9 | CodeQL and `npm audit` clean; full-history scans (gitleaks, denylist, banned wording). | exp | todo |
 | DOC-03 | W9 | CHANGELOG and tag `v0.1.0`; the GitHub repository and any publishing only with the owner's approval. | plan | todo |
 
@@ -93,7 +92,7 @@ regression in a container, network mocking and state injection, proven on Juice 
 | Id | Item | Origin | Status |
 |---|---|---|---|
 | FUT-01 | Toolshop pack (Practice Software Testing, local Docker): authorization in the UI by role, `data-test` attributes. | plan | todo |
-| FUT-02 | `npm create web-qa@<version> <dir>` (package `create-web-qa`). | plan | todo |
+| FUT-02 | `npm create web-qa@<version> <dir>` (package `create-web-qa`). The generated project gets the product (`.claude/`, `AGENTS.md`, `CLAUDE.md`, templates, core, gates) and none of the framework's own development records (this backlog, `CHANGELOG.md`, the framework's ADRs); a test lists what the package ships. | plan | todo |
 | FUT-03 | Web vitals (LCP, CLS, INP) with per-pack budgets, and a Lighthouse lane. | practice | todo |
 | FUT-04 | i18n: projects per `locale` and `timezoneId`, pseudo-localization, right-to-left. | practice | todo |
 | FUT-05 | Design-token checks from the pack's `design-tokens.json`; `prefers-reduced-motion` emulation. | plan | todo |
@@ -108,3 +107,4 @@ regression in a container, network mocking and state injection, proven on Juice 
 
 | Id | Item | Closed by |
 |---|---|---|
+| REPO-01 | Bootstrap and safety: Apache-2.0 and NOTICE, gitleaks and the local denylist in the git hooks, Claude Code hooks and settings, minimal gates, agent guides, ADRs 0001 to 0007. | `678ffb6` |

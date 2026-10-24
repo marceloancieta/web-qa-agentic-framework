@@ -1,0 +1,88 @@
+{
+  "$schema": "./schemas/qa-config.schema.json",
+  "project": {
+    "name": "web-qa-example"
+  },
+  "app": {
+    "default_environment": "local",
+    "environments": {
+      "local": {
+        "projects": ["desktop-chromium", "mobile-chrome"],
+        "packs": {
+          "juice-shop": {
+            "base_url": "http://localhost:3000",
+            "allow_writes": true,
+            "recovery": { "command": "docker compose restart juice-shop" },
+            "actors": {
+              "customer": { "account": "provisioned" }
+            }
+          },
+          "saucedemo": {
+            "base_url": "https://www.saucedemo.com",
+            "allow_writes": false,
+            "actors": {
+              "standard": {
+                "account": "existing",
+                "username_env": "SAUCEDEMO_STANDARD_USER",
+                "password_env": "SAUCEDEMO_PASSWORD"
+              }
+            }
+          }
+        }
+      },
+      "ci": {
+        "projects": [
+          "desktop-chromium",
+          "desktop-firefox",
+          "desktop-webkit",
+          "tablet",
+          "mobile-chrome",
+          "mobile-safari"
+        ],
+        "packs": {
+          "juice-shop": {
+            "base_url": "http://localhost:3000",
+            "allow_writes": true,
+            "recovery": { "command": "docker compose restart juice-shop" },
+            "actors": {
+              "customer": { "account": "provisioned" }
+            }
+          }
+        }
+      }
+    },
+    "accessibility": {
+      "tags": ["wcag2a", "wcag2aa", "wcag21aa"]
+    }
+  },
+  "test_management": {
+    "provider": "local",
+    "options": { "dir": "reports/tm/local" }
+  },
+  "tracker": {
+    "provider": "local",
+    "options": { "dir": "docs/tracker/local" },
+    "key_pattern": "LOCAL-\\d+",
+    "base_url": null,
+    "issue_url": "docs/tracker/local/issues.json#{key}"
+  },
+  "policies": {
+    "commit": {
+      "require_tracker_key": false,
+      "max_tracker_keys": 1,
+      "conventional_commits": true,
+      "protected_branches": []
+    },
+    "pull_request": {
+      "required_labels": []
+    }
+  },
+  "quality_gate": {
+    "pass_rate": { "fail_below_pct": 90, "review_below_pct": 100 },
+    "accessibility": {
+      "fail_above": { "critical": 0, "serious": 0 },
+      "review_above": { "moderate": 0 }
+    },
+    "visual": { "fail_above": 0 }
+  }
+}
