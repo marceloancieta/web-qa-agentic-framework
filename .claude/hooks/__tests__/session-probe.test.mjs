@@ -172,3 +172,49 @@ test('missing config and dependencies are reported, never fatal', async () => {
   assert.match(text, /npm ci/);
   assert.match(text, /App \[no environment\]: UNKNOWN/);
 });
+
+/** An HTTP server answering every request with `status`. */
+async function httpAnswering(status) {
+  const { createServer: createHttpServer } = await import('node:http');
+  const paths = [];
+  const server = createHttpServer((request, response) => {
+    paths.push(request.url);
+    response.writeHead(status, { 'content-type': 'text/html' });
+    response.end('<title>x</title>');
+  }).listen(0, '127.0.0.1');
+  await new Promise((resolve) => server.once('listening', resolve));
+  return { server, paths, url: `http://127.0.0.1:${server.address().port}` };
+}
+
+test('the login page named in app.json is checked; the fragment never reaches the server', async () => {
+  const app = await httpAnswering(200);
+  try {
+    const dir = tempProject({
+      config: configFor({ shop: app.url }),
+      files: { 'apps/shop/app.json': JSON.stringify({ name: 'shop', login_path: '/#/login' }) },
+    });
+    const text = context(await runHook('session-probe.mjs', {}, { projectDir: dir }));
+    assert.match(text, /App \[local\] shop \S+: UP; login page \/#\/login: answers 200/);
+    assert.doesNotMatch(text, /login page does not answer normally/);
+    assert.deepEqual(app.paths, ['/']);
+  } finally {
+    app.server.close();
+  }
+});
+
+test('a login page that fails is reported with a hint, and a pack without one is not checked', async () => {
+  const app = await httpAnswering(503);
+  try {
+    const dir = tempProject({
+      config: configFor({ shop: app.url, blog: app.url }),
+      files: { 'apps/shop/app.json': JSON.stringify({ name: 'shop', login_path: '/login' }) },
+    });
+    const text = context(await runHook('session-probe.mjs', {}, { projectDir: dir }));
+    assert.match(text, /shop \S+: UP; login page \/login: FAILS with 503/);
+    assert.match(text, /Hint: shop is up but its login page does not answer normally/);
+    assert.match(text, /blog \S+: UP$/m);
+    assert.deepEqual(app.paths, ['/login']);
+  } finally {
+    app.server.close();
+  }
+});

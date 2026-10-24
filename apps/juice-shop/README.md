@@ -38,6 +38,7 @@ removed: the application has no endpoint for it, and a restart empties its datab
 | `pages/` | `LoginPage` |
 | `components/` | `AccountMenu`: one API for the toolbar menu (from 960 px wide, `breakpoints.toolbar`) and the side navigation below it |
 | `specs/smoke/` | the sign-in smoke on every device project |
+| `docs/app-map.json` | the app map: `npm run app:map -- --pack juice-shop --write` walks the routes of `app.json` `app_map` read-only; `npm run app:map:check -- --pack juice-shop` reports drift |
 
 ## Facts about the application
 

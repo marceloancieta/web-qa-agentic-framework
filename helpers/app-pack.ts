@@ -13,6 +13,9 @@ export interface AppManifest {
   description?: string;
   /** The attribute `getByTestId` reads (Playwright's `testIdAttribute`). Default: `data-testid`. */
   testIdAttribute?: string;
+  /** Where the login form is, relative to the base URL (`/login`, `/#/login`); the session probe
+   * checks that it answers. */
+  login_path?: string;
   /** The application's layout breakpoints, name to minimum width in CSS pixels. */
   breakpoints?: Record<string, number>;
   /** Hosts the pages call that are not the application (analytics, fonts, ads); mocks block them. */
@@ -26,6 +29,8 @@ export interface AppManifest {
   /** Visual comparison settings: the share of pixels that may differ, and a stylesheet (relative to
    * the pack) that hides volatile parts before a screenshot. */
   visual?: { maxDiffPixelRatio?: number; stylePath?: string };
+  /** The app map's walk: routes to start from, and route patterns never to visit. */
+  app_map?: { start?: string[]; exclude?: string[] };
 }
 
 export interface AppPack extends AppManifest {
@@ -55,6 +60,9 @@ export function manifestProblems(manifest: Partial<AppManifest>, dirName: string
   if (manifest.testIdAttribute !== undefined && !ATTRIBUTE.test(manifest.testIdAttribute)) {
     problems.push('testIdAttribute must be an attribute name such as data-test');
   }
+  if (manifest.login_path !== undefined && !manifest.login_path.startsWith('/')) {
+    problems.push('login_path must start with /, such as /login or /#/login');
+  }
   for (const [name, width] of Object.entries(manifest.breakpoints ?? {})) {
     if (!isWholeNumber(width, 1)) problems.push(`breakpoints.${name} must be a width in pixels`);
   }
@@ -64,6 +72,17 @@ export function manifestProblems(manifest: Partial<AppManifest>, dirName: string
   }
   if (manifest.workers !== undefined && !isWholeNumber(manifest.workers, 1)) {
     problems.push('workers must be a whole number of at least 1');
+  }
+  for (const route of manifest.app_map?.start ?? []) {
+    if (!route.startsWith('/'))
+      problems.push(`app_map.start has "${route}", which does not start with /`);
+  }
+  for (const pattern of manifest.app_map?.exclude ?? []) {
+    try {
+      new RegExp(pattern);
+    } catch {
+      problems.push(`app_map.exclude has "${pattern}", which is not a regular expression`);
+    }
   }
   const ratio = manifest.visual?.maxDiffPixelRatio;
   if (ratio !== undefined && !(typeof ratio === 'number' && ratio >= 0 && ratio <= 1)) {

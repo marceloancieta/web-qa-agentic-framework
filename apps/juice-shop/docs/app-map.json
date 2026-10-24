@@ -1,0 +1,578 @@
+{
+  "pack": "juice-shop",
+  "app_version": "20.3.0",
+  "routes": [
+    {
+      "route": "/#/",
+      "title": "OWASP Juice Shop",
+      "landmarks": [],
+      "headings": [
+        "h1 Welcome to OWASP Juice Shop!",
+        "h1 https://owasp-juice.shop"
+      ],
+      "interactive": [
+        "button \"Close Welcome Banner\"",
+        "button \"Force page reload\"",
+        "button \"Help getting started\"",
+        "button \"dismiss cookie message\"",
+        "button \"learn more about cookies\"",
+        "link \"Open Worldwide Application Security Project (OWASP)\"",
+        "link \"https://owasp-juice.shop\""
+      ],
+      "fields": [
+        {
+          "tag": "input",
+          "type": "text",
+          "label": "",
+          "constraints": {}
+        }
+      ],
+      "api_calls": [
+        "GET /api/Challenges/",
+        "GET /api/Quantitys/",
+        "GET /assets/i18n/en.json",
+        "GET /rest/admin/application-configuration",
+        "GET /rest/admin/application-version",
+        "GET /rest/languages",
+        "GET /rest/products/search",
+        "GET /socket.io/",
+        "POST /socket.io/"
+      ],
+      "links": [
+        "/#/about",
+        "/#/chatbot",
+        "/#/contact",
+        "/#/login",
+        "/#/photo-wall",
+        "/redirect"
+      ]
+    },
+    {
+      "route": "/#/about",
+      "title": "OWASP Juice Shop",
+      "landmarks": [],
+      "headings": [
+        "h1 Welcome to OWASP Juice Shop!",
+        "h1 https://owasp-juice.shop"
+      ],
+      "interactive": [
+        "button \"Close Welcome Banner\"",
+        "button \"Help getting started\"",
+        "button \"dismiss cookie message\"",
+        "button \"learn more about cookies\"",
+        "link \"Open Worldwide Application Security Project (OWASP)\"",
+        "link \"https://owasp-juice.shop\""
+      ],
+      "fields": [
+        {
+          "tag": "input",
+          "type": "text",
+          "label": "",
+          "constraints": {}
+        }
+      ],
+      "api_calls": [
+        "GET /api/Challenges/",
+        "GET /api/Feedbacks/",
+        "GET /assets/i18n/en.json",
+        "GET /rest/admin/application-configuration",
+        "GET /rest/admin/application-version",
+        "GET /rest/languages",
+        "GET /socket.io/",
+        "POST /socket.io/"
+      ],
+      "links": [
+        "/#/about",
+        "/#/chatbot",
+        "/#/contact",
+        "/#/login",
+        "/#/photo-wall",
+        "/ftp/legal.md",
+        "/redirect"
+      ]
+    },
+    {
+      "route": "/#/chatbot",
+      "title": "OWASP Juice Shop",
+      "landmarks": [],
+      "headings": [
+        "h1 Welcome to OWASP Juice Shop!",
+        "h1 https://owasp-juice.shop"
+      ],
+      "interactive": [
+        "button \"Close Welcome Banner\"",
+        "button \"Help getting started\"",
+        "button \"dismiss cookie message\"",
+        "button \"learn more about cookies\"",
+        "link \"Open Worldwide Application Security Project (OWASP)\"",
+        "link \"https://owasp-juice.shop\""
+      ],
+      "fields": [
+        {
+          "tag": "input",
+          "type": "text",
+          "label": "",
+          "constraints": {}
+        },
+        {
+          "tag": "textarea",
+          "type": "",
+          "label": "",
+          "constraints": {}
+        }
+      ],
+      "api_calls": [
+        "GET /api/Challenges/",
+        "GET /assets/i18n/en.json",
+        "GET /rest/admin/application-configuration",
+        "GET /rest/admin/application-version",
+        "GET /rest/languages",
+        "GET /socket.io/",
+        "POST /socket.io/"
+      ],
+      "links": [
+        "/#/about",
+        "/#/chatbot",
+        "/#/contact",
+        "/#/login",
+        "/#/photo-wall",
+        "/redirect"
+      ]
+    },
+    {
+      "route": "/#/contact",
+      "title": "OWASP Juice Shop",
+      "landmarks": [],
+      "headings": [
+        "h1 Welcome to OWASP Juice Shop!",
+        "h1 https://owasp-juice.shop"
+      ],
+      "interactive": [
+        "button \"Close Welcome Banner\"",
+        "button \"Help getting started\"",
+        "button \"dismiss cookie message\"",
+        "button \"learn more about cookies\"",
+        "link \"Open Worldwide Application Security Project (OWASP)\"",
+        "link \"https://owasp-juice.shop\""
+      ],
+      "fields": [
+        {
+          "tag": "input",
+          "type": "text",
+          "label": "",
+          "constraints": {}
+        },
+        {
+          "tag": "input",
+          "type": "text",
+          "label": "",
+          "constraints": {}
+        },
+        {
+          "tag": "input",
+          "type": "text",
+          "label": "Field with the name of the author",
+          "constraints": {}
+        },
+        {
+          "tag": "textarea",
+          "type": "",
+          "label": "Field for entering the comment or the feedback",
+          "constraints": {
+            "required": true,
+            "maxlength": "160"
+          }
+        },
+        {
+          "tag": "input",
+          "type": "range",
+          "label": "",
+          "constraints": {
+            "min": "1",
+            "max": "5",
+            "step": "1"
+          }
+        },
+        {
+          "tag": "input",
+          "type": "text",
+          "label": "Field for the result of the CAPTCHA code",
+          "constraints": {
+            "required": true,
+            "pattern": "-?[\\d]*"
+          }
+        }
+      ],
+      "api_calls": [
+        "GET /api/Challenges/",
+        "GET /assets/i18n/en.json",
+        "GET /rest/admin/application-configuration",
+        "GET /rest/admin/application-version",
+        "GET /rest/captcha/",
+        "GET /rest/languages",
+        "GET /rest/user/whoami",
+        "GET /socket.io/",
+        "POST /socket.io/"
+      ],
+      "links": [
+        "/#/about",
+        "/#/chatbot",
+        "/#/contact",
+        "/#/login",
+        "/#/photo-wall",
+        "/redirect"
+      ]
+    },
+    {
+      "route": "/#/deluxe-membership",
+      "title": "OWASP Juice Shop",
+      "landmarks": [],
+      "headings": [
+        "h1 Welcome to OWASP Juice Shop!",
+        "h1 https://owasp-juice.shop"
+      ],
+      "interactive": [
+        "button \"Close Welcome Banner\"",
+        "button \"Help getting started\"",
+        "button \"dismiss cookie message\"",
+        "button \"learn more about cookies\"",
+        "link \"Open Worldwide Application Security Project (OWASP)\"",
+        "link \"https://owasp-juice.shop\""
+      ],
+      "fields": [
+        {
+          "tag": "input",
+          "type": "text",
+          "label": "",
+          "constraints": {}
+        }
+      ],
+      "api_calls": [
+        "GET /api/Challenges/",
+        "GET /assets/i18n/en.json",
+        "GET /rest/admin/application-configuration",
+        "GET /rest/admin/application-version",
+        "GET /rest/languages",
+        "GET /socket.io/",
+        "POST /socket.io/"
+      ],
+      "links": [
+        "/#/about",
+        "/#/chatbot",
+        "/#/contact",
+        "/#/login",
+        "/#/photo-wall",
+        "/redirect"
+      ]
+    },
+    {
+      "route": "/#/forgot-password",
+      "title": "OWASP Juice Shop",
+      "landmarks": [],
+      "headings": [
+        "h1 Welcome to OWASP Juice Shop!",
+        "h1 https://owasp-juice.shop"
+      ],
+      "interactive": [
+        "button \"Close Welcome Banner\"",
+        "button \"Help getting started\"",
+        "button \"dismiss cookie message\"",
+        "button \"learn more about cookies\"",
+        "link \"Open Worldwide Application Security Project (OWASP)\"",
+        "link \"https://owasp-juice.shop\""
+      ],
+      "fields": [
+        {
+          "tag": "input",
+          "type": "text",
+          "label": "",
+          "constraints": {}
+        },
+        {
+          "tag": "input",
+          "type": "email",
+          "label": "Email address field",
+          "constraints": {
+            "required": true
+          }
+        },
+        {
+          "tag": "input",
+          "type": "password",
+          "label": "Field for the answer to the security question",
+          "constraints": {
+            "required": true
+          }
+        },
+        {
+          "tag": "input",
+          "type": "password",
+          "label": "Field for New Password",
+          "constraints": {
+            "required": true,
+            "minlength": "5"
+          }
+        },
+        {
+          "tag": "input",
+          "type": "password",
+          "label": "Field to confirm the new password",
+          "constraints": {
+            "required": true
+          }
+        }
+      ],
+      "api_calls": [
+        "GET /api/Challenges/",
+        "GET /assets/i18n/en.json",
+        "GET /rest/admin/application-configuration",
+        "GET /rest/admin/application-version",
+        "GET /rest/languages",
+        "GET /socket.io/",
+        "POST /socket.io/"
+      ],
+      "links": [
+        "/#/about",
+        "/#/chatbot",
+        "/#/contact",
+        "/#/login",
+        "/#/photo-wall",
+        "/redirect"
+      ]
+    },
+    {
+      "route": "/#/login",
+      "title": "OWASP Juice Shop",
+      "landmarks": [],
+      "headings": [
+        "h1 Welcome to OWASP Juice Shop!",
+        "h1 https://owasp-juice.shop"
+      ],
+      "interactive": [
+        "button \"Close Welcome Banner\"",
+        "button \"Help getting started\"",
+        "button \"dismiss cookie message\"",
+        "button \"learn more about cookies\"",
+        "link \"Open Worldwide Application Security Project (OWASP)\"",
+        "link \"https://owasp-juice.shop\""
+      ],
+      "fields": [
+        {
+          "tag": "input",
+          "type": "text",
+          "label": "",
+          "constraints": {}
+        },
+        {
+          "tag": "input",
+          "type": "",
+          "label": "Text field for the login email",
+          "constraints": {
+            "required": true
+          }
+        },
+        {
+          "tag": "input",
+          "type": "password",
+          "label": "Text field for the login password",
+          "constraints": {
+            "required": true,
+            "minlength": "1"
+          }
+        },
+        {
+          "tag": "input",
+          "type": "checkbox",
+          "label": "Checkbox to stay logged in or not logged in",
+          "constraints": {}
+        }
+      ],
+      "api_calls": [
+        "GET /api/Challenges/",
+        "GET /assets/i18n/en.json",
+        "GET /rest/admin/application-configuration",
+        "GET /rest/admin/application-version",
+        "GET /rest/languages",
+        "GET /socket.io/",
+        "POST /socket.io/"
+      ],
+      "links": [
+        "/#/about",
+        "/#/chatbot",
+        "/#/contact",
+        "/#/forgot-password",
+        "/#/login",
+        "/#/photo-wall",
+        "/#/register",
+        "/redirect"
+      ]
+    },
+    {
+      "route": "/#/photo-wall",
+      "title": "OWASP Juice Shop",
+      "landmarks": [],
+      "headings": [
+        "h1 Welcome to OWASP Juice Shop!",
+        "h1 https://owasp-juice.shop"
+      ],
+      "interactive": [
+        "button \"Close Welcome Banner\"",
+        "button \"Help getting started\"",
+        "button \"dismiss cookie message\"",
+        "button \"learn more about cookies\"",
+        "link \"Open Worldwide Application Security Project (OWASP)\"",
+        "link \"https://owasp-juice.shop\""
+      ],
+      "fields": [
+        {
+          "tag": "input",
+          "type": "text",
+          "label": "",
+          "constraints": {}
+        }
+      ],
+      "api_calls": [
+        "GET /api/Challenges/",
+        "GET /assets/i18n/en.json",
+        "GET /rest/admin/application-configuration",
+        "GET /rest/admin/application-version",
+        "GET /rest/languages",
+        "GET /rest/memories/",
+        "GET /socket.io/",
+        "POST /socket.io/"
+      ],
+      "links": [
+        "/#/about",
+        "/#/chatbot",
+        "/#/contact",
+        "/#/login",
+        "/#/photo-wall",
+        "/redirect"
+      ]
+    },
+    {
+      "route": "/#/register",
+      "title": "OWASP Juice Shop",
+      "landmarks": [],
+      "headings": [
+        "h1 Welcome to OWASP Juice Shop!",
+        "h1 https://owasp-juice.shop"
+      ],
+      "interactive": [
+        "button \"Close Welcome Banner\"",
+        "button \"Help getting started\"",
+        "button \"dismiss cookie message\"",
+        "button \"learn more about cookies\"",
+        "link \"Open Worldwide Application Security Project (OWASP)\"",
+        "link \"https://owasp-juice.shop\""
+      ],
+      "fields": [
+        {
+          "tag": "input",
+          "type": "text",
+          "label": "",
+          "constraints": {}
+        },
+        {
+          "tag": "input",
+          "type": "text",
+          "label": "Email address field",
+          "constraints": {
+            "required": true
+          }
+        },
+        {
+          "tag": "input",
+          "type": "password",
+          "label": "Field for the password",
+          "constraints": {
+            "required": true,
+            "minlength": "5",
+            "maxlength": "40"
+          }
+        },
+        {
+          "tag": "input",
+          "type": "password",
+          "label": "Field to confirm the password",
+          "constraints": {
+            "required": true
+          }
+        },
+        {
+          "tag": "input",
+          "type": "text",
+          "label": "Field for the answer to the security question",
+          "constraints": {
+            "required": true
+          }
+        }
+      ],
+      "api_calls": [
+        "GET /api/Challenges/",
+        "GET /api/SecurityQuestions/",
+        "GET /assets/i18n/en.json",
+        "GET /rest/admin/application-configuration",
+        "GET /rest/admin/application-version",
+        "GET /rest/languages",
+        "GET /socket.io/",
+        "POST /socket.io/"
+      ],
+      "links": [
+        "/#/about",
+        "/#/chatbot",
+        "/#/contact",
+        "/#/login",
+        "/#/photo-wall",
+        "/redirect"
+      ]
+    },
+    {
+      "route": "/#/search",
+      "title": "OWASP Juice Shop",
+      "landmarks": [],
+      "headings": [
+        "h1 Welcome to OWASP Juice Shop!",
+        "h1 https://owasp-juice.shop"
+      ],
+      "interactive": [
+        "button \"Close Welcome Banner\"",
+        "button \"Help getting started\"",
+        "button \"dismiss cookie message\"",
+        "button \"learn more about cookies\"",
+        "link \"Open Worldwide Application Security Project (OWASP)\"",
+        "link \"https://owasp-juice.shop\""
+      ],
+      "fields": [
+        {
+          "tag": "input",
+          "type": "text",
+          "label": "",
+          "constraints": {}
+        }
+      ],
+      "api_calls": [
+        "GET /api/Challenges/",
+        "GET /api/Quantitys/",
+        "GET /assets/i18n/en.json",
+        "GET /rest/admin/application-configuration",
+        "GET /rest/admin/application-version",
+        "GET /rest/languages",
+        "GET /rest/products/search",
+        "GET /socket.io/",
+        "POST /socket.io/"
+      ],
+      "links": [
+        "/#/about",
+        "/#/chatbot",
+        "/#/contact",
+        "/#/login",
+        "/#/photo-wall",
+        "/redirect"
+      ]
+    }
+  ],
+  "blocked_writes": [
+    "POST /socket.io/"
+  ]
+}

@@ -5,7 +5,8 @@
 //             installed
 //   app       for each pack of the active environment, whether its host accepts a TCP connection; a
 //             plain socket is enough to tell "host down" from "service answered with an error", and
-//             it is immune to TLS inspection proxies
+//             it is immune to TLS inspection proxies. When the host is up and the pack's app.json
+//             names a `login_path`, whether that page answers with a success or a redirect
 //   coverage  the designed / automated / published totals and the number of findings, once
 //             scripts/coverage-status.mjs exists; "unknown" with the reason when it cannot say
 //
@@ -21,6 +22,37 @@ import { activeEnvironment, loadConfig } from './lib/config.mjs';
 const CONNECT_TIMEOUT_MS = 4000;
 const COVERAGE_TIMEOUT_MS = 20000;
 const LOCAL_HOST = /^https?:\/\/(?:localhost|127\.0\.0\.1)\b/;
+
+/** The `login_path` of a pack's app.json, or null when it has none (or no readable app.json). */
+function loginPath(root, pack) {
+  try {
+    const path = JSON.parse(readFileSync(join(root, 'apps', pack, 'app.json'), 'utf8')).login_path;
+    return typeof path === 'string' && path.startsWith('/') ? path : null;
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * `{ ok, text }` for the pack's login page. The fragment of the path never reaches the server, so
+ * a single-page application is checked at the document that serves its login route.
+ */
+async function loginPage(baseUrl, path) {
+  const url = `${baseUrl.replace(/\/+$/, '')}${path}`.replace(/#.*$/, '');
+  try {
+    const response = await fetch(url, {
+      redirect: 'manual',
+      signal: AbortSignal.timeout(CONNECT_TIMEOUT_MS),
+    });
+    const ok = response.status < 400;
+    return { ok, text: `login page ${path}: ${ok ? 'answers' : 'FAILS with'} ${response.status}` };
+  } catch (error) {
+    return {
+      ok: false,
+      text: `login page ${path}: UNKNOWN (${error.name === 'TimeoutError' ? 'timed out' : 'no answer'})`,
+    };
+  }
+}
 
 /** 'UP', 'DOWN' or 'UNKNOWN (...)' for the host and port of `baseUrl`. */
 function reachability(baseUrl) {
@@ -110,8 +142,22 @@ if (env.packs.length === 0) {
 }
 // Probed in parallel, so the whole check stays within one connect timeout.
 const statuses = await Promise.all(env.packs.map((pack) => reachability(pack.baseUrl)));
+const logins = await Promise.all(
+  env.packs.map((pack, i) => {
+    const path = loginPath(root, pack.name);
+    return statuses[i] === 'UP' && path ? loginPage(pack.baseUrl, path) : null;
+  }),
+);
 env.packs.forEach((pack, i) => {
-  report.push(`App [${envLabel}] ${pack.name} ${pack.baseUrl || '(no host)'}: ${statuses[i]}`);
+  const login = logins[i] ? `; ${logins[i].text}` : '';
+  report.push(
+    `App [${envLabel}] ${pack.name} ${pack.baseUrl || '(no host)'}: ${statuses[i]}${login}`,
+  );
+  if (logins[i] && !logins[i].ok) {
+    report.push(
+      `Hint: ${pack.name} is up but its login page does not answer normally; cases that sign in through the form will fail until it does.`,
+    );
+  }
   if (statuses[i] !== 'DOWN') return;
   report.push(
     LOCAL_HOST.test(pack.baseUrl)

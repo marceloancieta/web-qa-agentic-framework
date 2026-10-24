@@ -26,13 +26,9 @@ regression in a container, network mocking and state injection, proven on Juice 
 
 | Id | Stage | Item | Origin | Status |
 |---|---|---|---|---|
-| JS-01 | W2 | Juice Shop pack: compose with the image pinned by digest, `app.json`, `recovery`, `npm run juice-shop:up`. | plan | in-progress |
-| JS-02 | W2 | Juice Shop `api/` clients (sign-up, login) and actors; cookies that dismiss the welcome and cookie banners. | plan | in-progress |
-| JS-03 | W2 | First Juice Shop pages and components, including a `NavigationMenu` that picks its strategy from the project. | plan | in-progress |
-| JS-04 | W2 | Smoke: UI login with credentials created during the run, and API login, on desktop Chromium and mobile Chrome. | plan | in-progress |
-| CORE-12 | W2 | `scaffold:app` creates a pack skeleton. | plan | todo |
-| CORE-13 | W2 | `app:map`: a read-only walk that records routes, landmarks, a summarized accessibility tree, forms with their HTML constraints and the endpoints seen; tracked, with a drift lane. | plan | todo |
-| CORE-14 | W2 | `session-probe` also checks each pack's login page, not only its host. | plan | todo |
+| CORE-12 | W2 | `scaffold:app` creates a pack skeleton. | plan | in-progress |
+| CORE-13 | W2 | `app:map`: a read-only walk that records routes, landmarks, a summarized accessibility tree, forms with their HTML constraints and the endpoints seen; tracked, with a drift lane. | plan | in-progress |
+| CORE-14 | W2 | `session-probe` also checks each pack's login page, not only its host. | plan | in-progress |
 | GATE-02 | W3 | `lint:harness`: no `waitForTimeout`, no XPath or `nth-child`, the locator policy (ADR 0007), soft assertions above an expected-failure arm. | ADR 0007 | todo |
 | GATE-03 | W3 | `lint:suite`, including a declared quality dimension without cases and `@desktop-only`/`@mobile-only` cases without a reason. | plan | todo |
 | GATE-04 | W3 | `lint:docs`: links and file references resolve, host placeholders in hand-written repro steps, and a `public-wording` rule over tracked docs, code comments and commit messages that reports phrases presenting the framework as derived from another codebase ("predecessor", "ported from", "copied from", "based on an earlier", "carried over"), matched on word boundaries so words such as "reporting" pass; its self-test holds the phrases and accepted look-alikes. Tone in general stays a DOC-02 review. | exp | todo |
@@ -109,3 +105,7 @@ regression in a container, network mocking and state injection, proven on Juice 
 | CORE-07 | Evidence and redaction: traces and screenshots mask sensitive fields; HAR files pass the secret scan. | `58a7a83` |
 | CORE-08 | Page health guard on every test, with an opt-out that needs a reason: broken images, failed same-origin requests, console errors, uncaught exceptions. | `58a7a83` |
 | CORE-09 | Keyboard helper (tab order by accessible name, visible focus, no traps), overflow and no-horizontal-scroll checks, `page.clock` helpers, upload and download helpers. | `58a7a83` |
+| JS-01 | Juice Shop pack: compose with the image pinned by digest, `app.json`, `recovery`, `npm run juice-shop:up`. | `b267400` |
+| JS-02 | Juice Shop `api/` clients (sign-up, login) and actors; cookies that dismiss the welcome and cookie banners. | `b267400` |
+| JS-03 | First Juice Shop pages and components, including a `NavigationMenu` that picks its strategy from the project. | `b267400` |
+| JS-04 | Smoke: UI login with credentials created during the run, and API login, on desktop Chromium and mobile Chrome. | `b267400` |

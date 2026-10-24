@@ -1,7 +1,7 @@
 // Test harness: spawn a hook with a synthetic payload and classify its verdict.
 
 import { spawn } from 'node:child_process';
-import { mkdtempSync, writeFileSync } from 'node:fs';
+import { mkdirSync, mkdtempSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -61,7 +61,10 @@ export function runHook(script, payload, { projectDir, env = {} } = {}) {
 export function tempProject({ config, files = {} } = {}) {
   const dir = mkdtempSync(join(tmpdir(), 'hooks-test-'));
   if (config) writeFileSync(join(dir, 'qa-config.json'), JSON.stringify(config));
-  for (const [name, content] of Object.entries(files)) writeFileSync(join(dir, name), content);
+  for (const [name, content] of Object.entries(files)) {
+    mkdirSync(dirname(join(dir, name)), { recursive: true });
+    writeFileSync(join(dir, name), content);
+  }
   return dir;
 }
 

@@ -3,8 +3,25 @@
   "version": "20.3.0",
   "title": "OWASP Juice Shop",
   "description": "A deliberately insecure web shop, run locally from its official image. The fully worked pack: every phase, actors, mocks, accessibility and visual checks.",
-  "breakpoints": { "toolbar": 960 },
+  "login_path": "/#/login",
+  "breakpoints": {
+    "toolbar": 960
+  },
   "third_party_hosts": [],
   "secret_keys": ["bid"],
-  "identity_fields": ["email", "umail", "username"]
+  "identity_fields": ["email", "umail", "username"],
+  "app_map": {
+    "start": [
+      "/#/",
+      "/#/login",
+      "/#/register",
+      "/#/forgot-password",
+      "/#/search",
+      "/#/contact",
+      "/#/about",
+      "/#/photo-wall",
+      "/#/deluxe-membership"
+    ],
+    "exclude": ["^/redirect", "logout", "score-board", "/ftp", "/api-docs", "/metrics"]
+  }
 }
