@@ -18,7 +18,14 @@ test('every file denied to Read is denied to Edit, and the other way round', () 
 });
 
 test('the secret files and the environment dumps stay denied', () => {
-  for (const pattern of ['**/.env', '**/.env.local', '**/.env.*.local', '**/*.key', '**/*.pem']) {
+  for (const pattern of [
+    '**/.env',
+    '**/.env.local',
+    '**/.env.*.local',
+    '**/*.key',
+    '**/*.pem',
+    '**/.auth/**',
+  ]) {
     assert.ok(patterns('Read').includes(pattern), pattern);
   }
   for (const command of ['printenv', 'env', 'set']) assert.ok(patterns('Bash').includes(command));

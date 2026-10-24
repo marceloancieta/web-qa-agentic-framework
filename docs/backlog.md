@@ -26,18 +26,13 @@ regression in a container, network mocking and state injection, proven on Juice 
 
 | Id | Stage | Item | Origin | Status |
 |---|---|---|---|---|
-| CORE-01 | W1 | qa-config schema with app packs (`app.environments.<env>.packs.<pack>`, `app.projects`, `quality_gate`), `qa-config.example.json` with the commit rules on, and `config:check` in the gates. | plan | in-progress |
-| CORE-02 | W1 | `playwright.config.ts` built from qa-config: desktop Chromium, WebKit and Firefox, tablet, mobile Chrome and Safari, landscape variants; `@desktop-only` and `@mobile-only` filtered per project. | plan | in-progress |
-| CORE-03 | W1 | Actor fixture: a user per worker created through the pack's API, `storageState` under `.auth/`, the pack's API client bound to the same user, cleanup in `finally`. | plan | todo |
-| CORE-04 | W1 | Accessibility fixture on axe with the WCAG tags from qa-config and a per-pack baseline (`a11y-known.json`: rule, target, tracker key, expiry). | practice | todo |
-| CORE-05 | W1 | Visual fixture: masks owned by page objects, per-pack `stylePath` and `maxDiffPixelRatio`, animations and caret off. | plan | todo |
-| CORE-06 | W1 | Network helpers: `blockThirdParties`, `mockJson`, `failWith`, `delay`, `offline`, optional `routeFromHAR` with redaction. | plan | todo |
-| CORE-07 | W1 | Evidence and redaction: traces and screenshots mask sensitive fields; HAR files pass the secret scan. | exp | todo |
-| CORE-08 | W1 | Page health guard on every test, with an opt-out that needs a reason: broken images, failed same-origin requests, console errors, uncaught exceptions. | plan | todo |
-| CORE-09 | W1 | Keyboard helper (tab order by accessible name, visible focus, no traps), overflow and no-horizontal-scroll checks, `page.clock` helpers, upload and download helpers. | plan | todo |
-| CORE-10 | W1 | Per-pack preflight: every entry point names a missing secret before the run starts. | exp | in-progress |
-| CORE-11 | W1 | The script libraries the core uses from the start: env, env-names, tags, lint, corpus. The other generic libraries arrive with their first consumer: results, playwright-lane and container with the gates and lanes (W3), registry with the suite linter (W3), pairwise and decision-table with the design phase (W5), and the anonymization, rng, clock, run-lock and data-gate helpers with the fixtures that use them. | plan | in-progress |
-| GATE-01 | W1 | `lint:layers`: no `page.locator`, `page.route` or CSS in specs, no `expect` in page objects, no import of `apps/` from the core. | ADR 0005 | in-progress |
+| CORE-03 | W1 | Actor fixture: a user per worker created through the pack's API, `storageState` under `.auth/`, the pack's API client bound to the same user, cleanup in `finally`. | plan | in-progress |
+| CORE-04 | W1 | Accessibility fixture on axe with the WCAG tags from qa-config and a per-pack baseline (`a11y-known.json`: rule, target, tracker key, expiry). | practice | in-progress |
+| CORE-05 | W1 | Visual fixture: masks owned by page objects, per-pack `stylePath` and `maxDiffPixelRatio`, animations and caret off. | plan | in-progress |
+| CORE-06 | W1 | Network helpers: `blockThirdParties`, `mockJson`, `failWith`, `delay`, `offline`, optional `routeFromHAR` with redaction. | plan | in-progress |
+| CORE-07 | W1 | Evidence and redaction: traces and screenshots mask sensitive fields; HAR files pass the secret scan. | exp | in-progress |
+| CORE-08 | W1 | Page health guard on every test, with an opt-out that needs a reason: broken images, failed same-origin requests, console errors, uncaught exceptions. | plan | in-progress |
+| CORE-09 | W1 | Keyboard helper (tab order by accessible name, visible focus, no traps), overflow and no-horizontal-scroll checks, `page.clock` helpers, upload and download helpers. | plan | in-progress |
 | JS-01 | W2 | Juice Shop pack: compose with the image pinned by digest, `app.json`, `recovery`, `npm run juice-shop:up`. | plan | todo |
 | JS-02 | W2 | Juice Shop `api/` clients (sign-up, login) and actors; cookies that dismiss the welcome and cookie banners. | plan | todo |
 | JS-03 | W2 | First Juice Shop pages and components, including a `NavigationMenu` that picks its strategy from the project. | plan | todo |
@@ -47,7 +42,7 @@ regression in a container, network mocking and state injection, proven on Juice 
 | CORE-14 | W2 | `session-probe` also checks each pack's login page, not only its host. | plan | todo |
 | GATE-02 | W3 | `lint:harness`: no `waitForTimeout`, no XPath or `nth-child`, the locator policy (ADR 0007), soft assertions above an expected-failure arm. | ADR 0007 | todo |
 | GATE-03 | W3 | `lint:suite`, including a declared quality dimension without cases and `@desktop-only`/`@mobile-only` cases without a reason. | plan | todo |
-| GATE-04 | W3 | `lint:docs`: links and file references resolve, host placeholders in hand-written repro steps. | exp | todo |
+| GATE-04 | W3 | `lint:docs`: links and file references resolve, host placeholders in hand-written repro steps, and a `public-wording` rule over tracked docs, code comments and commit messages that reports phrases presenting the framework as derived from another codebase ("predecessor", "ported from", "copied from", "based on an earlier", "carried over"), matched on word boundaries so words such as "reporting" pass; its self-test holds the phrases and accepted look-alikes. Tone in general stays a DOC-02 review. | exp | todo |
 | GATE-05 | W3 | Coverage status, cited status and traceability; an integration requirement covered only by `@mocked` cases is refused. | plan | todo |
 | GATE-06 | W3 | Quality gate: pass rate, new critical and serious accessibility violations, visual diff limits. | plan | todo |
 | GATE-07 | W3 | Visual lane runs only in the pinned Playwright image (a gate checks the image matches `@playwright/test`), refuses `--update-snapshots` in the run phase; ADR on container lanes. | plan | todo |
@@ -67,9 +62,10 @@ regression in a container, network mocking and state injection, proven on Juice 
 | CI-01 | W8 | Project matrix with `--shard` and the `blob` reporter, `merge-reports`, quality gate, report to test management. | plan | todo |
 | CI-02 | W8 | GitHub Actions workflow and a Jenkinsfile that only call the npm scripts. | plan | todo |
 | SD-01 | W9 | SauceDemo pack, read-only: cookie and `localStorage` injection, `visual_user` proves the visual lane fails, `performance_glitch_user` for anti-flake, `locked_out_user`. | plan | todo |
-| DOC-01 | W9 | README, onboarding and guides. | plan | todo |
+| DOC-01 | W9 | README, onboarding and guides. The README separates what the framework offers ("What you get": a table of capabilities such as the five gated phases, device projects, accessibility with a baseline, visual regression in a container, network mocking, adapters, skills, hooks and agents) from what it is built with ("Built with": Node, Playwright, TypeScript, axe, Docker, Allure), keeps badges to license, Node and Playwright (CI once the repository is on GitHub), and adds a table of contents when it grows past about six sections. | practice | todo |
 | DOC-02 | W9 | Read-only documentation review before the release. It also removes the temporary "What arrives when" table from `CLAUDE.md`, reduces architecture section 8 to one line on what is shared with the sibling API framework, and moves architecture section 9 to `docs/lessons-learned.md` or drops it, so the public docs describe how the framework works, not how it was built. The backlog rows and the lessons describe technical work only, with no personal notes, comments about third parties or hints of where a lesson came from (the denylist scan catches names and hosts, not tone). | exp | todo |
 | CI-03 | W9 | CodeQL and `npm audit` clean; full-history scans (gitleaks, denylist, banned wording). | exp | todo |
+| DOC-04 | W9 | Community files before publishing. `SECURITY.md`: report through GitHub private vulnerability reporting, never a public issue; scope (a vulnerability of an application under test, such as the deliberately vulnerable Juice Shop, belongs to that application's project, not this one); what the framework does to keep secrets out (secret-guard, gitleaks and the denylist, redaction of traces, HAR files and screenshots, `.auth/` ignored); responsible use (only the systems qa-config names and the tester is authorized to test, never production); supported versions (before 1.0, only the latest). `CONTRIBUTING.md`. `CODE_OF_CONDUCT.md` (Contributor Covenant 2.1), once the owner chooses its contact channel. | practice | todo |
 | DOC-03 | W9 | CHANGELOG and tag `v0.1.0`; the GitHub repository and any publishing only with the owner's approval. | plan | todo |
 
 **Acceptance for v0.1.0**
@@ -108,3 +104,8 @@ regression in a container, network mocking and state injection, proven on Juice 
 | Id | Item | Closed by |
 |---|---|---|
 | REPO-01 | Bootstrap and safety: Apache-2.0 and NOTICE, gitleaks and the local denylist in the git hooks, Claude Code hooks and settings, minimal gates, agent guides, ADRs 0001 to 0007. | `678ffb6` |
+| CORE-01 | qa-config schema with app packs (`app.environments.<env>.packs.<pack>`, `app.projects`, `quality_gate`), `qa-config.example.json` with the commit rules on, and `config:check` in the gates. | `12b64de` |
+| CORE-02 | `playwright.config.ts` built from qa-config: desktop Chromium, WebKit and Firefox, tablet, mobile Chrome and Safari, landscape variants; `@desktop-only` and `@mobile-only` filtered per project. | `12b64de` |
+| CORE-10 | Per-pack preflight: every entry point names a missing secret before the run starts. | `12b64de` |
+| CORE-11 | The script libraries the core uses from the start: env, env-names, tags, lint, corpus. The other generic libraries arrive with their first consumer: results, playwright-lane and container with the gates and lanes (W3), registry with the suite linter (W3), pairwise and decision-table with the design phase (W5), and the anonymization, rng, clock, run-lock and data-gate helpers with the fixtures that use them. | `12b64de` |
+| GATE-01 | `lint:layers`: no `page.locator`, `page.route` or CSS in specs, no `expect` in page objects, no import of `apps/` from the core. | `12b64de` |

@@ -27,6 +27,21 @@ const PRE_TOOL_USE = [
   ['Read .env', pre('Read', { file_path: 'C:\\proj\\.env' }), 'block'],
   ['Read .env.production', pre('Read', { file_path: '/proj/.env.production' }), 'block'],
   ['Read an ssh key', pre('Read', { file_path: '/home/u/.ssh/id_rsa' }), 'block'],
+  [
+    'Read a browser session',
+    pre('Read', { file_path: 'C:\\proj\\.auth\\local\\juice-shop\\customer-0.json' }),
+    'block',
+  ],
+  [
+    'Bash cat a browser session',
+    pre('Bash', { command: 'cat .auth/ci/shop/admin-1.json' }),
+    'block',
+  ],
+  [
+    'Read a file whose folder only looks like .auth',
+    pre('Read', { file_path: '/proj/docs/oauth/notes.md' }),
+    'allow',
+  ],
   ['Bash cat .env', pre('Bash', { command: 'cat .env' }), 'block'],
   ['Bash reading a .pem', pre('Bash', { command: 'type certs\\server.pem' }), 'block'],
   ['Bash reading a bare .key file', pre('Bash', { command: 'cat server.key' }), 'block'],

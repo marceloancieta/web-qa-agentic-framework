@@ -15,9 +15,11 @@ import { block, decide, readPayload, respond, allow } from './lib/io.mjs';
 import { findCredentials, hasAnySecret, redactValue, SECRET_NAME_WORDS } from './lib/secrets.mjs';
 
 // File names and path suffixes that conventionally contain secrets, grouped by where they come from.
-// Entries with a `/` match the end of a path; the rest match the file name (glob `*` allowed).
+// Entries ending in `/` match everything inside a folder of that name; other entries with a `/`
+// match the end of a path; the rest match the file name (glob `*` allowed).
 const SENSITIVE_FILES = {
   'environment files': ['.env', '.env.*'],
+  'browser sessions': ['.auth/'],
   'key material': ['*.pem', '*.key', '*.p12', '*.pfx'],
   ssh: ['.ssh/id_rsa', '.ssh/id_ecdsa', '.ssh/id_ed25519', '.ssh/config'],
   'cloud CLIs': ['.aws/credentials', '.aws/config', '.azure/accessTokens.json', '.kube/config'],
@@ -52,12 +54,14 @@ const globToRegExp = (glob) =>
 const SENSITIVE_MATCHERS = Object.values(SENSITIVE_FILES)
   .flat()
   .map((entry) =>
-    entry.includes('/')
-      ? (path) => path === entry.toLowerCase() || path.endsWith(`/${entry.toLowerCase()}`)
-      : (
-          (re) => (_path, name) =>
-            re.test(name)
-        )(globToRegExp(entry)),
+    entry.endsWith('/')
+      ? (path) => path.startsWith(entry.toLowerCase()) || path.includes(`/${entry.toLowerCase()}`)
+      : entry.includes('/')
+        ? (path) => path === entry.toLowerCase() || path.endsWith(`/${entry.toLowerCase()}`)
+        : (
+            (re) => (_path, name) =>
+              re.test(name)
+          )(globToRegExp(entry)),
   );
 
 function isSensitiveFile(raw) {

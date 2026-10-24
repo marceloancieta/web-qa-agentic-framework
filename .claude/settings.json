@@ -14,6 +14,7 @@
       "Read(**/*.pem)",
       "Read(**/*.pfx)",
       "Read(**/*.p12)",
+      "Read(**/.auth/**)",
       "Edit(~/.ssh/**)",
       "Edit(**/credentials*)",
       "Edit(**/.env)",
@@ -22,7 +23,8 @@
       "Edit(**/*.key)",
       "Edit(**/*.pem)",
       "Edit(**/*.pfx)",
-      "Edit(**/*.p12)"
+      "Edit(**/*.p12)",
+      "Edit(**/.auth/**)"
     ]
   },
   "hooks": {

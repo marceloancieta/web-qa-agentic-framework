@@ -1,0 +1,89 @@
+// Actors: a role of the application, signed in without the UI. The core manages the life of a
+// session (create the account when the role is provisioned, sign in once per worker, keep the
+// browser state on disk, open signed-in contexts, remove the account at the end); each pack says
+// how its application does those steps through an ActorProvider in its fixtures.ts.
+
+import { randomBytes } from 'node:crypto';
+import { join } from 'node:path';
+import type { APIRequestContext, BrowserContext } from '@playwright/test';
+import { missingVariableMessage } from '../scripts/lib/env-names.mjs';
+import type { ActorConfig, QaRuntime } from './config';
+
+function variable(env: NodeJS.ProcessEnv, name: string, why: string): string {
+  const value = env[name]?.trim();
+  if (!value) throw new Error(missingVariableMessage(why, name));
+  return value;
+}
+
+/** The browser state Playwright saves and restores: cookies and local storage per origin. */
+export type StorageState = Awaited<ReturnType<BrowserContext['storageState']>>;
+
+export interface Account {
+  username: string;
+  password: string;
+  /** The application's own id for the account, when the pack needs it to remove it. */
+  id?: string;
+}
+
+export interface SignedIn {
+  /** What the browser needs to be signed in: a session cookie, a token in local storage. */
+  storageState: StorageState;
+  /** Headers the pack's API client needs for the same session, such as a bearer token. */
+  apiHeaders?: Record<string, string>;
+  /** Secret values this session produced (tokens), removed from every piece of evidence. */
+  secrets?: string[];
+}
+
+export interface ActorContext {
+  /** A request context on the pack's base URL, without a session. */
+  api: APIRequestContext;
+  qa: QaRuntime;
+  role: string;
+  /** The parallel worker, so names created by two workers never collide. */
+  worker: number;
+}
+
+export interface ActorProvider {
+  /** Create a fresh account for a role whose account is `provisioned`. */
+  provision?(context: ActorContext): Promise<Account>;
+  /** Turn an account into a session, through the API or by building the cookie the app expects. */
+  signIn(context: ActorContext & { account: Account }): Promise<SignedIn>;
+  /** Remove an account the provider created. Runs once per worker, at the end. */
+  remove?(context: ActorContext & { account: Account; session: SignedIn }): Promise<void>;
+}
+
+/** The account of an `existing` actor, read from the variables its entry names. */
+export function existingAccount(
+  actor: Extract<ActorConfig, { account: 'existing' }>,
+  role: string,
+  env: NodeJS.ProcessEnv = process.env,
+): Account {
+  const why = `Actor "${role}"`;
+  return {
+    username: variable(env, actor.username_env, why),
+    password: variable(env, actor.password_env, why),
+  };
+}
+
+/**
+ * A suffix for names a provider creates (`customer-<suffix>@example.test`): unique per run and
+ * worker, and readable in a report.
+ */
+export function uniqueSuffix(worker: number): string {
+  return `${Date.now().toString(36)}-w${worker}-${randomBytes(3).toString('hex')}`;
+}
+
+/** A password for a provisioned account: random, long, with every character class. */
+export function generatedPassword(): string {
+  return `Qa-${randomBytes(12).toString('base64url')}-9a`;
+}
+
+/** Where a worker keeps a role's browser state: `.auth/<env>/<pack>/<role>-<worker>.json`. */
+export function storageStatePath(
+  authDir: string,
+  qa: QaRuntime,
+  role: string,
+  worker: number,
+): string {
+  return join(authDir, qa.environment, qa.pack, `${role}-${worker}.json`);
+}

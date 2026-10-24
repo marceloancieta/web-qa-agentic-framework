@@ -23,6 +23,9 @@ export interface AppManifest {
   identity_fields?: string[];
   /** The most workers that may run the pack's specs at once. Unset: no limit. */
   workers?: number;
+  /** Visual comparison settings: the share of pixels that may differ, and a stylesheet (relative to
+   * the pack) that hides volatile parts before a screenshot. */
+  visual?: { maxDiffPixelRatio?: number; stylePath?: string };
 }
 
 export interface AppPack extends AppManifest {
@@ -61,6 +64,16 @@ export function manifestProblems(manifest: Partial<AppManifest>, dirName: string
   }
   if (manifest.workers !== undefined && !isWholeNumber(manifest.workers, 1)) {
     problems.push('workers must be a whole number of at least 1');
+  }
+  const ratio = manifest.visual?.maxDiffPixelRatio;
+  if (ratio !== undefined && !(typeof ratio === 'number' && ratio >= 0 && ratio <= 1)) {
+    problems.push('visual.maxDiffPixelRatio must be a number from 0 to 1');
+  }
+  const stylePath = manifest.visual?.stylePath;
+  if (stylePath !== undefined && !/^[\w./-]+\.css$/.test(stylePath)) {
+    problems.push('visual.stylePath must be a .css file inside the pack');
+  } else if (stylePath?.split('/').includes('..')) {
+    problems.push('visual.stylePath must be a .css file inside the pack');
   }
   return problems;
 }

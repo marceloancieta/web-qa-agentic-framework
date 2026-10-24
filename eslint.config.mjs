@@ -30,6 +30,8 @@ export default tseslint.config(
       '@typescript-eslint/no-explicit-any': 'error',
       '@typescript-eslint/no-unused-vars': ['error', { argsIgnorePattern: '^_' }],
       'no-console': 'off',
+      // A Playwright fixture without dependencies is written `async ({}, use) => ...`.
+      'no-empty-pattern': ['error', { allowObjectPatternsAsParameters: true }],
     },
   },
   prettier,

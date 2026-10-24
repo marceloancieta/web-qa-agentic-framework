@@ -18,6 +18,7 @@ Claude Code skills, rules, hooks and agents that carry the process. It is the si
 
 ```sh
 npm ci
+npx playwright install chromium   # the core's unit tests run in a real browser
 npm run hooks:install   # secret scan and denylist before each commit, gates before each push
 npm run gates
 ```

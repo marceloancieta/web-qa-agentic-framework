@@ -5,7 +5,8 @@ folder as Node ES modules, so the hooks behave identically on Windows, macOS, Li
 
 The same file holds a first layer in front of the hooks: `permissions.deny` refuses the environment
 dumps (`printenv`, `env`, `set`) and reading or editing the files that usually hold secrets (`.env`
-and its local variants, keys, certificates, `credentials*`, `~/.ssh`). Claude Code applies it before
+and its local variants, keys, certificates, `credentials*`, `~/.ssh`, and the browser sessions the
+actor fixtures keep under `.auth/`). Claude Code applies it before
 any hook runs; secret-guard still checks every call, because a rule matches a tool and a path, not
 what a command does. `__tests__/settings.test.mjs` keeps the read and edit lists equal.
 
