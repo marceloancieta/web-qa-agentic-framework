@@ -26,17 +26,10 @@ regression in a container, network mocking and state injection, proven on Juice 
 
 | Id | Stage | Item | Origin | Status |
 |---|---|---|---|---|
-| CORE-03 | W1 | Actor fixture: a user per worker created through the pack's API, `storageState` under `.auth/`, the pack's API client bound to the same user, cleanup in `finally`. | plan | in-progress |
-| CORE-04 | W1 | Accessibility fixture on axe with the WCAG tags from qa-config and a per-pack baseline (`a11y-known.json`: rule, target, tracker key, expiry). | practice | in-progress |
-| CORE-05 | W1 | Visual fixture: masks owned by page objects, per-pack `stylePath` and `maxDiffPixelRatio`, animations and caret off. | plan | in-progress |
-| CORE-06 | W1 | Network helpers: `blockThirdParties`, `mockJson`, `failWith`, `delay`, `offline`, optional `routeFromHAR` with redaction. | plan | in-progress |
-| CORE-07 | W1 | Evidence and redaction: traces and screenshots mask sensitive fields; HAR files pass the secret scan. | exp | in-progress |
-| CORE-08 | W1 | Page health guard on every test, with an opt-out that needs a reason: broken images, failed same-origin requests, console errors, uncaught exceptions. | plan | in-progress |
-| CORE-09 | W1 | Keyboard helper (tab order by accessible name, visible focus, no traps), overflow and no-horizontal-scroll checks, `page.clock` helpers, upload and download helpers. | plan | in-progress |
-| JS-01 | W2 | Juice Shop pack: compose with the image pinned by digest, `app.json`, `recovery`, `npm run juice-shop:up`. | plan | todo |
-| JS-02 | W2 | Juice Shop `api/` clients (sign-up, login) and actors; cookies that dismiss the welcome and cookie banners. | plan | todo |
-| JS-03 | W2 | First Juice Shop pages and components, including a `NavigationMenu` that picks its strategy from the project. | plan | todo |
-| JS-04 | W2 | Smoke: UI login with credentials created during the run, and API login, on desktop Chromium and mobile Chrome. | plan | todo |
+| JS-01 | W2 | Juice Shop pack: compose with the image pinned by digest, `app.json`, `recovery`, `npm run juice-shop:up`. | plan | in-progress |
+| JS-02 | W2 | Juice Shop `api/` clients (sign-up, login) and actors; cookies that dismiss the welcome and cookie banners. | plan | in-progress |
+| JS-03 | W2 | First Juice Shop pages and components, including a `NavigationMenu` that picks its strategy from the project. | plan | in-progress |
+| JS-04 | W2 | Smoke: UI login with credentials created during the run, and API login, on desktop Chromium and mobile Chrome. | plan | in-progress |
 | CORE-12 | W2 | `scaffold:app` creates a pack skeleton. | plan | todo |
 | CORE-13 | W2 | `app:map`: a read-only walk that records routes, landmarks, a summarized accessibility tree, forms with their HTML constraints and the endpoints seen; tracked, with a drift lane. | plan | todo |
 | CORE-14 | W2 | `session-probe` also checks each pack's login page, not only its host. | plan | todo |
@@ -109,3 +102,10 @@ regression in a container, network mocking and state injection, proven on Juice 
 | CORE-10 | Per-pack preflight: every entry point names a missing secret before the run starts. | `12b64de` |
 | CORE-11 | The script libraries the core uses from the start: env, env-names, tags, lint, corpus. The other generic libraries arrive with their first consumer: results, playwright-lane and container with the gates and lanes (W3), registry with the suite linter (W3), pairwise and decision-table with the design phase (W5), and the anonymization, rng, clock, run-lock and data-gate helpers with the fixtures that use them. | `12b64de` |
 | GATE-01 | `lint:layers`: no `page.locator`, `page.route` or CSS in specs, no `expect` in page objects, no import of `apps/` from the core. | `12b64de` |
+| CORE-03 | Actor fixture: a user per worker created through the pack's API, `storageState` under `.auth/`, the pack's API client bound to the same user, cleanup in `finally`. | `58a7a83` |
+| CORE-04 | Accessibility fixture on axe with the WCAG tags from qa-config and a per-pack baseline (`a11y-known.json`: rule, target, tracker key, expiry). | `58a7a83` |
+| CORE-05 | Visual fixture: masks owned by page objects, per-pack `stylePath` and `maxDiffPixelRatio`, animations and caret off. | `58a7a83` |
+| CORE-06 | Network helpers: `blockThirdParties`, `mockJson`, `failWith`, `delay`, `offline`, optional `routeFromHAR` with redaction. | `58a7a83` |
+| CORE-07 | Evidence and redaction: traces and screenshots mask sensitive fields; HAR files pass the secret scan. | `58a7a83` |
+| CORE-08 | Page health guard on every test, with an opt-out that needs a reason: broken images, failed same-origin requests, console errors, uncaught exceptions. | `58a7a83` |
+| CORE-09 | Keyboard helper (tab order by accessible name, visible focus, no traps), overflow and no-horizontal-scroll checks, `page.clock` helpers, upload and download helpers. | `58a7a83` |

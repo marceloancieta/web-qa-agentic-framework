@@ -208,6 +208,10 @@ export function createTest(provider: ActorProvider) {
     ],
 
     pageHealth: [{}, { option: true }],
+    context: async ({ context, qa }, use) => {
+      await provider.prepareContext?.(context, qa);
+      await use(context);
+    },
     page: async ({ page, pageHealth }, use, testInfo) => {
       checkOptions(pageHealth);
       const guard = watchPageHealth(page, pageHealth);
@@ -226,6 +230,16 @@ export function createTest(provider: ActorProvider) {
           baseURL: `${qa.baseUrl}/`,
           storageState: session?.file,
         });
+        await provider.prepareContext?.(context, qa);
+        for (const { origin, items } of session?.signedIn.sessionStorage ?? []) {
+          await context.addInitScript(
+            ({ origin: target, entries }) => {
+              if (location.origin !== target) return;
+              for (const [name, value] of entries) sessionStorage.setItem(name, value);
+            },
+            { origin, entries: Object.entries(items) },
+          );
+        }
         const page = await context.newPage();
         const guard = watchPageHealth(page, pageHealth);
         const api = await playwright.request.newContext({

@@ -32,7 +32,11 @@ const provider: ActorProvider = {
       },
       apiHeaders: { authorization: `Bearer ${token}` },
       secrets: [token],
+      sessionStorage: [{ origin: qa.baseUrl, items: { basket: `basket-of-${account.username}` } }],
     };
+  },
+  async prepareContext(context, qa) {
+    await context.addCookies([{ name: 'banner', value: 'dismissed', url: qa.baseUrl }]);
   },
   async remove({ api, account, session }) {
     await api.delete(`api/users/${encodeURIComponent(account.username)}`, {
@@ -125,6 +129,22 @@ test('an existing account, anonymous, and one session per role and worker', asyn
   expect(
     existsSync(join(authDir, 'unit', 'fake-app', `admin-${test.info().workerIndex}.json`)),
   ).toBe(true);
+});
+
+test('every context is prepared, and actors get their session storage', async ({
+  actor,
+  page,
+  fakeApp,
+}) => {
+  await page.goto(`${fakeApp.url}/`);
+  expect(await page.evaluate(() => document.cookie)).toContain('banner=dismissed');
+  expect(await page.evaluate(() => sessionStorage.getItem('basket'))).toBeNull();
+  const customer = await actor();
+  await customer.page.goto('/');
+  expect(await customer.page.evaluate(() => document.cookie)).toContain('banner=dismissed');
+  expect(await customer.page.evaluate(() => sessionStorage.getItem('basket'))).toBe(
+    `basket-of-${customer.account?.username}`,
+  );
 });
 
 test('an unknown role names the roles there are', async ({ actor }) => {

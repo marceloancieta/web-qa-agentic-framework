@@ -32,6 +32,11 @@ export interface SignedIn {
   apiHeaders?: Record<string, string>;
   /** Secret values this session produced (tokens), removed from every piece of evidence. */
   secrets?: string[];
+  /**
+   * Session storage the application expects, per origin. Playwright's saved state does not keep
+   * it, so the core writes it into every page of the actor before the application's scripts run.
+   */
+  sessionStorage?: { origin: string; items: Record<string, string> }[];
 }
 
 export interface ActorContext {
@@ -44,6 +49,11 @@ export interface ActorContext {
 }
 
 export interface ActorProvider {
+  /**
+   * Prepare every browser context of the pack, signed in or not: cookies that dismiss a welcome or
+   * consent banner, a language. Runs before the first page opens.
+   */
+  prepareContext?(context: BrowserContext, qa: QaRuntime): Promise<void>;
   /** Create a fresh account for a role whose account is `provisioned`. */
   provision?(context: ActorContext): Promise<Account>;
   /** Turn an account into a session, through the API or by building the cookie the app expects. */

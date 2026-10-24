@@ -12,7 +12,7 @@
           "juice-shop": {
             "base_url": "http://localhost:3000",
             "allow_writes": true,
-            "recovery": { "command": "docker compose restart juice-shop" },
+            "recovery": { "command": "docker compose -f docker/compose.yml restart juice-shop" },
             "actors": {
               "customer": { "account": "provisioned" }
             }
@@ -43,7 +43,7 @@
           "juice-shop": {
             "base_url": "http://localhost:3000",
             "allow_writes": true,
-            "recovery": { "command": "docker compose restart juice-shop" },
+            "recovery": { "command": "docker compose -f docker/compose.yml restart juice-shop" },
             "actors": {
               "customer": { "account": "provisioned" }
             }
