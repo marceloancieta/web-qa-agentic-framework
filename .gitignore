@@ -1,0 +1,44 @@
+# Secrets and per-machine config - NEVER commit
+.env
+.env.*
+!.env.example
+qa-config.json
+
+# Real or provisioned test data. Only the `.example.json` sibling (placeholders) is tracked.
+*.local.json
+
+# Browser sessions written by the actor fixtures (signed-in storageState per role and worker)
+.auth/
+
+# Node
+node_modules/
+npm-debug.log*
+*.tsbuildinfo
+# package-lock.json IS committed: `npm ci` (CI) refuses to run without it.
+
+# Test runner output
+/playwright-report/
+/test-results/
+/blob-report/
+/playwright/.cache/
+
+# Allure
+/allure-results/
+/allure-report/
+/.allure/
+/allure-results.lock
+
+# Editors and operating systems
+.vscode/
+.idea/
+Thumbs.db
+.DS_Store
+
+# Personal Claude Code overrides; the team file .claude/settings.json stays tracked
+.claude/settings.local.json
+
+# Git worktrees created for parallel agent work
+.claude/worktrees/
+
+# Quality gate and lane output
+/reports/
