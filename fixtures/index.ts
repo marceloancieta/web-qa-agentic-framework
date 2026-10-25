@@ -57,6 +57,7 @@ import {
   type PageHealthOptions,
 } from '../helpers/page-health';
 import type { RedactionPolicy } from '../helpers/redact';
+import { applyCaseMeta } from '../helpers/case-meta';
 import { screenshotOptions } from '../helpers/visual';
 
 export { expect };
@@ -72,6 +73,8 @@ export interface Actor {
 }
 
 export interface CoreTestFixtures {
+  /** Automatic: the case identity and labels of the results (helpers/case-meta.ts). */
+  caseMeta: void;
   actor: (role?: string) => Promise<Actor>;
   pageHealth: PageHealthOptions;
   a11y: {
@@ -142,6 +145,13 @@ async function verifyHealth(
 /** The `test` of a pack: the core fixtures with the pack's way of signing actors in. */
 export function createTest(provider: ActorProvider) {
   return base.extend<CoreTestFixtures, CoreWorkerFixtures>({
+    caseMeta: [
+      async ({ app }, use, testInfo) => {
+        await applyCaseMeta(app, testInfo);
+        await use();
+      },
+      { auto: true },
+    ],
     qa: [
       async ({}, use, workerInfo) => use(loadRuntime(projectPack(workerInfo.project))),
       { scope: 'worker' },

@@ -72,7 +72,55 @@
         "options": {
           "type": "object"
         }
-      }
+      },
+      "allOf": [
+        {
+          "if": {
+            "type": "object",
+            "required": ["provider"],
+            "properties": {
+              "provider": {
+                "const": "allure-testops"
+              }
+            }
+          },
+          "then": {
+            "type": "object",
+            "properties": {
+              "options": {
+                "type": "object",
+                "description": "Every option falls back to an environment variable: ALLURE_ENDPOINT, ALLURE_PROJECT_ID, and the token in ALLURE_TOKEN.",
+                "additionalProperties": false,
+                "properties": {
+                  "endpoint": {
+                    "type": "string",
+                    "format": "uri"
+                  },
+                  "project_id": {
+                    "type": "integer",
+                    "minimum": 1
+                  },
+                  "token_env": {
+                    "type": "string",
+                    "pattern": "^[A-Z][A-Z0-9_]*$"
+                  },
+                  "resultsDir": {
+                    "type": "string"
+                  },
+                  "wait_seconds": {
+                    "type": "integer",
+                    "minimum": 0
+                  },
+                  "poll_ms": {
+                    "type": "integer",
+                    "minimum": 0
+                  }
+                }
+              }
+            }
+          }
+        }
+      ]
     },
     "tracker": {
       "type": "object",
@@ -84,7 +132,7 @@
           "default": "none"
         },
         "options": {
-          "description": "Provider options, defined with the adapters.",
+          "description": "Provider options. github: repo \"owner/name\", token_env (default GITHUB_TOKEN). jira: project key, issue_type, user_env (default JIRA_USER), token_env (default JIRA_TOKEN); uses base_url. local: dir.",
           "type": "object"
         },
         "key_pattern": {
@@ -96,11 +144,71 @@
           "format": "uri"
         },
         "issue_url": {
-          "description": "Link to one issue, with {key} where the key goes, e.g. \"https://tracker.example/browse/{key}\".",
+          "description": "Link to one issue, with {key} where the key goes, e.g. \"https://tracker.example/browse/{key}\". Used by knownGap().",
           "type": ["string", "null"],
           "pattern": "\\{key\\}"
         }
-      }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "provider": {
+                "const": "github"
+              }
+            },
+            "required": ["provider"],
+            "type": "object"
+          },
+          "then": {
+            "required": ["options"],
+            "properties": {
+              "options": {
+                "required": ["repo"],
+                "properties": {
+                  "repo": {
+                    "type": "string",
+                    "pattern": "^[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+$"
+                  }
+                },
+                "type": "object"
+              }
+            },
+            "type": "object"
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "provider": {
+                "const": "jira"
+              }
+            },
+            "required": ["provider"],
+            "type": "object"
+          },
+          "then": {
+            "required": ["options", "base_url"],
+            "properties": {
+              "base_url": {
+                "type": "string",
+                "format": "uri"
+              },
+              "options": {
+                "required": ["project"],
+                "properties": {
+                  "project": {
+                    "type": "string",
+                    "pattern": "^[A-Z][A-Z0-9]+$"
+                  }
+                },
+                "type": "object"
+              }
+            },
+            "type": "object"
+          }
+        }
+      ]
     },
     "policies": {
       "type": "object",

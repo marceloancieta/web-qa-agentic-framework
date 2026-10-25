@@ -98,7 +98,15 @@ export default defineConfig({
   // One set of baselines per pack and project, with no OS suffix: they are only ever rendered in
   // the pinned image of the visual lane (ADR 0009).
   snapshotPathTemplate: '{testDir}/visual/{projectName}/{testFilePath}/{arg}{ext}',
-  reporter: isListing ? [['list']] : [['list'], ['html', { open: 'never' }], ...extraReporters],
+  reporter: isListing
+    ? [['list']]
+    : [
+        ['list'],
+        ['html', { open: 'never' }],
+        // The results every test-management adapter reads (scripts/tm, ADR 0010).
+        ['allure-playwright', { resultsDir: 'allure-results' }],
+        ...extraReporters,
+      ],
   use: {
     trace: traceMode(),
     screenshot: 'only-on-failure',

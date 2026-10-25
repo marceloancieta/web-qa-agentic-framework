@@ -35,6 +35,11 @@
     "coverage:status": "node scripts/coverage-status.mjs",
     "traceability": "node scripts/traceability.mjs",
     "quality:gate": "node scripts/quality-gate.mjs --summary reports/quality-gate.md",
+    "tm:manifest": "node scripts/tm/manifest.mjs",
+    "tm:publish": "node scripts/tm/run.mjs publish",
+    "tm:report": "node scripts/tm/run.mjs report",
+    "report:html": "allure generate allure-results --output reports/allure-report",
+    "tracker": "node scripts/tracker/cli.mjs",
     "scan:denylist": "node scripts/scan-denylist.mjs --tracked",
     "scan:denylist:history": "node scripts/scan-denylist.mjs --history",
     "scan:denylist:self-test": "node scripts/scan-denylist.mjs --self-test",
@@ -50,6 +55,9 @@
     "@eslint/js": "^10.0.1",
     "@playwright/test": "^1.64.1",
     "@types/node": "^22.20.5",
+    "allure": "^3.22.1",
+    "allure-js-commons": "^3.14.0",
+    "allure-playwright": "^3.14.0",
     "eslint": "^10.12.0",
     "eslint-config-prettier": "^10.1.8",
     "globals": "^17.13.0",
@@ -61,5 +69,8 @@
     "ajv": "^8.20.0",
     "ajv-formats": "^3.0.1",
     "yaml": "^2.9.1"
+  },
+  "overrides": {
+    "dompurify": "3.4.17"
   }
 }

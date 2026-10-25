@@ -1,0 +1,23 @@
+{
+  "app": {
+    "default_environment": "local",
+    "environments": {
+      "local": {
+        "packs": {
+          "shop": {
+            "base_url": "http://localhost:9999",
+            "actors": {
+              "user": {
+                "account": "provisioned"
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "tracker": {
+    "key_pattern": "BUG-\\d+",
+    "issue_url": "https://tracker.invalid/{key}"
+  }
+}
