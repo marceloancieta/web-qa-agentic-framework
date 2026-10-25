@@ -1,11 +1,17 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { spawnSync } from 'node:child_process';
-import { existsSync, mkdtempSync, readFileSync } from 'node:fs';
+import { existsSync, mkdirSync, mkdtempSync, readFileSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
-import { join } from 'node:path';
+import { dirname, join } from 'node:path';
 import { lintFile } from '../lint-layers.mjs';
-import { configEntry, planOptions, scaffoldFiles, writeScaffold } from '../scaffold-app.mjs';
+import {
+  configEntry,
+  packSkill,
+  planOptions,
+  scaffoldFiles,
+  writeScaffold,
+} from '../scaffold-app.mjs';
 
 const SCRIPT = join(import.meta.dirname, '..', 'scaffold-app.mjs');
 const run = (...args) => spawnSync(process.execPath, [SCRIPT, ...args], { encoding: 'utf8' });
@@ -47,6 +53,15 @@ test('the skeleton keeps to the layers and its manifest carries the options', ()
   assert.match(files['apps/book-store/fixtures.ts'], /cannot sign "\$\{role\}" in yet/);
 });
 
+test('the pack skill is the template example with the pack filled in', () => {
+  const skill = Object.fromEntries(scaffoldFiles(plan))['.claude/skills/book-store-ui/SKILL.md'];
+  assert.match(skill, /^---\nname: book-store-ui\ndescription: Facts about Book Store /);
+  assert.match(skill, /^# Book Store$/m);
+  assert.match(skill, /`apps\/book-store\/docs\/app-notes\.md`/);
+  assert.doesNotMatch(skill, /<pack>|<application title>|```/i);
+  assert.throws(() => packSkill(plan, '# A template\n\nNo example.\n'), /no ```markdown example/);
+});
+
 test('the qa-config entry names variables, never values, and starts read-only', () => {
   const entry = configEntry(plan)['book-store'];
   assert.equal(entry.allow_writes, false);
@@ -64,6 +79,19 @@ test('writing creates every file once and never overwrites a pack', () => {
   assert.ok(written.every((path) => existsSync(join(root, path))));
   assert.match(readFileSync(join(root, 'apps/book-store/README.md'), 'utf8'), /# Book Store pack/);
   assert.throws(() => writeScaffold(plan, root), /already exists; a pack is never overwritten/);
+});
+
+test('an existing pack skill is never overwritten either', () => {
+  const root = mkdtempSync(join(tmpdir(), 'scaffold-'));
+  const skill = join(root, '.claude/skills/book-store-ui/SKILL.md');
+  mkdirSync(dirname(skill), { recursive: true });
+  writeFileSync(skill, 'kept\n');
+  assert.throws(
+    () => writeScaffold(plan, root),
+    /\.claude\/skills\/book-store-ui\/SKILL\.md already exists/,
+  );
+  assert.equal(readFileSync(skill, 'utf8'), 'kept\n');
+  assert.equal(existsSync(join(root, 'apps/book-store')), false);
 });
 
 test('the CLI plans without writing, and refuses bad options with exit 2', () => {

@@ -5,6 +5,12 @@
 //   broken-link     a relative Markdown link (`[text](path)`, `[text](path#anchor)`, `[text](#anchor)`)
 //                   whose file does not exist, or whose anchor is not a heading of the target
 //                   (GitHub's heading ids). Links inside code are not read.
+//   broken-reference  in a rule (`.claude/rules/*.md`) or a skill (`.claude/skills/*/SKILL.md`), a
+//                   path in inline code (`scripts/lib/registry.mjs`, `helpers/case-meta.ts:12`) that
+//                   names no file, from the repository root, from the file or from a pack
+//                   (`docs/app-map.json` in a table of what a pack holds). Only paths with a
+//                   folder and an extension are read; placeholders (`apps/<pack>/app.json`), globs,
+//                   folders and paths under the ignored output folders above are not.
 //   host-in-notes   a hand-written note of a pack (`apps/<pack>/docs/**/*.md`) that writes the base
 //                   URL of an environment (any `base_url` of qa-config.example.json, or
 //                   `localhost:<port>`) instead of `<base_url>`: notes outlive environments.
@@ -27,7 +33,7 @@ import { finding, report, selfTest } from './lib/lint.mjs';
 
 export const TOOL = 'lint-docs';
 export const FIXTURES = join(import.meta.dirname, '__fixtures__', 'lint-docs');
-export const RULES = ['broken-link', 'host-in-notes', 'public-wording'];
+export const RULES = ['broken-link', 'broken-reference', 'host-in-notes', 'public-wording'];
 
 const SKIPPED_DIRS = new Set([
   'node_modules',
@@ -44,6 +50,8 @@ const SKIPPED_DIRS = new Set([
 ]);
 const TEXT_FILE = /\.(?:md|ts|mts|mjs|js|json|ya?ml|txt)$|^(?:NOTICE|LICENSE|\.env\.example)$/;
 const NOTES_FILE = /^apps\/[^/]+\/docs\/.+\.md$/;
+const AGENT_FILE = /^\.claude\/(?:rules\/[^/]+|skills\/[^/]+\/SKILL)\.md$/;
+const PATH_LIKE = /^\.?[\w.-]+(?:\/[\w.@-]+)+$/;
 const FIXED_TEXT = new Set(['LICENSE']);
 
 // Built from parts, so this list is not itself a finding of the rule it defines.
@@ -130,6 +138,39 @@ function brokenLinks(root, file, text, add) {
   });
 }
 
+/** Inline code outside fenced blocks, one entry per span, with its line. */
+function inlineCode(markdown) {
+  const spans = [];
+  let fenced = false;
+  markdown.split(/\r?\n/).forEach((line, index) => {
+    if (/^\s*(```|~~~)/.test(line)) fenced = !fenced;
+    else if (!fenced) {
+      for (const [, code] of line.matchAll(/`([^`]+)`/g)) spans.push({ code, line: index + 1 });
+    }
+  });
+  return spans;
+}
+
+/** The pack folders under `root`, as `apps/<pack>`. */
+function packDirs(root) {
+  const apps = join(root, 'apps');
+  if (!existsSync(apps)) return [];
+  return readdirSync(apps, { withFileTypes: true })
+    .filter((entry) => entry.isDirectory())
+    .map((entry) => `apps/${entry.name}`);
+}
+
+function brokenReferences(root, file, text, add) {
+  const bases = ['', posix.dirname(file), ...packDirs(root)];
+  for (const { code, line } of inlineCode(text)) {
+    const path = code.replace(/:\d+$/, '').split('#')[0];
+    if (!PATH_LIKE.test(path) || !/\.[a-z]+$/i.test(path)) continue;
+    if (SKIPPED_DIRS.has(path.split('/')[0])) continue;
+    if (bases.some((base) => existsSync(join(root, base, path)))) continue;
+    add('broken-reference', line, `names ${path}, which does not exist`);
+  }
+}
+
 /** The base URLs the example configuration names, without trailing slashes. */
 function configuredHosts(root) {
   const file = join(root, 'qa-config.example.json');
@@ -169,6 +210,7 @@ export function lintFile(root, file, hosts = configuredHosts(root)) {
   const findings = [];
   const add = (rule, line, message) => findings.push(finding(rule, file, line, message));
   if (file.endsWith('.md')) brokenLinks(root, file, text, add);
+  if (AGENT_FILE.test(file)) brokenReferences(root, file, text, add);
   if (NOTES_FILE.test(file)) hostsInNotes(text, hosts, add);
   if (!FIXED_TEXT.has(file)) {
     for (const { line, phrase } of wordingFindings(text)) {

@@ -26,8 +26,8 @@ allows writes and restarts the container as the recovery of destructive cases.
 | `customer` | created during the run, one per worker (`builders/account-builder.ts`) | `POST /rest/user/login`; the token goes to local storage and a `token` cookie, the basket id to session storage, as the frontend does after its own login |
 | `anonymous` | none | a fresh context |
 
-Every context carries the cookies that dismiss the welcome and cookie banners, and a `language` cookie: without it the shop announces a language change in a notification that appears or not depending on timing. Accounts are not
-removed: the application has no endpoint for it, and a restart empties its database.
+Every context carries the cookies that dismiss the welcome and cookie banners, and a `language`
+cookie. Accounts are not removed; the [application notes](docs/app-notes.md) say why.
 
 ## Layout
 
@@ -43,8 +43,7 @@ removed: the application has no endpoint for it, and a restart empties its datab
 
 ## Facts about the application
 
-- From 960 px wide the toolbar has an account button; below that the account is a section of the
-  side navigation. The tablet project (810 px) gets the side navigation, the landscape tablet
-  (1080 px) the toolbar.
-- A login with a wrong password answers "Invalid email or password." whichever part was wrong.
-- After a login through the form the application moves to `#/search`.
+What the application does that its pages do not show (the breakpoint of the account menu, the
+generic login message, where a login lands, why accounts stay) is in
+[`docs/app-notes.md`](docs/app-notes.md). What an agent needs before working on the pack is in its
+skill, [`juice-shop-ui`](../../.claude/skills/juice-shop-ui/SKILL.md).

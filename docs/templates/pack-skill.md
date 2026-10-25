@@ -32,19 +32,23 @@ writes are allowed in each environment, and what the pack demonstrates.>
 | `anonymous` | none | a fresh context | |
 | `<role>` | <provisioned per worker, or existing from the environment> | <API call, or the form> | <storage keys, cookies> |
 
-## Behaviour the pages do not show
+## Application notes
 
-- <A fact, with the route and how it was observed: "after a login through the form the application
-  moves to `/#/search` (measured, 2026-10-25, desktop Chromium)".>
+Read `apps/<pack>/docs/app-notes.md` before designing: it holds what the application does that its
+pages do not show, each fact with how it was observed. This skill does not repeat those facts; it
+says what they change for each phase below.
 
 ## Devices
 
 <Breakpoints from `app.json`, and what changes at each one.>
 
-## Limits
+## What each phase must know
 
-- <What the application cannot do that a case might expect: no endpoint to delete an account, a
-  database that empties on restart.>
+- Intake and design: <how to read the pages without writing: which actor's state to map with, what
+  a design session must not touch>.
+- Automate: <what the specs must do because of the application: data they create and cannot remove,
+  cookies every context sets, waits that are needed>.
+- Run: <recovery after destructive cases, what a run leaves behind>.
 
 ## Known defects
 

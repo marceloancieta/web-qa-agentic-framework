@@ -54,6 +54,8 @@ about the application that the app map does not show.
 ## A new pack
 
 `npm run scaffold:app -- --name <pack> --base-url <url>` prints the files it would write and the
-qa-config entry to add; `--write` writes them and refuses when the pack already exists. The skeleton
-runs at once: anonymous only, a home page object and a smoke spec under the page health guard.
+qa-config entry to add; `--write` writes them and refuses when the pack or its skill already exists.
+The skeleton runs at once: anonymous only, a home page object and a smoke spec under the page health
+guard. The pack's skill starts as the template's example with the pack's name and title, and intake
+fills its placeholders.
 Never copy another pack by hand: facts about that application would come along and be wrong.

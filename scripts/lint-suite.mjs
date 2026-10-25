@@ -4,8 +4,9 @@
 //
 //   registry-shape     the registry breaks its format (scripts/lib/registry.mjs): front matter,
 //                      dimensions, the cases table, a cell's value.
-//   contract-shape     the feature contract a registry names breaks its format
-//                      (scripts/lib/contract.mjs): the business rules table, a rule's id or source.
+//   contract-shape     a feature contract (apps/<pack>/docs/features/*.md, named by a registry or
+//                      not yet) breaks its format (scripts/lib/contract.mjs): the business rules
+//                      table, a rule's id or source.
 //   missing-dimension  the header declares a quality dimension as `applies`, and no case carries
 //                      its tag (scripts/lib/tags.mjs DIMENSIONS).
 //   duplicate-case     the same case id in two registries of one pack (a feature may span files;
@@ -21,12 +22,13 @@
 //   node scripts/lint-suite.mjs --self-test      exact check against the fixture tree
 // Exit codes: 0 clean; 1 findings or an inexact self-test; 2 the linter could not run.
 
-import { existsSync } from 'node:fs';
+import { existsSync, readdirSync, readFileSync } from 'node:fs';
 import { join, resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { parseArgs } from 'node:util';
 import { REPO_ROOT } from './lib/cli.mjs';
 import { specCases } from './lib/corpus.mjs';
+import { parseContractRules } from './lib/contract.mjs';
 import { finding, report, selfTest } from './lib/lint.mjs';
 import { applyingDimensions, loadRegistries } from './lib/registry.mjs';
 import { DIMENSIONS } from './lib/tags.mjs';
@@ -44,6 +46,27 @@ export const RULES = [
   'status-behind',
 ];
 
+/** The business rules of every contract under apps/<pack>/docs/features/. */
+function loadContracts(root) {
+  const apps = join(root, 'apps');
+  if (!existsSync(apps)) return [];
+  return readdirSync(apps)
+    .sort()
+    .flatMap((pack) => {
+      const dir = join(apps, pack, 'docs', 'features');
+      if (!existsSync(dir)) return [];
+      return readdirSync(dir)
+        .filter((name) => name.endsWith('.md'))
+        .sort()
+        .map((name) =>
+          parseContractRules(
+            readFileSync(join(dir, name), 'utf8'),
+            `apps/${pack}/docs/features/${name}`,
+          ),
+        );
+    });
+}
+
 const sameSet = (a, b) =>
   a.length === b.length && [...a].sort().join(' ') === [...b].sort().join(' ');
 
@@ -55,14 +78,17 @@ export function lintSuite(root = REPO_ROOT) {
 
   const casesByPack = new Map();
   const reported = new Set();
+  const addOnce = (rule, problem) => {
+    const key = `${rule} ${problem.file}:${problem.line} ${problem.message}`;
+    if (reported.has(key)) return; // a contract two registries name, or one read again below
+    reported.add(key);
+    add(rule, problem.file, problem.line, problem.message);
+  };
+  // Every contract, so intake's gate checks one before any registry names it.
+  for (const contract of loadContracts(root))
+    for (const problem of contract.problems) addOnce('contract-shape', problem);
   for (const registry of registries) {
-    for (const problem of registry.problems) {
-      const rule = problem.kind ?? 'registry-shape';
-      const key = `${rule} ${problem.file}:${problem.line} ${problem.message}`;
-      if (reported.has(key)) continue; // a contract two registries name
-      reported.add(key);
-      add(rule, problem.file, problem.line, problem.message);
-    }
+    for (const problem of registry.problems) addOnce(problem.kind ?? 'registry-shape', problem);
     for (const name of applyingDimensions(registry)) {
       const tag = DIMENSIONS[name];
       if (!registry.cases.some((row) => row.tagList.includes(tag))) {

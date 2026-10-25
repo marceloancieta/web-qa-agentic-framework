@@ -11,12 +11,13 @@
  *
  * The skeleton runs at once: a provider that knows no accounts yet (anonymous only), a home page
  * object, and a smoke spec that opens the home page under the page health guard. Accounts, pages
- * and cases come later, through the phases.
+ * and cases come later, through the phases. The pack's skill, .claude/skills/<pack>-ui/SKILL.md, is
+ * the example of docs/templates/pack-skill.md with the pack's name and title filled in.
  *
  * Exit codes: 0 planned or written; 1 refused (the pack exists); 2 usage error.
  */
 
-import { existsSync, mkdirSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { parseArgs } from 'node:util';
 import { pathToFileURL } from 'node:url';
@@ -137,6 +138,18 @@ test('the home page opens with a title @smoke', async ({ page }) => {
 });
 `;
 
+const PACK_SKILL_TEMPLATE = join(REPO_ROOT, 'docs', 'templates', 'pack-skill.md');
+
+/** The pack's skill: the fenced example of the pack skill template, with the pack filled in. */
+export function packSkill(plan, template = readFileSync(PACK_SKILL_TEMPLATE, 'utf8')) {
+  const example = /^```markdown\r?\n([\s\S]*)^```\s*$/m.exec(template);
+  if (!example) throw new Error('the pack skill template has no ```markdown example.');
+  return example[1]
+    .replaceAll('<pack>', plan.name)
+    .replaceAll('<application title>', plan.title)
+    .replaceAll('<Application title>', plan.title);
+}
+
 const readme = (plan) => `# ${plan.title} pack
 
 Created by \`npm run scaffold:app\`. Fill in what the skeleton does not know yet:
@@ -146,6 +159,8 @@ Created by \`npm run scaffold:app\`. Fill in what the skeleton does not know yet
 - [ ] \`fixtures.ts\`: how accounts are created (\`provision\`) and signed in (\`signIn\`)
 - [ ] the qa-config entry below, in \`qa-config.json\` (and the example, when the pack is shared)
 - [ ] \`docs/app-notes.md\`: facts about the application that tests rely on
+- [ ] \`docs/app-map.json\`: \`npm run app:map -- --pack ${plan.name} --write\`
+- [ ] \`.claude/skills/${plan.name}-ui/SKILL.md\`: the placeholders the skill still has
 
 ## Running it
 
@@ -188,6 +203,7 @@ export function scaffoldFiles(plan) {
     [`${dir}/fixtures.ts`, fixtures(plan)],
     [`${dir}/pages/home-page.ts`, homePage()],
     [`${dir}/specs/smoke/home.spec.ts`, smokeSpec(plan)],
+    [`.claude/skills/${plan.name}-ui/SKILL.md`, packSkill(plan)],
   ];
 }
 
@@ -197,6 +213,8 @@ export function writeScaffold(plan, root = REPO_ROOT) {
   if (existsSync(dir))
     throw new Error(`apps/${plan.name}/ already exists; a pack is never overwritten.`);
   const files = scaffoldFiles(plan);
+  const taken = files.find(([path]) => existsSync(join(root, path)));
+  if (taken) throw new Error(`${taken[0]} already exists; a pack is never overwritten.`);
   for (const [path, content] of files) {
     mkdirSync(dirname(join(root, path)), { recursive: true });
     writeFileSync(join(root, path), content);

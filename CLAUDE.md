@@ -24,7 +24,7 @@ Work here as four specialists at once:
 |---|---|---|
 | Hooks (`.claude/hooks/`) | W0, in place | REPO-01 |
 | Rules (`.claude/rules/`) and templates (`docs/templates/`) | W5, in place | PROC-01, PROC-03 |
-| Skills (`qa-intake`, `qa-design`, `qa-automate`, `qa-publish`, `qa-run`, `qa-report-bug`, one per pack) | W5 | PROC-02, PROC-04 |
+| Skills (`.claude/skills/`) | W5, in place | PROC-02, PROC-04 |
 | Agents (`spec-author`, `ui-spec-reviewer`, `behaviour-investigator`) | W7 | AGT-01 to AGT-03 |
 
 ## Skill or agent
@@ -35,6 +35,23 @@ Work here as four specialists at once:
   context, such as reviewing a spec against its registry case. The agent returns a report and writes
   only what its definition allows.
 - Never hand an agent a gate. Approvals happen in the conversation.
+
+## Skills
+
+In `.claude/skills/`. One per phase, each ending at its review gate, plus one per pack.
+
+| Skill | Phase | Mode | Produces |
+|---|---|---|---|
+| [`qa-intake`](.claude/skills/qa-intake/SKILL.md) | 0 intake | design | the feature contract |
+| [`qa-design`](.claude/skills/qa-design/SKILL.md) | 1 design | design | the registry of reviewed cases |
+| [`qa-automate`](.claude/skills/qa-automate/SKILL.md) | 2 automate | design | specs and their building blocks, visual baselines, rows `automated` |
+| [`qa-publish`](.claude/skills/qa-publish/SKILL.md) | 3 publish | design | case definitions in test management, rows `published` |
+| [`qa-run`](.claude/skills/qa-run/SKILL.md) | 4 run | execution | a reported run |
+| [`qa-report-bug`](.claude/skills/qa-report-bug/SKILL.md) | defects | either | a triaged issue in the tracker, cases mapped to it |
+| [`juice-shop-ui`](.claude/skills/juice-shop-ui/SKILL.md) | every phase | either | what the Juice Shop app map does not show |
+
+A new pack gets its skill from `npm run scaffold:app`, written from
+[the pack skill template](docs/templates/pack-skill.md).
 
 ## Rules
 

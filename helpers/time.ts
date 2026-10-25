@@ -17,11 +17,16 @@ export function durationMs(text: string): number {
   );
 }
 
+// The installed clock runs until it is paused, so installing at the moment itself would leave it a
+// few milliseconds past that moment, where pausing refuses to go back. Installing a minute earlier
+// leaves room; before the page loads no timer exists to fire in that minute.
+const INSTALL_LEAD_MS = 60_000;
+
 /** Start the page's clock at a fixed moment; time then moves only when `advance` says so. */
 export async function startClockAt(page: Page, at: string | Date): Promise<void> {
   const time = typeof at === 'string' ? new Date(at) : at;
   if (Number.isNaN(time.getTime())) throw new Error(`"${String(at)}" is not a date.`);
-  await page.clock.install({ time });
+  await page.clock.install({ time: new Date(time.getTime() - INSTALL_LEAD_MS) });
   await page.clock.pauseAt(time);
 }
 
