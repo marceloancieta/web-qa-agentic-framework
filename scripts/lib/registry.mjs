@@ -12,8 +12,9 @@
 //     responsive: applies
 //     perf: 'n/a: no loading state on these routes'
 //     ...
-//   requirements:                             optional; what the cases trace back to
-//     - { id: REQ-LOGIN-01, text: ... }
+//   requirements:                             optional; what the cases trace back to, for a
+//     - { id: REQ-LOGIN-01, text: ... }         registry without a contract (a contract owns
+//                                               its rules: scripts/lib/contract.mjs)
 //   test_data:                                optional; each placeholder the cases use
 //     <EMAIL>: an address the builder makes unique per run
 //   ---
@@ -29,7 +30,9 @@
 import { existsSync, readdirSync, readFileSync } from 'node:fs';
 import { join, relative } from 'node:path';
 import { parse as parseYaml } from 'yaml';
+import { parseContractRules } from './contract.mjs';
 import { DESKTOP_ONLY_TAG, DIMENSIONS, LAYER_TAGS, MOBILE_ONLY_TAG, TAGS } from './tags.mjs';
+import { tableCells } from './text.mjs';
 
 export const COLUMNS = [
   'ID',
@@ -94,17 +97,6 @@ function frontMatterLines(text) {
     if (nested && parent) lines.set(`${parent}.${nested[1]}`, index + 1);
   }
   return lines;
-}
-
-function splitRow(line) {
-  // `| a | b |` -> ['a', 'b']; an escaped pipe stays inside its cell, and an HTML comment after
-  // the last pipe is a reviewer's note, not a cell.
-  const inner = line
-    .trim()
-    .replace(/\s*<!--.*?-->$/, '')
-    .replace(/^\|/, '')
-    .replace(/\|$/, '');
-  return inner.split(/(?<!\\)\|/).map((cell) => cell.trim().replace(/\\\|/g, '|'));
 }
 
 function headerProblems(meta, problem, at) {
@@ -182,7 +174,10 @@ function rowProblems(row, requirementIds, problem, line) {
   if (!PRIORITIES.includes(row.priority))
     problem(line, `${row.id}: priority "${row.priority}" is not one of ${PRIORITIES.join(', ')}`);
   if (row.requirement && !requirementIds.has(row.requirement)) {
-    problem(line, `${row.id}: requirement ${row.requirement} is not declared in the front matter`);
+    problem(
+      line,
+      `${row.id}: requirement ${row.requirement} is not declared in the front matter or the contract`,
+    );
   }
   for (const tag of row.tagList.filter((tag) => !known.has(tag)))
     problem(line, `${row.id}: tag ${tag} is not in the taxonomy`);
@@ -207,8 +202,23 @@ function rowProblems(row, requirementIds, problem, line) {
   }
 }
 
-/** Parse one registry. Never throws on content: every defect is a problem with a line number. */
-export function parseRegistry(text, file = 'registry.md') {
+/** The front matter of a registry as an object, or null when it is missing or not valid YAML. */
+function frontMatter(text) {
+  const front = FRONT_MATTER.exec(text);
+  if (!front) return null;
+  try {
+    return parseYaml(front[1]) ?? {};
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Parse one registry. Never throws on content: every defect is a problem with a line number.
+ * `contractRules` are the business rules of the contract the header names (`parseContractRules`):
+ * the Requirement column may cite them as well as the header's own `requirements`.
+ */
+export function parseRegistry(text, file = 'registry.md', contractRules = []) {
   const problems = [];
   const problem = (line, message) => problems.push({ file, line, message });
   const front = FRONT_MATTER.exec(text);
@@ -222,29 +232,37 @@ export function parseRegistry(text, file = 'registry.md') {
     }
   }
   const keyLines = frontMatterLines(text);
-  headerProblems(meta, problem, (key) => keyLines.get(key) ?? keyLines.get(key.split('.')[0]) ?? 1);
+  const at = (key) => keyLines.get(key) ?? keyLines.get(key.split('.')[0]) ?? 1;
+  headerProblems(meta, problem, at);
   const requirements = Array.isArray(meta.requirements) ? meta.requirements : [];
-  const requirementIds = new Set(requirements.map((r) => r?.id));
+  const contractIds = new Set(contractRules.map((rule) => rule.id));
+  for (const requirement of requirements.filter((r) => contractIds.has(r?.id))) {
+    problem(
+      at('requirements'),
+      `${requirement.id} is a rule of the contract; cite it in the cases instead of declaring it again`,
+    );
+  }
+  const requirementIds = new Set([...requirements.map((r) => r?.id), ...contractIds]);
 
   const lines = text.split(/\r?\n/);
   const cases = [];
   const heading = lines.findIndex((line) => /^##\s+Cases\s*$/.test(line));
   if (heading === -1) {
     problem(1, 'missing "## Cases" section');
-    return { file, meta, requirements, cases, problems, keyLines };
+    return { file, meta, requirements, contractRules, cases, problems, keyLines };
   }
   let index = heading + 1;
   while (index < lines.length && lines[index].trim() === '') index += 1;
-  if (splitRow(lines[index] ?? '').join('|') !== COLUMNS.join('|')) {
+  if (tableCells(lines[index] ?? '').join('|') !== COLUMNS.join('|')) {
     problem(index + 1, `the cases table header must be: | ${COLUMNS.join(' | ')} |`);
-    return { file, meta, requirements, cases, problems, keyLines };
+    return { file, meta, requirements, contractRules, cases, problems, keyLines };
   }
   index += 2; // header and separator
   const seen = new Set();
   const casePattern = new RegExp(`^TC-${meta.feature ?? '[A-Z0-9]+'}-\\d{2,3}$`);
   for (; index < lines.length && lines[index].trim().startsWith('|'); index += 1) {
     const line = index + 1;
-    const cells = splitRow(lines[index]);
+    const cells = tableCells(lines[index]);
     if (cells.length !== COLUMNS.length) {
       problem(line, `row has ${cells.length} cells, expected ${COLUMNS.length}; row skipped`);
       continue;
@@ -258,7 +276,7 @@ export function parseRegistry(text, file = 'registry.md') {
     rowProblems(row, requirementIds, problem, line);
     cases.push({ ...row, line });
   }
-  return { file, meta, requirements, cases, problems, keyLines };
+  return { file, meta, requirements, contractRules, cases, problems, keyLines };
 }
 
 /** The dimensions a registry declares as applying. */
@@ -284,19 +302,30 @@ export function loadRegistries(root, pack = null) {
       .filter((f) => f.endsWith('.md'))
       .sort()) {
       const file = join(dir, fileName);
+      const text = readFileSync(file, 'utf8');
+      const contract = frontMatter(text)?.contract;
+      const contractPath = typeof contract === 'string' ? join(apps, name, contract) : null;
+      const contractFile = contractPath && relative(root, contractPath).replace(/\\/g, '/');
+      const rules =
+        contractPath && existsSync(contractPath)
+          ? parseContractRules(readFileSync(contractPath, 'utf8'), contractFile)
+          : null;
       const parsed = parseRegistry(
-        readFileSync(file, 'utf8'),
+        text,
         relative(root, file).replace(/\\/g, '/'),
+        rules?.rules ?? [],
       );
-      const contract = parsed.meta.contract;
-      if (typeof contract === 'string' && !existsSync(join(apps, name, contract))) {
+      if (contractPath && !rules) {
         parsed.problems.push({
           file: parsed.file,
-          line: 1,
+          line: parsed.keyLines.get('contract') ?? 1,
           message: `contract ${contract} does not exist in apps/${name}/`,
         });
       }
-      registries.push({ pack: name, ...parsed });
+      // A contract's own defects are reported against the contract, once per registry that names it.
+      for (const problem of rules?.problems ?? [])
+        parsed.problems.push({ ...problem, kind: 'contract-shape' });
+      registries.push({ pack: name, contractFile: rules ? contractFile : null, ...parsed });
     }
   }
   return registries;

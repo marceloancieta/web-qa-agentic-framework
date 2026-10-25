@@ -58,4 +58,6 @@ A request that needs both is split, and each half stops at its own gate.
 | the design and the reasons behind it | [`docs/architecture.md`](docs/architecture.md) |
 | recorded decisions | [`docs/adr/README.md`](docs/adr/README.md) |
 | open work, stages and acceptance criteria | [`docs/backlog.md`](docs/backlog.md) |
+| the rules each phase follows | [`.claude/rules/`](.claude/rules/modes.md), starting with the modes |
+| the intake request, feature contract, registry and pack skill formats | [`docs/templates/`](docs/templates/feature-contract.md): [intake](docs/templates/intake.md), [feature contract](docs/templates/feature-contract.md), [registry](docs/templates/registry.md), [pack skill](docs/templates/pack-skill.md) |
 | the Claude Code hooks | [`.claude/hooks/README.md`](.claude/hooks/README.md) |

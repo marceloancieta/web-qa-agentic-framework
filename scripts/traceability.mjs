@@ -1,8 +1,10 @@
 #!/usr/bin/env node
 /**
- * Traceability: every requirement a registry declares, and the cases that cover it.
+ * Traceability: every requirement a registry declares and every business rule of the feature
+ * contracts the registries name (the cited status), with the cases that cover each.
  *
- *   uncovered-requirement   no case names the requirement.
+ *   uncovered-requirement   no case names a requirement of a registry's header.
+ *   uncited-rule            no case, in any registry that names the contract, cites the rule.
  *   mocked-only             every case that names it carries @mocked: a mock proves how the UI
  *                           handles an answer, not that the application gives it, so a requirement
  *                           about the integration needs at least one case against the real system.
@@ -22,29 +24,53 @@ import { MOCKED_TAG } from './lib/tags.mjs';
 export function traceability(root = REPO_ROOT) {
   const rows = [];
   const findings = [];
-  for (const registry of loadRegistries(root)) {
+  const check = (file, line, id, cases, uncovered) => {
+    rows.push({ file, requirement: id, cases: cases.map((row) => row.id) });
+    if (cases.length === 0) findings.push(finding(...uncovered));
+    else if (cases.every((row) => row.tagList.includes(MOCKED_TAG))) {
+      findings.push(
+        finding(
+          'mocked-only',
+          file,
+          line,
+          `${id} is covered only by @mocked cases (${cases.map((row) => row.id).join(', ')})`,
+        ),
+      );
+    }
+  };
+  const registries = loadRegistries(root);
+  for (const registry of registries) {
     const line = registry.keyLines?.get('requirements') ?? 1;
     for (const requirement of registry.requirements) {
-      const cases = registry.cases.filter((row) => row.requirement === requirement?.id);
-      rows.push({
-        file: registry.file,
-        requirement: requirement?.id,
-        cases: cases.map((row) => row.id),
-      });
-      if (cases.length === 0) {
-        findings.push(
-          finding('uncovered-requirement', registry.file, line, `${requirement?.id} has no case`),
-        );
-      } else if (cases.every((row) => row.tagList.includes(MOCKED_TAG))) {
-        findings.push(
-          finding(
-            'mocked-only',
-            registry.file,
-            line,
-            `${requirement?.id} is covered only by @mocked cases (${cases.map((row) => row.id).join(', ')})`,
-          ),
-        );
-      }
+      const id = requirement?.id;
+      const cases = registry.cases.filter((row) => row.requirement === id);
+      check(registry.file, line, id, cases, [
+        'uncovered-requirement',
+        registry.file,
+        line,
+        `${id} has no case`,
+      ]);
+    }
+  }
+  // A contract's rules may be cited from every registry that names it: files are containers.
+  const contracts = new Map();
+  for (const registry of registries.filter((r) => r.contractFile)) {
+    const entry = contracts.get(registry.contractFile) ?? {
+      rules: registry.contractRules,
+      cases: [],
+    };
+    entry.cases.push(...registry.cases);
+    contracts.set(registry.contractFile, entry);
+  }
+  for (const [file, { rules, cases }] of contracts) {
+    for (const rule of rules) {
+      const citing = cases.filter((row) => row.requirement === rule.id);
+      check(file, rule.line, rule.id, citing, [
+        'uncited-rule',
+        file,
+        rule.line,
+        `${rule.id} is not cited by any case`,
+      ]);
     }
   }
   return { rows, findings };

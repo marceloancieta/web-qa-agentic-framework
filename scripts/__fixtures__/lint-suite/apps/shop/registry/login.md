@@ -12,9 +12,10 @@ dimensions:
   navigation: applies
   a11y: applies # expect-finding: missing-dimension
   content: 'n/a: no user text is shown back'
-requirements:
+requirements: # expect-finding: registry-shape
   - { id: REQ-LOGIN-01, text: A registered account signs in with its email and password }
   - { id: REQ-LOGIN-02, text: A wrong password gets a message that does not say which part was wrong }
+  - { id: REQ-LOGIN-12, text: Declared here as well as in the contract }
 test_data:
   <EMAIL>: an address the builder makes unique per run
 ---
@@ -27,7 +28,7 @@ test_data:
 |---|---|---|---|---|---|---|---|---|---|
 | TC-LOGIN-01 | signs in with a fresh account | REQ-LOGIN-01 | use-case | high | @smoke @security | all | automated | specs/login.spec.ts | |
 | TC-LOGIN-02 | a wrong password is refused generically | REQ-LOGIN-02 | error-guessing | high | @regression @security | all | automated | specs/login.spec.ts | |
-| TC-LOGIN-03 | Back after logout shows no account data | REQ-LOGIN-01 | state-transition | medium | @regression @navigation | all | approved | | |
+| TC-LOGIN-03 | Back after logout shows no account data | REQ-LOGIN-11 | state-transition | medium | @regression @navigation | all | approved | | |
 | TC-LOGIN-04 | the tab order reaches the submit button | REQ-LOGIN-01 | use-case | low | @regression @navigation | all | automated | specs/missing.spec.ts | | <!-- expect-finding: case-without-spec -->
 | TC-LOGIN-05 | the hamburger opens the account | REQ-LOGIN-01 | use-case | low | @regression @navigation @mobile-only | mobile-only: the toolbar hides the account below 960 px | approved | | | <!-- expect-finding: status-behind -->
 | TC-LOGIN-06 | remember me keeps the session | REQ-LOGIN-03 | use-case | low | @regression | all | approved | | | <!-- expect-finding: registry-shape -->

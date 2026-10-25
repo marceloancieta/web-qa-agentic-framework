@@ -26,12 +26,9 @@ regression in a container, network mocking and state injection, proven on Juice 
 
 | Id | Stage | Item | Origin | Status |
 |---|---|---|---|---|
-| TM-01 | W4 | Test-management adapters (`local`, `allure-report`, `allure-testops`) and the manifest; a case's identity is its id, never its title. | plan | in-progress |
-| TM-02 | W4 | Tracker adapters (`jira`, `github`, `local`). | plan | in-progress |
-| TM-03 | W4 | Contract tests with read-back of every write; metadata repair with a scope; ADR on how known gaps appear in test management. | exp | in-progress |
-| PROC-01 | W5 | Rules: modes, app packs, registry, generation (locator policy), tagging (one tag per dimension), reporting, documentation, reachability. | plan | todo |
+| PROC-01 | W5 | Rules: modes, app packs, registry, generation (locator policy), tagging (one tag per dimension), reporting, documentation, reachability. | plan | in-progress |
 | PROC-02 | W5 | Skills: `qa-intake`, `qa-design`, `qa-automate`, `qa-publish`, `qa-run`, `qa-report-bug`. | plan | todo |
-| PROC-03 | W5 | Templates: intake (manual exploration notes accepted as a source), UI feature contract with the quality-dimensions checklist, registry with declared dimensions; the cited status of each contract rule. | plan | todo |
+| PROC-03 | W5 | Templates: intake (manual exploration notes accepted as a source), UI feature contract with the quality-dimensions checklist, registry with declared dimensions; the cited status of each contract rule. | plan | in-progress |
 | PROC-04 | W5 | `juice-shop-ui` pack skill. | plan | todo |
 | JS-05 | W6 | Juice Shop phases 0 and 1: app map, contract docs and registries for sign-up and login, basket and search. | plan | todo |
 | AGT-01 | W7 | `spec-author`: writes, runs and reports the specs of an assigned set of approved cases. | plan | todo |
@@ -109,3 +106,6 @@ regression in a container, network mocking and state injection, proven on Juice 
 | GATE-05 | Coverage status and traceability; an integration requirement covered only by `@mocked` cases is refused. The cited status (contract rules cited by cases) moves to PROC-03, with the contract format. | `a05be7e` |
 | GATE-06 | Quality gate: pass rate, new critical and serious accessibility violations, visual diff limits. | `ed0acfa` |
 | GATE-07 | Visual lane runs only in the pinned Playwright image (a gate checks the image matches `@playwright/test`), refuses `--update-snapshots` in the run phase; ADR on container lanes. | `ed0acfa` |
+| TM-01 | Test-management adapters (`local`, `allure-report`, `allure-testops`) and the manifest; a case's identity is its id, never its title. | `457f6a5` |
+| TM-02 | Tracker adapters (`jira`, `github`, `local`). | `457f6a5` |
+| TM-03 | Contract tests with read-back of every write; metadata repair with a scope; ADR on how known gaps appear in test management. | `457f6a5` |

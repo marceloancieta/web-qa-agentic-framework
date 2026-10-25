@@ -1,6 +1,6 @@
-// Text that leaves this repository for a renderer (test-management descriptions, tracker issues).
-// Renderers change text: Markdown reads a bare `<petId>` as an HTML tag and drops it. Text is
-// made safe before it is sent, and what was rendered is checked after.
+// Text helpers. Most are for text that leaves this repository for a renderer (test-management
+// descriptions, tracker issues). Renderers change text: Markdown reads a bare `<petId>` as an HTML
+// tag and drops it. Text is made safe before it is sent, and what was rendered is checked after.
 
 const PLACEHOLDER = /<([A-Za-z][\w.-]*)>/g;
 
@@ -36,6 +36,19 @@ export function htmlToText(html) {
 export function lostPlaceholders(source, renderedText) {
   const wanted = [...new Set([...String(source).matchAll(PLACEHOLDER)].map((m) => m[0]))];
   return wanted.filter((token) => !renderedText.includes(token));
+}
+
+/**
+ * The cells of a Markdown table row: `| a | b |` -> ['a', 'b']. An escaped pipe stays inside its
+ * cell, and an HTML comment after the last pipe is a reviewer's note, not a cell.
+ */
+export function tableCells(line) {
+  const inner = String(line)
+    .trim()
+    .replace(/\s*<!--.*?-->$/, '')
+    .replace(/^\|/, '')
+    .replace(/\|$/, '');
+  return inner.split(/(?<!\\)\|/).map((cell) => cell.trim().replace(/\\\|/g, '|'));
 }
 
 /** Text normalized for a read-back comparison: line endings, trailing spaces, outer blank lines. */

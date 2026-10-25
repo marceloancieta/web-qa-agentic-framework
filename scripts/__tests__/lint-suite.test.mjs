@@ -6,6 +6,7 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { coverageStatus } from '../coverage-status.mjs';
 import { REPO_ROOT } from '../lib/cli.mjs';
+import { parseContractRules } from '../lib/contract.mjs';
 import { compareWithMarkers } from '../lib/lint.mjs';
 import { parseRegistry } from '../lib/registry.mjs';
 import { FIXTURES, lintSuite, RULES } from '../lint-suite.mjs';
@@ -99,4 +100,102 @@ requirements:
   );
   assert.equal(run('traceability.mjs', '--root', root).status, 1);
   assert.equal(run('traceability.mjs').status, 0);
+});
+
+test('cited status: each contract rule is cited by a case of any registry that names the contract', () => {
+  const root = treeWith(`---
+feature: SEARCH
+title: Search results
+routes: [/#/search]
+contract: docs/features/search.md
+${DIMENSIONS_BLOCK}
+---
+## Cases
+
+| ID | Title | Requirement | Technique | Priority | Tags | Devices | Status | Spec | Defect |
+|---|---|---|---|---|---|---|---|---|---|
+| TC-SEARCH-01 | finds a product | REQ-SEARCH-01 | use-case | high | @smoke | all | draft | | |
+| TC-SEARCH-02 | shows the error of a failed search | REQ-SEARCH-02 | error-guessing | medium | @regression @mocked | all | draft | | |
+`);
+  writeFileSync(
+    join(root, 'apps', 'shop', 'registry', 'search-empty.md'),
+    `---
+feature: SEARCH
+title: Empty search
+routes: [/#/search]
+contract: docs/features/search.md
+${DIMENSIONS_BLOCK}
+---
+## Cases
+
+| ID | Title | Requirement | Technique | Priority | Tags | Devices | Status | Spec | Defect |
+|---|---|---|---|---|---|---|---|---|---|
+| TC-SEARCH-03 | an empty query shows every product | REQ-SEARCH-03 | boundary-value | low | @regression | all | draft | | |
+`,
+  );
+  mkdirSync(join(root, 'apps', 'shop', 'docs', 'features'), { recursive: true });
+  writeFileSync(
+    join(root, 'apps', 'shop', 'docs', 'features', 'search.md'),
+    `# Search contract
+
+## Business rules
+
+| ID | Rule | Source |
+|---|---|---|
+| REQ-SEARCH-01 | Results match the query | the story |
+| REQ-SEARCH-02 | A failing search says so | the story |
+| REQ-SEARCH-03 | An empty query lists every product | measured |
+| REQ-SEARCH-04 | The query is kept in the URL | the app map |
+`,
+  );
+  const { rows, findings } = traceability(root);
+  const contract = 'apps/shop/docs/features/search.md';
+  assert.deepEqual(
+    rows.map((r) => [r.file, r.requirement, r.cases.join(' ')]),
+    [
+      [contract, 'REQ-SEARCH-01', 'TC-SEARCH-01'],
+      [contract, 'REQ-SEARCH-02', 'TC-SEARCH-02'],
+      [contract, 'REQ-SEARCH-03', 'TC-SEARCH-03'],
+      [contract, 'REQ-SEARCH-04', ''],
+    ],
+  );
+  assert.deepEqual(
+    findings.map((f) => `${f.rule} ${f.file}:${f.line}`),
+    [`mocked-only ${contract}:8`, `uncited-rule ${contract}:10`],
+  );
+  assert.deepEqual(lintSuite(root), []);
+});
+
+test('a missing contract is reported at the contract key of the registry', () => {
+  const root = treeWith(`---
+feature: SEARCH
+title: Search
+routes: [/#/search]
+contract: docs/features/missing.md
+${DIMENSIONS_BLOCK}
+---
+## Cases
+
+| ID | Title | Requirement | Technique | Priority | Tags | Devices | Status | Spec | Defect |
+|---|---|---|---|---|---|---|---|---|---|
+| TC-SEARCH-01 | finds a product | REQ-SEARCH-01 | use-case | high | @smoke | all | draft | | |
+`);
+  assert.deepEqual(
+    lintSuite(root).map((f) => `${f.rule} ${f.line} ${f.message}`),
+    [
+      'registry-shape 19 TC-SEARCH-01: requirement REQ-SEARCH-01 is not declared in the front matter or the contract',
+      'registry-shape 5 contract docs/features/missing.md does not exist in apps/shop/',
+    ],
+  );
+});
+
+test('a contract without a business rules table, or with an empty one, is a finding', () => {
+  const messages = (text) => parseContractRules(text).problems.map((p) => `${p.line} ${p.message}`);
+  assert.deepEqual(messages('# Login\n\n## Routes\n'), ['1 missing "## Business rules" section']);
+  assert.deepEqual(messages('# Login\n\n## Business rules\n\n1. a list\n\n## Routes\n'), [
+    '3 the business rules need a table: | ID | Rule | Source |',
+  ]);
+  assert.deepEqual(messages('## Business rules\n\n| ID | Rule | Source |\n|---|---|---|\n'), [
+    '1 the business rules table has no rows',
+  ]);
 });

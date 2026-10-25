@@ -4,6 +4,8 @@
 //
 //   registry-shape     the registry breaks its format (scripts/lib/registry.mjs): front matter,
 //                      dimensions, the cases table, a cell's value.
+//   contract-shape     the feature contract a registry names breaks its format
+//                      (scripts/lib/contract.mjs): the business rules table, a rule's id or source.
 //   missing-dimension  the header declares a quality dimension as `applies`, and no case carries
 //                      its tag (scripts/lib/tags.mjs DIMENSIONS).
 //   duplicate-case     the same case id in two registries of one pack (a feature may span files;
@@ -33,6 +35,7 @@ export const TOOL = 'lint-suite';
 export const FIXTURES = join(import.meta.dirname, '__fixtures__', 'lint-suite');
 export const RULES = [
   'registry-shape',
+  'contract-shape',
   'missing-dimension',
   'duplicate-case',
   'case-without-spec',
@@ -51,9 +54,15 @@ export function lintSuite(root = REPO_ROOT) {
   const tests = specCases(root);
 
   const casesByPack = new Map();
+  const reported = new Set();
   for (const registry of registries) {
-    for (const problem of registry.problems)
-      add('registry-shape', problem.file, problem.line, problem.message);
+    for (const problem of registry.problems) {
+      const rule = problem.kind ?? 'registry-shape';
+      const key = `${rule} ${problem.file}:${problem.line} ${problem.message}`;
+      if (reported.has(key)) continue; // a contract two registries name
+      reported.add(key);
+      add(rule, problem.file, problem.line, problem.message);
+    }
     for (const name of applyingDimensions(registry)) {
       const tag = DIMENSIONS[name];
       if (!registry.cases.some((row) => row.tagList.includes(tag))) {
