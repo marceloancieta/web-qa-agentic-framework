@@ -95,6 +95,9 @@ export default defineConfig({
   retries: retries(),
   timeout: 30_000,
   expect: { timeout: 5_000 },
+  // One set of baselines per pack and project, with no OS suffix: they are only ever rendered in
+  // the pinned image of the visual lane (ADR 0009).
+  snapshotPathTemplate: '{testDir}/visual/{projectName}/{testFilePath}/{arg}{ext}',
   reporter: isListing ? [['list']] : [['list'], ['html', { open: 'never' }], ...extraReporters],
   use: {
     trace: traceMode(),

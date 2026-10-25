@@ -19,3 +19,18 @@ services:
       timeout: 4s
       retries: 40
       start_period: 15s
+
+  # The image of the container lanes (ADR 0009): the Playwright release of package.json, pinned by
+  # digest. `npm run lanes:visual` runs the visual lane in it; the repository is mounted as is.
+  playwright:
+    profiles: ['lanes']
+    image: mcr.microsoft.com/playwright:v1.64.1-noble@sha256:47b510dd9230bf0b9bfc9b20102241e577ea7a99334ab4c3ca19f19770e9b8ea
+    working_dir: /work
+    volumes:
+      - ..:/work
+    environment:
+      QA_IN_PLAYWRIGHT_IMAGE: '1'
+      QA_ENV: ${QA_ENV:-}
+    extra_hosts:
+      - 'host.docker.internal:host-gateway'
+    ipc: host

@@ -26,10 +26,8 @@ regression in a container, network mocking and state injection, proven on Juice 
 
 | Id | Stage | Item | Origin | Status |
 |---|---|---|---|---|
-| GATE-03 | W3 | `lint:suite`, including a declared quality dimension without cases and `@desktop-only`/`@mobile-only` cases without a reason. | plan | in-progress |
-| GATE-05 | W3 | Coverage status and traceability; an integration requirement covered only by `@mocked` cases is refused. The cited status (contract rules cited by cases) moves to PROC-03, with the contract format. | plan | in-progress |
-| GATE-06 | W3 | Quality gate: pass rate, new critical and serious accessibility violations, visual diff limits. | plan | todo |
-| GATE-07 | W3 | Visual lane runs only in the pinned Playwright image (a gate checks the image matches `@playwright/test`), refuses `--update-snapshots` in the run phase; ADR on container lanes. | plan | todo |
+| GATE-06 | W3 | Quality gate: pass rate, new critical and serious accessibility violations, visual diff limits. | plan | in-progress |
+| GATE-07 | W3 | Visual lane runs only in the pinned Playwright image (a gate checks the image matches `@playwright/test`), refuses `--update-snapshots` in the run phase; ADR on container lanes. | plan | in-progress |
 | TM-01 | W4 | Test-management adapters (`local`, `allure-report`, `allure-testops`) and the manifest; a case's identity is its id, never its title. | plan | todo |
 | TM-02 | W4 | Tracker adapters (`jira`, `github`, `local`). | plan | todo |
 | TM-03 | W4 | Contract tests with read-back of every write; metadata repair with a scope; ADR on how known gaps appear in test management. | exp | todo |
@@ -109,3 +107,5 @@ regression in a container, network mocking and state injection, proven on Juice 
 | CORE-14 | `session-probe` also checks each pack's login page, not only its host. | `5e8e527` |
 | GATE-02 | `lint:harness`: no `waitForTimeout`, no XPath or `nth-child`, the locator policy (ADR 0007), soft assertions above an expected-failure arm. | `672badc` |
 | GATE-04 | `lint:docs`: links and file references resolve, host placeholders in hand-written repro steps, and a `public-wording` rule over tracked docs, code comments and commit messages that reports phrases presenting the framework as taken from another codebase ("predecessor", "ported from", "copied from", "based on an earlier", "carried over"), matched on word boundaries so words such as "reporting" pass; its self-test holds the phrases and accepted look-alikes. Tone in general stays a DOC-02 review. | `672badc` |
+| GATE-03 | `lint:suite`, including a declared quality dimension without cases and `@desktop-only`/`@mobile-only` cases without a reason. | `a05be7e` |
+| GATE-05 | Coverage status and traceability; an integration requirement covered only by `@mocked` cases is refused. The cited status (contract rules cited by cases) moves to PROC-03, with the contract format. | `a05be7e` |

@@ -10,6 +10,15 @@ export function packVariable(pack, setting) {
   return `QA_${pack.toUpperCase().replace(/-/g, '_')}_${setting}`;
 }
 
+/** The whole configuration file in effect: `{ source, config }`. */
+export function readConfig(root) {
+  const source = ['qa-config.json', 'qa-config.example.json'].find((file) =>
+    existsSync(join(root, file)),
+  );
+  if (!source) throw new Error('No qa-config.json or qa-config.example.json found.');
+  return { source, config: JSON.parse(readFileSync(join(root, source), 'utf8')) };
+}
+
 /** The active environment: `{ source, name, packs }`. */
 export function activeEnvironment(root, env = process.env) {
   const source = ['qa-config.json', 'qa-config.example.json'].find((file) =>

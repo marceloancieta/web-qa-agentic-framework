@@ -26,7 +26,7 @@ allows writes and restarts the container as the recovery of destructive cases.
 | `customer` | created during the run, one per worker (`builders/account-builder.ts`) | `POST /rest/user/login`; the token goes to local storage and a `token` cookie, the basket id to session storage, as the frontend does after its own login |
 | `anonymous` | none | a fresh context |
 
-Every context carries the cookies that dismiss the welcome and cookie banners. Accounts are not
+Every context carries the cookies that dismiss the welcome and cookie banners, and a `language` cookie: without it the shop announces a language change in a notification that appears or not depending on timing. Accounts are not
 removed: the application has no endpoint for it, and a restart empties its database.
 
 ## Layout
@@ -38,6 +38,7 @@ removed: the application has no endpoint for it, and a restart empties its datab
 | `pages/` | `LoginPage` |
 | `components/` | `AccountMenu`: one API for the toolbar menu (from 960 px wide, `breakpoints.toolbar`) and the side navigation below it |
 | `specs/smoke/` | the sign-in smoke on every device project |
+| `specs/visual/`, `visual/` | the visual cases and their baselines, one per device project, rendered in the pinned image: `npm run lanes:visual` compares, `npm run lanes:visual -- --phase automate --update` rewrites them (ADR 0009) |
 | `docs/app-map.json` | the app map: `npm run app:map -- --pack juice-shop --write` walks the routes of `app.json` `app_map` read-only; `npm run app:map:check -- --pack juice-shop` reports drift |
 
 ## Facts about the application
