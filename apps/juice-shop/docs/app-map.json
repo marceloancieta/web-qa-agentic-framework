@@ -5,19 +5,25 @@
     {
       "route": "/#/",
       "title": "OWASP Juice Shop",
-      "landmarks": [],
-      "headings": [
-        "h1 Welcome to OWASP Juice Shop!",
-        "h1 https://owasp-juice.shop"
+      "landmarks": [
+        "complementary",
+        "main"
       ],
+      "headings": [],
       "interactive": [
-        "button \"Close Welcome Banner\"",
-        "button \"Force page reload\"",
-        "button \"Help getting started\"",
-        "button \"dismiss cookie message\"",
-        "button \"learn more about cookies\"",
-        "link \"Open Worldwide Application Security Project (OWASP)\"",
-        "link \"https://owasp-juice.shop\""
+        "button \"Add to Basket\" x15",
+        "button \"Back to homepage\"",
+        "button \"Click for more information about the product\" x15",
+        "button \"Close search\"",
+        "button \"Language selection menu\"",
+        "button \"Next page\"",
+        "button \"Open Sidenav\"",
+        "button \"Open search\"",
+        "button \"Previous page\"",
+        "button \"Show the shopping cart\"",
+        "button \"Show/hide account menu\"",
+        "combobox \"Items per page:\"",
+        "textbox \"\""
       ],
       "fields": [
         {
@@ -50,18 +56,45 @@
     {
       "route": "/#/about",
       "title": "OWASP Juice Shop",
-      "landmarks": [],
+      "landmarks": [
+        "navigation \"Follow us on Social Media\"",
+        "region \"Corporate History & Policy\"",
+        "region \"Customer Feedback\""
+      ],
       "headings": [
-        "h1 Welcome to OWASP Juice Shop!",
-        "h1 https://owasp-juice.shop"
+        "h1 About Us",
+        "h2 Corporate History & Policy",
+        "h2 Customer Feedback",
+        "h2 Follow us on Social Media"
       ],
       "interactive": [
-        "button \"Close Welcome Banner\"",
-        "button \"Help getting started\"",
-        "button \"dismiss cookie message\"",
-        "button \"learn more about cookies\"",
-        "link \"Open Worldwide Application Security Project (OWASP)\"",
-        "link \"https://owasp-juice.shop\""
+        "button \"Back to homepage\"",
+        "button \"BlueSky\"",
+        "button \"Close search\"",
+        "button \"Facebook\"",
+        "button \"Language selection menu\"",
+        "button \"Mastodon\"",
+        "button \"NFT\"",
+        "button \"Next\"",
+        "button \"Open Sidenav\"",
+        "button \"Open search\"",
+        "button \"Press Kit\"",
+        "button \"Previous\"",
+        "button \"Reddit\"",
+        "button \"Show the shopping cart\"",
+        "button \"Show/hide account menu\"",
+        "button \"Slack\"",
+        "button \"Twitter\"",
+        "link \"Access our Press Kit\"",
+        "link \"Join our Slack workspace\"",
+        "link \"Link to the Terms of Use\"",
+        "link \"View our NFT\"",
+        "link \"Visit our BlueSky page\"",
+        "link \"Visit our Facebook page\"",
+        "link \"Visit our Mastodon page\"",
+        "link \"Visit our Reddit page\"",
+        "link \"Visit our Twitter page\"",
+        "textbox \"\""
       ],
       "fields": [
         {
@@ -96,16 +129,21 @@
       "title": "OWASP Juice Shop",
       "landmarks": [],
       "headings": [
-        "h1 Welcome to OWASP Juice Shop!",
-        "h1 https://owasp-juice.shop"
+        "h1 Juicy the Smart Assistant"
       ],
       "interactive": [
-        "button \"Close Welcome Banner\"",
-        "button \"Help getting started\"",
-        "button \"dismiss cookie message\"",
-        "button \"learn more about cookies\"",
-        "link \"Open Worldwide Application Security Project (OWASP)\"",
-        "link \"https://owasp-juice.shop\""
+        "button \"Back to homepage\"",
+        "button \"Close search\"",
+        "button \"Get a suggestion\"",
+        "button \"Get help\"",
+        "button \"Language selection menu\"",
+        "button \"Open Sidenav\"",
+        "button \"Open search\"",
+        "button \"Send message\"",
+        "button \"Show the shopping cart\"",
+        "button \"Show/hide account menu\"",
+        "textbox \"\"",
+        "textbox \"Ask me anything\""
       ],
       "fields": [
         {
@@ -144,16 +182,22 @@
       "title": "OWASP Juice Shop",
       "landmarks": [],
       "headings": [
-        "h1 Welcome to OWASP Juice Shop!",
-        "h1 https://owasp-juice.shop"
+        "h1 Customer Feedback"
       ],
       "interactive": [
-        "button \"Close Welcome Banner\"",
-        "button \"Help getting started\"",
-        "button \"dismiss cookie message\"",
-        "button \"learn more about cookies\"",
-        "link \"Open Worldwide Application Security Project (OWASP)\"",
-        "link \"https://owasp-juice.shop\""
+        "button \"Back to homepage\"",
+        "button \"Button to send the review\"",
+        "button \"Close search\"",
+        "button \"Language selection menu\"",
+        "button \"Open Sidenav\"",
+        "button \"Open search\"",
+        "button \"Show the shopping cart\"",
+        "button \"Show/hide account menu\"",
+        "slider \"\"",
+        "textbox \"\"",
+        "textbox \"Field for entering the comment or the feedback\"",
+        "textbox \"Field for the result of the CAPTCHA code\"",
+        "textbox \"Field with the name of the author\""
       ],
       "fields": [
         {
@@ -227,17 +271,16 @@
       "route": "/#/deluxe-membership",
       "title": "OWASP Juice Shop",
       "landmarks": [],
-      "headings": [
-        "h1 Welcome to OWASP Juice Shop!",
-        "h1 https://owasp-juice.shop"
-      ],
+      "headings": [],
       "interactive": [
-        "button \"Close Welcome Banner\"",
-        "button \"Help getting started\"",
-        "button \"dismiss cookie message\"",
-        "button \"learn more about cookies\"",
-        "link \"Open Worldwide Application Security Project (OWASP)\"",
-        "link \"https://owasp-juice.shop\""
+        "button \"Back to homepage\"",
+        "button \"Close search\"",
+        "button \"Language selection menu\"",
+        "button \"Open Sidenav\"",
+        "button \"Open search\"",
+        "button \"Show the shopping cart\"",
+        "button \"Show/hide account menu\"",
+        "textbox \"\""
       ],
       "fields": [
         {
@@ -268,18 +311,27 @@
     {
       "route": "/#/forgot-password",
       "title": "OWASP Juice Shop",
-      "landmarks": [],
+      "landmarks": [
+        "main"
+      ],
       "headings": [
-        "h1 Welcome to OWASP Juice Shop!",
-        "h1 https://owasp-juice.shop"
+        "h1 Forgot Password"
       ],
       "interactive": [
-        "button \"Close Welcome Banner\"",
-        "button \"Help getting started\"",
-        "button \"dismiss cookie message\"",
-        "button \"learn more about cookies\"",
-        "link \"Open Worldwide Application Security Project (OWASP)\"",
-        "link \"https://owasp-juice.shop\""
+        "button \"Back to homepage\"",
+        "button \"Button to confirm the changes\"",
+        "button \"Close search\"",
+        "button \"Language selection menu\"",
+        "button \"Open Sidenav\"",
+        "button \"Open search\"",
+        "button \"Show the shopping cart\"",
+        "button \"Show/hide account menu\"",
+        "switch \"Show password advice\"",
+        "textbox \"\"",
+        "textbox \"Email address field\"",
+        "textbox \"Field for New Password\"",
+        "textbox \"Field for the answer to the security question\"",
+        "textbox \"Field to confirm the new password\""
       ],
       "fields": [
         {
@@ -343,18 +395,29 @@
     {
       "route": "/#/login",
       "title": "OWASP Juice Shop",
-      "landmarks": [],
+      "landmarks": [
+        "main"
+      ],
       "headings": [
-        "h1 Welcome to OWASP Juice Shop!",
-        "h1 https://owasp-juice.shop"
+        "h1 Login"
       ],
       "interactive": [
-        "button \"Close Welcome Banner\"",
-        "button \"Help getting started\"",
-        "button \"dismiss cookie message\"",
-        "button \"learn more about cookies\"",
-        "link \"Open Worldwide Application Security Project (OWASP)\"",
-        "link \"https://owasp-juice.shop\""
+        "button \"Back to homepage\"",
+        "button \"Close search\"",
+        "button \"Language selection menu\"",
+        "button \"Login with Google\"",
+        "button \"Login\"",
+        "button \"Open Sidenav\"",
+        "button \"Open search\"",
+        "button \"Show password\"",
+        "button \"Show the shopping cart\"",
+        "button \"Show/hide account menu\"",
+        "checkbox \"Checkbox to stay logged in or not logged in\"",
+        "link \"Forgot your password?\"",
+        "link \"Not yet a customer?\"",
+        "textbox \"\"",
+        "textbox \"Text field for the login email\"",
+        "textbox \"Text field for the login password\""
       ],
       "fields": [
         {
@@ -412,16 +475,23 @@
       "title": "OWASP Juice Shop",
       "landmarks": [],
       "headings": [
-        "h1 Welcome to OWASP Juice Shop!",
-        "h1 https://owasp-juice.shop"
+        "h1 Photo Wall"
       ],
       "interactive": [
-        "button \"Close Welcome Banner\"",
-        "button \"Help getting started\"",
-        "button \"dismiss cookie message\"",
-        "button \"learn more about cookies\"",
-        "link \"Open Worldwide Application Security Project (OWASP)\"",
-        "link \"https://owasp-juice.shop\""
+        "button \"Back to homepage\"",
+        "button \"BlueSky\" x10",
+        "button \"Close search\"",
+        "button \"Language selection menu\"",
+        "button \"Mastodon\" x10",
+        "button \"Open Sidenav\"",
+        "button \"Open search\"",
+        "button \"Show the shopping cart\"",
+        "button \"Show/hide account menu\"",
+        "button \"Tweet\" x10",
+        "link \"BlueSky\" x10",
+        "link \"Mastodon\" x10",
+        "link \"Tweet\" x10",
+        "textbox \"\""
       ],
       "fields": [
         {
@@ -453,18 +523,29 @@
     {
       "route": "/#/register",
       "title": "OWASP Juice Shop",
-      "landmarks": [],
+      "landmarks": [
+        "main"
+      ],
       "headings": [
-        "h1 Welcome to OWASP Juice Shop!",
-        "h1 https://owasp-juice.shop"
+        "h1 User Registration"
       ],
       "interactive": [
-        "button \"Close Welcome Banner\"",
-        "button \"Help getting started\"",
-        "button \"dismiss cookie message\"",
-        "button \"learn more about cookies\"",
-        "link \"Open Worldwide Application Security Project (OWASP)\"",
-        "link \"https://owasp-juice.shop\""
+        "button \"Back to homepage\"",
+        "button \"Button to complete the registration\"",
+        "button \"Close search\"",
+        "button \"Language selection menu\"",
+        "button \"Open Sidenav\"",
+        "button \"Open search\"",
+        "button \"Show the shopping cart\"",
+        "button \"Show/hide account menu\"",
+        "combobox \"Selection list for the security question\"",
+        "link \"Already a customer?\"",
+        "switch \"Show password advice\"",
+        "textbox \"\"",
+        "textbox \"Email address field\"",
+        "textbox \"Field for the answer to the security question\"",
+        "textbox \"Field for the password\"",
+        "textbox \"Field to confirm the password\""
       ],
       "fields": [
         {
@@ -530,18 +611,25 @@
     {
       "route": "/#/search",
       "title": "OWASP Juice Shop",
-      "landmarks": [],
-      "headings": [
-        "h1 Welcome to OWASP Juice Shop!",
-        "h1 https://owasp-juice.shop"
+      "landmarks": [
+        "complementary",
+        "main"
       ],
+      "headings": [],
       "interactive": [
-        "button \"Close Welcome Banner\"",
-        "button \"Help getting started\"",
-        "button \"dismiss cookie message\"",
-        "button \"learn more about cookies\"",
-        "link \"Open Worldwide Application Security Project (OWASP)\"",
-        "link \"https://owasp-juice.shop\""
+        "button \"Add to Basket\" x15",
+        "button \"Back to homepage\"",
+        "button \"Click for more information about the product\" x15",
+        "button \"Close search\"",
+        "button \"Language selection menu\"",
+        "button \"Next page\"",
+        "button \"Open Sidenav\"",
+        "button \"Open search\"",
+        "button \"Previous page\"",
+        "button \"Show the shopping cart\"",
+        "button \"Show/hide account menu\"",
+        "combobox \"Items per page:\"",
+        "textbox \"\""
       ],
       "fields": [
         {

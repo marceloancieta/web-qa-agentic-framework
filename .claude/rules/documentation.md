@@ -26,7 +26,8 @@ Each fact has one owner. Other files link to it or name it; they never restate i
 | Case identity | `helpers/case-meta.ts` (`caseIdentity`) |
 | The locator order | ADR 0007; applied in `.claude/rules/generation.md` and `lint-harness` |
 | The layers | ADR 0005; checked by `lint-layers` |
-| What an application shows | `apps/<pack>/docs/app-map.json` (`npm run app:map`) |
+| What an application shows | `apps/<pack>/docs/app-map.json`, and `app-map.<role>.json` signed in (`npm run app:map`) |
+| Cookies every context of a pack starts with | `apps/<pack>/app.json` `cookies` |
 | Where an application departs from what it shows | `apps/<pack>/docs/app-notes.md` |
 | Counts of cases by status and dimension | `npm run coverage:status` |
 | Which requirements and rules are covered | `npm run traceability` |

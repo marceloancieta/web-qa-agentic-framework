@@ -10,6 +10,11 @@
   "third_party_hosts": [],
   "secret_keys": ["bid"],
   "identity_fields": ["email", "umail", "username"],
+  "cookies": {
+    "welcomebanner_status": "dismiss",
+    "cookieconsent_status": "dismiss",
+    "language": "en"
+  },
   "app_map": {
     "start": [
       "/#/",
@@ -22,6 +27,9 @@
       "/#/photo-wall",
       "/#/deluxe-membership"
     ],
-    "exclude": ["^/redirect", "logout", "score-board", "/ftp", "/api-docs", "/metrics"]
+    "exclude": ["^/redirect", "logout", "score-board", "/ftp", "/api-docs", "/metrics"],
+    "actors": {
+      "customer": { "start": ["/#/basket"] }
+    }
   }
 }

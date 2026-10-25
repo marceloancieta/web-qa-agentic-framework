@@ -2,7 +2,7 @@ import { mkdirSync, mkdtempSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { expect, test } from '@playwright/test';
-import { appPacks, loadAppPack, manifestProblems } from '../app-pack';
+import { appPacks, contextCookies, loadAppPack, manifestProblems } from '../app-pack';
 
 /** A throwaway root with `apps/<name>/app.json` for each entry (null: a folder without one). */
 function rootWith(packs: Record<string, object | null>): string {
@@ -69,4 +69,27 @@ test('the manifest name must equal its folder, and loading names the file', () =
   expect(() => loadAppPack(join(root, 'apps', 'store'))).toThrow(
     /app\.json: name "shop" must equal the folder name "store"\./,
   );
+});
+
+test('pack cookies: plain names and values, never a session; actor routes start with /', () => {
+  expect(
+    manifestProblems(
+      {
+        ...valid,
+        cookies: { language: 'en', session_id: 'x', 'bad name': 'y', banner: 'a b' },
+        app_map: { actors: { customer: { start: ['/basket', 'orders'] }, Admin: {} } },
+      },
+      'shop',
+    ),
+  ).toEqual([
+    'cookies.session_id looks like a session; sessions come from the actors',
+    'cookies has "bad name", which is not a cookie name',
+    'cookies.banner must be a value without spaces or semicolons',
+    'app_map.actors has "Admin", which is not a role name',
+    'app_map.actors.customer.start has "orders", which does not start with /',
+  ]);
+  expect(contextCookies({ cookies: { language: 'en' } }, 'http://shop.test')).toEqual([
+    { name: 'language', value: 'en', url: 'http://shop.test' },
+  ]);
+  expect(contextCookies({}, 'http://shop.test')).toEqual([]);
 });

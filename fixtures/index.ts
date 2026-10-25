@@ -39,7 +39,7 @@ import {
   type ActorProvider,
   type SignedIn,
 } from '../helpers/actors';
-import { loadAppPack, type AppPack } from '../helpers/app-pack';
+import { contextCookies, loadAppPack, type AppPack } from '../helpers/app-pack';
 import {
   actorConfig,
   ANONYMOUS_ACTOR,
@@ -190,7 +190,15 @@ export function createTest(provider: ActorProvider) {
           redaction.knownSecrets.push(...(signedIn.secrets ?? []));
           const file = storageStatePath(authDir, qa, role, workerInfo.workerIndex);
           mkdirSync(dirname(file), { recursive: true });
-          writeFileSync(file, JSON.stringify(signedIn.storageState));
+          // The session storage goes into the file too, so a tool that walks as this role (app:map
+          // --actor) restores the whole session; Playwright reads only cookies and origins.
+          writeFileSync(
+            file,
+            JSON.stringify({
+              ...signedIn.storageState,
+              sessionStorage: signedIn.sessionStorage ?? [],
+            }),
+          );
           return { account, signedIn, file, provisioned: config.account === 'provisioned' };
         };
         try {
@@ -218,7 +226,8 @@ export function createTest(provider: ActorProvider) {
     ],
 
     pageHealth: [{}, { option: true }],
-    context: async ({ context, qa }, use) => {
+    context: async ({ context, qa, app }, use) => {
+      await context.addCookies(contextCookies(app, qa.baseUrl));
       await provider.prepareContext?.(context, qa);
       await use(context);
     },
@@ -229,7 +238,7 @@ export function createTest(provider: ActorProvider) {
       await verifyHealth(guard, pageHealth, testInfo);
     },
 
-    actor: async ({ browser, playwright, qa, sessions, pageHealth }, use, testInfo) => {
+    actor: async ({ browser, playwright, qa, app, sessions, pageHealth }, use, testInfo) => {
       checkOptions(pageHealth);
       const opened: { actor: Actor; guard: PageHealthGuard }[] = [];
       await use(async (role = qa.defaultActor) => {
@@ -238,8 +247,9 @@ export function createTest(provider: ActorProvider) {
         const context = await browser.newContext({
           ...options,
           baseURL: `${qa.baseUrl}/`,
-          storageState: session?.file,
+          storageState: session?.signedIn.storageState,
         });
+        await context.addCookies(contextCookies(app, qa.baseUrl));
         await provider.prepareContext?.(context, qa);
         for (const { origin, items } of session?.signedIn.sessionStorage ?? []) {
           await context.addInitScript(
@@ -254,7 +264,7 @@ export function createTest(provider: ActorProvider) {
         const guard = watchPageHealth(page, pageHealth);
         const api = await playwright.request.newContext({
           baseURL: `${qa.baseUrl}/`,
-          storageState: session?.file,
+          storageState: session?.signedIn.storageState,
           extraHTTPHeaders: session?.signedIn.apiHeaders,
         });
         const actor: Actor = { role, page, context, api, account: session?.account ?? null };

@@ -2,32 +2,19 @@
 // signing them in, and one fixture per role.
 //
 // Signing in mirrors what the frontend does after its own login: the token goes to local storage
-// and to a `token` cookie, and the basket id to session storage. Every context also gets the
-// cookies that dismiss the welcome and cookie banners, so no test has to click them away, and the
-// language cookie: without it the shop picks a language on load and announces the change in a
-// notification that may or may not be on screen when a check runs.
+// and to a `token` cookie, and the basket id to session storage. The cookies that dismiss the
+// welcome and cookie banners and fix the language are in app.json `cookies`, which the core adds to
+// every context: without the language cookie the shop picks a language on load and announces the
+// change in a notification that may or may not be on screen when a check runs.
 // Accounts are not removed: Juice Shop has no endpoint for it, and the container starts empty on
 // every restart (`npm run juice-shop:up` after `juice-shop:down`, or the pack's recovery).
 
-import type { BrowserContext } from '@playwright/test';
 import type { ActorProvider } from '../../helpers/actors';
 import { createTest, expect, type Actor } from '../../fixtures';
 import { AccountApi } from './api/account-api';
 import { aCustomer } from './builders/account-builder';
 
-export const BANNER_COOKIES = ['welcomebanner_status', 'cookieconsent_status'];
-export const LANGUAGE = 'en';
-
-async function prepareShop(context: BrowserContext, baseUrl: string): Promise<void> {
-  await context.addCookies([
-    ...BANNER_COOKIES.map((name) => ({ name, value: 'dismiss', url: baseUrl })),
-    { name: 'language', value: LANGUAGE, url: baseUrl },
-  ]);
-}
-
 export const provider: ActorProvider = {
-  prepareContext: (context, qa) => prepareShop(context, qa.baseUrl),
-
   async provision({ api, role, worker }) {
     const account = aCustomer(role, worker);
     const created = await new AccountApi(api).register(account);

@@ -29,8 +29,21 @@ export interface AppManifest {
   /** Visual comparison settings: the share of pixels that may differ, and a stylesheet (relative to
    * the pack) that hides volatile parts before a screenshot. */
   visual?: { maxDiffPixelRatio?: number; stylePath?: string };
-  /** The app map's walk: routes to start from, and route patterns never to visit. */
-  app_map?: { start?: string[]; exclude?: string[] };
+  /**
+   * Cookies every browser context of the pack starts with, name to value: a dismissed welcome or
+   * consent banner, a fixed language. The test contexts and the app map's walk both get them. Never
+   * a session: those come from the actors.
+   */
+  cookies?: Record<string, string>;
+  /**
+   * The app map's walk: routes to start from, route patterns never to visit, and per role the
+   * routes only a signed-in user reaches (`npm run app:map -- --actor <role>`).
+   */
+  app_map?: {
+    start?: string[];
+    exclude?: string[];
+    actors?: Record<string, { start?: string[] }>;
+  };
 }
 
 export interface AppPack extends AppManifest {
@@ -42,6 +55,9 @@ const NAME = /^[a-z][a-z0-9-]*$/;
 const VERSION = /^[a-z0-9][a-z0-9.-]*$/;
 const ATTRIBUTE = /^[a-z][a-z0-9-]*$/;
 const HOST = /^[a-z0-9.-]+(?::\d+)?$/i;
+const COOKIE_NAME = /^[!#$%&'*+.^_`|~0-9A-Za-z-]+$/;
+const SESSION_LIKE = /session|token|auth|jwt|sid|csrf/i;
+const ROLE = /^[a-z][a-z0-9-]*$/;
 
 const isWholeNumber = (value: unknown, min: number) =>
   typeof value === 'number' && Number.isInteger(value) && value >= min;
@@ -73,9 +89,23 @@ export function manifestProblems(manifest: Partial<AppManifest>, dirName: string
   if (manifest.workers !== undefined && !isWholeNumber(manifest.workers, 1)) {
     problems.push('workers must be a whole number of at least 1');
   }
-  for (const route of manifest.app_map?.start ?? []) {
-    if (!route.startsWith('/'))
-      problems.push(`app_map.start has "${route}", which does not start with /`);
+  for (const [name, value] of Object.entries(manifest.cookies ?? {})) {
+    if (!COOKIE_NAME.test(name)) problems.push(`cookies has "${name}", which is not a cookie name`);
+    else if (SESSION_LIKE.test(name))
+      problems.push(`cookies.${name} looks like a session; sessions come from the actors`);
+    if (typeof value !== 'string' || /[;\s]/.test(value))
+      problems.push(`cookies.${name} must be a value without spaces or semicolons`);
+  }
+  const routeLists: [string, string[]][] = [['app_map.start', manifest.app_map?.start ?? []]];
+  for (const [role, entry] of Object.entries(manifest.app_map?.actors ?? {})) {
+    if (!ROLE.test(role)) problems.push(`app_map.actors has "${role}", which is not a role name`);
+    routeLists.push([`app_map.actors.${role}.start`, entry.start ?? []]);
+  }
+  for (const [key, routes] of routeLists) {
+    for (const route of routes) {
+      if (!route.startsWith('/'))
+        problems.push(`${key} has "${route}", which does not start with /`);
+    }
   }
   for (const pattern of manifest.app_map?.exclude ?? []) {
     try {
@@ -103,6 +133,14 @@ export function loadAppPack(dir: string): AppPack {
   const problems = manifestProblems(manifest, dir.split(/[\\/]/).pop() ?? '');
   if (problems.length > 0) throw new Error(`${file}: ${problems.join('; ')}.`);
   return { ...(manifest as AppManifest), dir };
+}
+
+/** The pack's cookies as Playwright adds them to a context on the application's base URL. */
+export function contextCookies(
+  app: Pick<AppManifest, 'cookies'>,
+  baseUrl: string,
+): { name: string; value: string; url: string }[] {
+  return Object.entries(app.cookies ?? {}).map(([name, value]) => ({ name, value, url: baseUrl }));
 }
 
 /** Names of the app packs under `<root>/apps`: folders with an app.json. */

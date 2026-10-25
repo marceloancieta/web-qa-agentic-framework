@@ -1,0 +1,38 @@
+{
+  "next": 4,
+  "issues": {
+    "LOCAL-1": {
+      "title": "Basket: a customer can read another customer's basket by its id",
+      "body": "**What happens:** a signed-in customer can read another customer's basket by its id. `GET\n/rest/basket/<id>` answers `200` with the other customer's products, and the basket page shows them\nwhen the session storage holds that id.\n\n**What should happen:** a customer sees only their own basket (contract rule REQ-BASKET-09,\n`apps/juice-shop/docs/features/basket.md`); another customer's id is refused.\n\n**Steps** (accounts created for the run):\n1. Customer A signs in and adds Apple Juice (1000ml) to basket `<A_BASKET_ID>`.\n2. Customer B signs in at `<base_url>` and sends `GET <base_url>/rest/basket/<A_BASKET_ID>` with B's\n   token: `200`, `UserId` of A, A's products.\n3. In B's browser session, set session storage `bid` to `<A_BASKET_ID>` and open\n   `<base_url>/#/basket`: the table lists A's Apple Juice, \"Total Price: 1.99¤\".\n\n**Seen:** twice, 2026-10-25, desktop Chromium, Juice Shop 20.3.0 (local container).\n\n**Note:** Juice Shop is insecure on purpose; this is one of its training vulnerabilities. It is\nfiled so the case of REQ-BASKET-09 runs as a known gap with this key.\n",
+      "labels": [
+        "ui",
+        "severity:S1"
+      ],
+      "status": "open",
+      "category": "open",
+      "comments": []
+    },
+    "LOCAL-2": {
+      "title": "Search: the search term is rendered as markup",
+      "body": "**What happens:** the search term is put into the page as markup. Opening\n`<base_url>/#/search?q=%3Cb%3Ebold%3C%2Fb%3E` shows \"Search Results - bold\", and the title holds a\n`<b>` element made from the term.\n\n**What should happen:** the term is shown back as text (contract rule REQ-SEARCH-04,\n`apps/juice-shop/docs/features/search.md`): \"Search Results - `<b>`bold</b>\", with no element created.\n\n**Seen:** 2026-10-25, desktop Chromium, Juice Shop 20.3.0 (local container), through the URL alone.\nOnly harmless markup was tried; whether a script runs was not tested.\n\n**Severity proposal:** S2 as confirmed (markup injection). Script execution through it would make\nit S1, since the session token sits in local storage.\n\n**Note:** Juice Shop is insecure on purpose; this is one of its training vulnerabilities. It is\nfiled so the case of REQ-SEARCH-04 runs as a known gap with this key.\n",
+      "labels": [
+        "ui",
+        "severity:S2"
+      ],
+      "status": "open",
+      "category": "open",
+      "comments": []
+    },
+    "LOCAL-3": {
+      "title": "Basket: /#/basket opens without a session instead of sending to the login",
+      "body": "**What happens:** `<base_url>/#/basket` opens without a session. The page shows \"Your Basket\n(anonymous)\", an empty table, \"Total Price: 0¤\" and a disabled Checkout. It asks the server for no\nbasket and does not send the visitor to the login.\n\n**What should happen:** without a session the basket is not shown; the visitor is sent to the login\n(contract rule REQ-BASKET-10, `apps/juice-shop/docs/features/basket.md`; decided by the owner,\n2026-10-25).\n\n**Seen:** 2026-10-25, desktop Chromium at 1280 px and 412 px, Juice Shop 20.3.0 (local container),\nin a fresh context with the banner and language cookies only.\n\n**Impact:** no data is exposed (no basket request is made); a protected route answers without a\nsession.\n",
+      "labels": [
+        "ui",
+        "severity:S3"
+      ],
+      "status": "open",
+      "category": "open",
+      "comments": []
+    }
+  }
+}

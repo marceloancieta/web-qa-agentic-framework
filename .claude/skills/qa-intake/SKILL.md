@@ -19,8 +19,9 @@ with an account that is there before the session; never submit another form or c
 
 - The pack (`.claude/rules/app-packs.md`), its skill `.claude/skills/<pack>-ui/SKILL.md` and its
   `docs/app-notes.md`.
-- The app map `apps/<pack>/docs/app-map.json`: routes, landmarks, the summarized accessibility tree,
-  forms with their HTML constraints, the endpoints each page calls.
+- The app map `apps/<pack>/docs/app-map.json`, and `app-map.<role>.json` per signed-in role:
+  routes, landmarks, the summarized accessibility tree, forms with their HTML constraints, the
+  endpoints each page calls.
 - Optional: a story or issue (`npm run tracker -- get <KEY>`), an intake request written from
   [the intake template](../../../docs/templates/intake.md), manual exploration notes.
 
@@ -32,9 +33,9 @@ with an account that is there before the session; never submit another form or c
 2. **Check reachability** (`.claude/rules/reachability.md`). Juice Shop down means
    `npm run juice-shop:up`; anything else that does not answer means stopping with what to check.
 3. **Refresh the map when it is stale or misses a route**:
-   `npm run app:map -- --pack <pack> --write`, and with `--state <file>` for the signed-in routes,
-   using a browser state an actor fixture wrote during a spec run. `npm run app:map:check` shows
-   what changed since the tracked copy.
+   `npm run app:map -- --pack <pack> --write`, and with `--actor <role>` for the signed-in routes
+   (`docs/app-map.<role>.json`), which walks with the state an actor fixture wrote during a spec
+   run. `npm run app:map:check`, with the same `--actor`, shows what changed since the tracked copy.
 4. **Read the pages.** For each route take, from the map and from the live page through a browser
    tool: the elements by role and accessible name, the form constraints (`required`, `maxlength`,
    `pattern`, `type`), what each state shows (empty, loading, error, success) where reading can

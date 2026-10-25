@@ -30,7 +30,7 @@ that does. ADR 0005 gives the layers, ADR 0008 the configuration.
 
 | Path | Holds |
 |---|---|
-| `app.json` | name and version (part of every case identity), title, `login_path`, `testIdAttribute`, `breakpoints`, `third_party_hosts`, `secret_keys` and `identity_fields` for redaction, `workers`, `visual` settings, `app_map` routes; checked by `npm run config:check` |
+| `app.json` | name and version (part of every case identity), title, `login_path`, `testIdAttribute`, `breakpoints`, `third_party_hosts`, `secret_keys` and `identity_fields` for redaction, `workers`, `visual` settings, `cookies` every context starts with (banners, language; never a session), `app_map` routes, with the routes only a role reaches under `app_map.actors`; checked by `loadAppPack` (`helpers/app-pack.ts`) whenever Playwright loads its configuration, so every run and `npm run gates` refuse a broken one |
 | `README.md` | the map of the pack: how to run it, its sessions, its layout, facts about the application |
 | `fixtures.ts` | the pack's `test`: `createTest(provider)` with its way of creating and signing in accounts, plus one fixture per role |
 | `api/` | thin clients over `APIRequestContext` that prepare and verify state |
@@ -42,7 +42,7 @@ that does. ADR 0005 gives the layers, ADR 0008 the configuration.
 | `specs/` | Playwright specs |
 | `visual/` | visual baselines, one folder per device project, rendered only in the pinned container |
 | `a11y-known.json` | known accessibility violations, each with a tracker key and an expiry |
-| `docs/app-map.json` | the app map (`npm run app:map -- --pack <pack> --write`); tracked, never edited by hand |
+| `docs/app-map.json` | the app map (`npm run app:map -- --pack <pack> --write`); tracked, never edited by hand. `docs/app-map.<role>.json` is the same walk signed in as a role (`--actor <role>`) |
 | `docs/features/` | feature contracts written at intake |
 | `docs/app-notes.md` | where the application behaves differently from what its pages suggest, with status; repro steps write `<base_url>` (`lint-docs` host-in-notes) |
 | `registry/` | designed cases (`.claude/rules/registry.md`) |

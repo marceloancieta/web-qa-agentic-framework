@@ -186,8 +186,8 @@ web-qa-agentic-framework/
   through the API (unique per worker), signs in through the API, writes the `storageState` to
   `.auth/<env>/<pack>/<role>-<worker>.json` (ignored by git, guarded by `secret-guard`) and opens a
   context that is already signed in. Cleanup in `finally`, or the environment's `recovery`.
-- Juice Shop: sign-up and login through its REST API put the token in storage; cookies dismiss the
-  welcome and cookie banners, so no test clicks them away.
+- Juice Shop: sign-up and login through its REST API put the token in storage; the pack's
+  `app.json` `cookies` dismiss the welcome and cookie banners, so no test clicks them away.
 - SauceDemo has no API: the session cookie and the cart in `localStorage` are injected.
 - **Rule:** only the feature under test goes through the UI. One case per pack proves the UI login,
   with credentials created during the run, so no password ends up in a trace.

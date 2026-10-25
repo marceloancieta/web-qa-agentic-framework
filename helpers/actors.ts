@@ -4,8 +4,8 @@
 // how its application does those steps through an ActorProvider in its fixtures.ts.
 
 import { randomBytes } from 'node:crypto';
-import { join } from 'node:path';
 import type { APIRequestContext, BrowserContext } from '@playwright/test';
+import { statePath } from '../scripts/lib/auth-state.mjs';
 import { missingVariableMessage } from '../scripts/lib/env-names.mjs';
 import type { ActorConfig, QaRuntime } from './config';
 
@@ -95,5 +95,5 @@ export function storageStatePath(
   role: string,
   worker: number,
 ): string {
-  return join(authDir, qa.environment, qa.pack, `${role}-${worker}.json`);
+  return statePath(authDir, qa.environment, qa.pack, role, worker);
 }

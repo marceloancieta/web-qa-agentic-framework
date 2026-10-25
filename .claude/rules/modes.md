@@ -33,9 +33,9 @@ Why:
 - **The pack's login is allowed in design.** Signing in sends a write-shaped request but changes no
   data the cases depend on, the way the credential exchange of an API does. It uses an account that
   is there before the session: one named by the pack's actor configuration and read from the
-  environment, or a browser state an actor fixture wrote during a spec run
-  (`npm run app:map -- --pack <pack> --state <file>`). Design never creates an account to look
-  around.
+  environment, or the browser state an actor fixture wrote during a spec run
+  (`npm run app:map -- --pack <pack> --actor <role>` finds it by role). Design never creates an
+  account to look around.
 - **The app map is read-only by construction.** It aborts every request that is not `GET`, `HEAD` or
   `OPTIONS`, never clicks, types or submits, and lists what it blocked under `blocked_writes`.
 - **Browser tools follow the same limits.** In design, a browser driven by an agent (Playwright MCP,

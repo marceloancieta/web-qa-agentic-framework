@@ -24,12 +24,14 @@ depends on one.
 
 | Role | Account | How it signs in | What the session leaves behind |
 |---|---|---|---|
-| `anonymous` | none | a fresh context | the banner and `language` cookies every context gets |
+| `anonymous` | none | a fresh context | the banner and `language` cookies of `apps/juice-shop/app.json` `cookies`, which every context gets |
 | `customer` | created during the run, one per worker (`apps/juice-shop/builders/account-builder.ts`) | `POST /rest/user/login` through `apps/juice-shop/api/account-api.ts` | the token in local storage and a `token` cookie, the basket id (`bid`) in session storage |
 
-The fixture writes the signed-in state of each worker under `.auth/<env>/juice-shop/`. Design maps
-the signed-in routes with that file, `npm run app:map -- --pack juice-shop --state <file>`, and
-never signs up an account of its own.
+The fixture writes the signed-in state of each worker under `.auth/<env>/juice-shop/`, the basket
+id included. Design maps the signed-in routes with it,
+`npm run app:map -- --pack juice-shop --actor customer --write`, into
+`apps/juice-shop/docs/app-map.customer.json`, and never signs up an account of its own. Any spec
+run with the `customer` fixture, such as the smoke, leaves a fresh state for it.
 
 ## Application notes
 
@@ -57,10 +59,14 @@ API, so a spec never branches on the device.
 
 ## Known defects
 
-None filed yet.
+Filed in the local tracker at the W6 intake gate (2026-10-25). Juice Shop's training
+vulnerabilities are filed like any defect, so the cases that check them run as known gaps.
 
 | Key | What | Cases armed with it |
 |---|---|---|
+| LOCAL-1 (S1) | a customer reads another customer's basket by its id (REQ-BASKET-09) | none yet: designed in W6b |
+| LOCAL-2 (S2) | the search term is rendered as markup (REQ-SEARCH-04) | none yet: designed in W6b |
+| LOCAL-3 (S3) | `/#/basket` opens without a session (REQ-BASKET-10) | none yet: designed in W6b |
 
 ## Accessibility baseline
 

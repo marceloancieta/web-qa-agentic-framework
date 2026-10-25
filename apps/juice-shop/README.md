@@ -33,8 +33,8 @@ allows writes and restarts the container as the recovery of destructive cases.
 | `customer` | created during the run, one per worker (`builders/account-builder.ts`) | `POST /rest/user/login`; the token goes to local storage and a `token` cookie, the basket id to session storage, as the frontend does after its own login |
 | `anonymous` | none | a fresh context |
 
-Every context carries the cookies that dismiss the welcome and cookie banners, and a `language`
-cookie. Accounts are not removed; the [application notes](docs/app-notes.md) say why.
+Every context carries the cookies of `app.json` `cookies`: they dismiss the welcome and cookie
+banners and fix the language. Accounts are not removed; the [application notes](docs/app-notes.md) say why.
 
 ## Layout
 
@@ -47,6 +47,16 @@ cookie. Accounts are not removed; the [application notes](docs/app-notes.md) say
 | `specs/smoke/` | the sign-in smoke on every device project |
 | `specs/visual/`, `visual/` | the visual cases and their baselines, one per device project, rendered in the pinned image: `npm run lanes:visual` compares, `npm run lanes:visual -- --phase automate --update` rewrites them (ADR 0009) |
 | `docs/app-map.json` | the app map: `npm run app:map -- --pack juice-shop --write` walks the routes of `app.json` `app_map` read-only; `npm run app:map:check -- --pack juice-shop` reports drift |
+| `docs/app-map.customer.json` | the same walk signed in as `customer`, plus `/#/basket`: `--actor customer` with either command, after a spec run that signed a customer in |
+
+## Features
+
+| Feature | Contract | Registry |
+|---|---|---|
+| `LOGIN` | [sign-in](docs/features/login.md) | design (W6b) |
+| `SIGNUP` | [sign-up](docs/features/signup.md) | design (W6b) |
+| `BASKET` | [basket](docs/features/basket.md) | design (W6b) |
+| `SEARCH` | [product search](docs/features/search.md) | design (W6b) |
 
 ## Facts about the application
 
