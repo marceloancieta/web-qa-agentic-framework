@@ -1,3 +1,5 @@
 #!/bin/sh
-# Local denylist scan of the commit message (pre-commit cannot see the message).
-exec node scripts/scan-denylist.mjs --message "$1"
+# The commit message, which pre-commit cannot see: the local denylist, then the public-wording rule
+# of the docs linter.
+node scripts/scan-denylist.mjs --message "$1" || exit 1
+exec node scripts/lint-docs.mjs --message "$1"

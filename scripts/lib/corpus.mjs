@@ -16,6 +16,26 @@ export function literalText(node) {
   return null;
 }
 
+const TITLE_TAG = /(?:^|\s)(@[a-z][\w-]*)/g;
+
+/** The tags a test or describe call declares, in its title or in its `{ tag }` details. */
+export function tagsOf(call) {
+  const title = literalText(call.arguments[0]) ?? '';
+  const tags = new Set([...title.matchAll(TITLE_TAG)].map((match) => match[1]));
+  for (const argument of call.arguments) {
+    if (!ts.isObjectLiteralExpression(argument)) continue;
+    for (const property of argument.properties) {
+      if (!ts.isPropertyAssignment(property) || property.name.getText() !== 'tag') continue;
+      const value = property.initializer;
+      for (const element of ts.isArrayLiteralExpression(value) ? value.elements : [value]) {
+        const text = literalText(element);
+        if (text) tags.add(text);
+      }
+    }
+  }
+  return [...tags];
+}
+
 /**
  * What a call is to Playwright's `test`: `{ kind, modifier }` with kind `test`, `describe`, `hook`
  * or `other`. `test('t', fn)`, `test.skip('t', fn)`, `test.describe.serial('d', fn)` and

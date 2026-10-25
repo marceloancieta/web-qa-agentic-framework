@@ -23,7 +23,7 @@ export class LoginPage {
 
   /** The message shown when the server refuses the credentials. */
   error(): Locator {
-    return this.page.locator('app-login').getByText('Invalid email or password.', { exact: true });
+    return this.page.getByRole('main').getByText('Invalid email or password.', { exact: true });
   }
 
   /** Fill the form and send it. Whether the login worked is for the spec to check. */

@@ -37,8 +37,9 @@ A request that needs both is split, and each half stops at its own gate.
 ## Rules that apply to every change
 
 - **Gates.** `npm run gates` must pass before a push; the `pre-push` hook runs it (installed by
-  `npm run hooks:install`). It runs lint, format and type checks, the hook and script tests, and the
-  denylist and secret scans.
+  `npm run hooks:install`). It runs lint, format, type and configuration checks, the hook, script
+  and core unit tests, the QA linters (`lint:layers`, `lint:harness`, `lint:docs`) with their
+  self-tests, and the denylist and secret scans.
 - **No secrets or real data.** Credentials come from the environment or the local `.env`, never from
   arguments, specs or docs. Browser sessions stay under `.auth/`, which git ignores.
 - **Layers and locators.** Specs assert, page objects locate and act (ADR 0005); locators follow

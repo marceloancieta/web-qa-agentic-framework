@@ -1,0 +1,6 @@
+{
+  "app": {
+    "default_environment": "local",
+    "environments": { "local": { "packs": { "shop": { "base_url": "http://shop.test/" } } } }
+  }
+}

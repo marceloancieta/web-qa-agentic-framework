@@ -26,12 +26,9 @@ regression in a container, network mocking and state injection, proven on Juice 
 
 | Id | Stage | Item | Origin | Status |
 |---|---|---|---|---|
-| CORE-12 | W2 | `scaffold:app` creates a pack skeleton. | plan | in-progress |
-| CORE-13 | W2 | `app:map`: a read-only walk that records routes, landmarks, a summarized accessibility tree, forms with their HTML constraints and the endpoints seen; tracked, with a drift lane. | plan | in-progress |
-| CORE-14 | W2 | `session-probe` also checks each pack's login page, not only its host. | plan | in-progress |
-| GATE-02 | W3 | `lint:harness`: no `waitForTimeout`, no XPath or `nth-child`, the locator policy (ADR 0007), soft assertions above an expected-failure arm. | ADR 0007 | todo |
+| GATE-02 | W3 | `lint:harness`: no `waitForTimeout`, no XPath or `nth-child`, the locator policy (ADR 0007), soft assertions above an expected-failure arm. | ADR 0007 | in-progress |
 | GATE-03 | W3 | `lint:suite`, including a declared quality dimension without cases and `@desktop-only`/`@mobile-only` cases without a reason. | plan | todo |
-| GATE-04 | W3 | `lint:docs`: links and file references resolve, host placeholders in hand-written repro steps, and a `public-wording` rule over tracked docs, code comments and commit messages that reports phrases presenting the framework as derived from another codebase ("predecessor", "ported from", "copied from", "based on an earlier", "carried over"), matched on word boundaries so words such as "reporting" pass; its self-test holds the phrases and accepted look-alikes. Tone in general stays a DOC-02 review. | exp | todo |
+| GATE-04 | W3 | `lint:docs`: links and file references resolve, host placeholders in hand-written repro steps, and a `public-wording` rule over tracked docs, code comments and commit messages that reports phrases presenting the framework as taken from another codebase ("predecessor", "ported from", "copied from", "based on an earlier", "carried over"), matched on word boundaries so words such as "reporting" pass; its self-test holds the phrases and accepted look-alikes. Tone in general stays a DOC-02 review. | exp | in-progress |
 | GATE-05 | W3 | Coverage status, cited status and traceability; an integration requirement covered only by `@mocked` cases is refused. | plan | todo |
 | GATE-06 | W3 | Quality gate: pass rate, new critical and serious accessibility violations, visual diff limits. | plan | todo |
 | GATE-07 | W3 | Visual lane runs only in the pinned Playwright image (a gate checks the image matches `@playwright/test`), refuses `--update-snapshots` in the run phase; ADR on container lanes. | plan | todo |
@@ -109,3 +106,6 @@ regression in a container, network mocking and state injection, proven on Juice 
 | JS-02 | Juice Shop `api/` clients (sign-up, login) and actors; cookies that dismiss the welcome and cookie banners. | `b267400` |
 | JS-03 | First Juice Shop pages and components, including a `NavigationMenu` that picks its strategy from the project. | `b267400` |
 | JS-04 | Smoke: UI login with credentials created during the run, and API login, on desktop Chromium and mobile Chrome. | `b267400` |
+| CORE-12 | `scaffold:app` creates a pack skeleton. | `5e8e527` |
+| CORE-13 | `app:map`: a read-only walk that records routes, landmarks, a summarized accessibility tree, forms with their HTML constraints and the endpoints seen; tracked, with a drift lane. | `5e8e527` |
+| CORE-14 | `session-probe` also checks each pack's login page, not only its host. | `5e8e527` |
