@@ -77,7 +77,7 @@ whether the email has no account or the password is wrong, and the page shows th
 | incomplete | field messages, Log in disabled | focus and leave a field |
 | refused | the alert, the URL unchanged | an unknown email or a wrong password |
 | signed in | `/#/search`, the account menu with the email | an account created for the run |
-| waiting for the answer | unobserved: the request answers in a few ms locally | a delayed answer through a mock (`@mocked`) |
+| waiting for the answer | unobserved: the request answers in a few ms locally | `delay` on `/rest/user/login`, which holds the real answer (no `@mocked`) |
 | server error | unobserved | `failWith` on `/rest/user/login` (`@mocked`) |
 
 ## Navigation
@@ -103,7 +103,7 @@ account menu. Every page also loads `/rest/admin/application-configuration`, the
 | Dimension | Applies? | Expected, or why not |
 |---|---|---|
 | responsive | applies | no horizontal scroll at any project; the account menu in the toolbar or the side navigation |
-| perf | n/a | the form shows no loading state: the answer replaces the form in a few ms, and a delayed answer only keeps the page as it is (to confirm with a mock in automate) |
+| perf | n/a | the form shows no loading state: the answer replaces the form in a few ms, and a delayed answer only keeps the page as it is (to confirm with `delay` in automate: TC-LOGIN-14) |
 | security | applies | password masked; the same message for a wrong password and an unknown email; nothing sensitive in the URL after a refused or a successful login |
 | layout | applies | the page health guard on every case; the visual case of the login page |
 | navigation | applies | Log in disabled until both fields have a value; the links; reload keeps a session |
@@ -136,5 +136,5 @@ account menu. Every page also loads `/rest/admin/application-configuration`, the
 
 ## Assumptions to confirm
 
-- A1: a delayed login answer shows no loading indicator (perf `n/a`). Checked with a mock in
+- A1: a delayed login answer shows no loading indicator (perf `n/a`). Checked with `delay` (TC-LOGIN-14) in
   automate; if an indicator appears, perf applies.

@@ -1,0 +1,15 @@
+# Complete and consistent: the "-" rule overlaps the last one and agrees with it. No finding.
+conditions:
+  term: [empty, typed]
+  category: [none, chosen]
+actions:
+  apply: [disabled, enabled]
+rules:
+  - when: { term: empty, category: none }
+    then: { apply: disabled }
+  - when: { term: typed, category: '-' }
+    then: { apply: enabled }
+  - when: { term: empty, category: chosen }
+    then: { apply: enabled }
+  - when: { term: typed, category: chosen }
+    then: { apply: enabled }

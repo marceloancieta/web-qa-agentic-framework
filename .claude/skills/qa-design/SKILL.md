@@ -30,7 +30,9 @@ phase opens no browser.
    - **State transitions** for what the page goes through: signed out and in, empty and full, the
      loading, error and success states of the contract, Back and reload in each.
    - **Decision tables** when the result depends on a combination of conditions. The table goes to
-     `apps/<pack>/rules/<id>.yaml`, one rule per row, and the spec walks it.
+     `apps/<pack>/rules/<case id>.yaml`, in the format of `scripts/lib/decision-table.mjs`, one
+     rule per row, and the spec walks it. `lint-suite` reports a combination no rule covers, two
+     rules that disagree, and a `decision-table` case without its table.
    - **Pairwise over devices** when a case does not need every device project: say which pairs of
      device and condition the set covers, in the notes under the table.
    - **Error guessing** for what UIs get wrong: a double submit, text that is very long or injected,

@@ -1,0 +1,14 @@
+# Complete, but the second rule contradicts the first on price=set, stock=only.
+conditions:
+  price: [any, set]
+  stock: [all, only]
+actions:
+  results: [unfiltered, filtered]
+  badge: [off, on]
+rules:
+  - when: { price: set, stock: '-' }
+    then: { results: filtered, badge: on }
+  - when: { price: '-', stock: only } # expect-finding: decision-table-conflict
+    then: { results: filtered, badge: off }
+  - when: { price: any, stock: all }
+    then: { results: unfiltered, badge: off }

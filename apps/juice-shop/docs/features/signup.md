@@ -123,7 +123,7 @@ unobserved (A3).
 
 | # | Gap | Source | Issue |
 |---|---|---|---|
-| G1 | The password counter reads `/20` while the field and its hint allow 40 characters. | live look and app map, 2026-10-25 | searched, none |
+| G1 | The password counter reads `/20` while the field and its hint allow 40 characters. | live look and app map, 2026-10-25 | LOCAL-4 (S3) |
 | G2 | The email field has no `type=email`, and no field has an `autocomplete` value. | app map, 2026-10-25 | searched, none |
 
 ## Out of scope

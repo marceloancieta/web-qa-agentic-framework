@@ -20,6 +20,7 @@ Each fact has one owner. Other files link to it or name it; they never restate i
 |---|---|
 | Design versus execution | `.claude/rules/modes.md` |
 | The registry format: header keys, columns, statuses, techniques, priorities | `scripts/lib/registry.mjs`; meaning in `.claude/rules/registry.md` |
+| The decision table format | `scripts/lib/decision-table.mjs` |
 | The business rules table of a contract | `scripts/lib/contract.mjs`; the rest of the contract in `docs/templates/feature-contract.md` |
 | The tag taxonomy and what each project leaves out | `scripts/lib/tags.mjs`; meaning in `.claude/rules/tagging.md` |
 | The UI quality dimensions | `scripts/lib/tags.mjs` `DIMENSIONS`; meaning in architecture section 6b |
@@ -63,6 +64,7 @@ A disagreement between two files about a fact this table does not list means the
 |---|---|
 | `.claude/rules/modes.md` | every `.claude/skills/qa-*/SKILL.md`, `AGENTS.md` (the process) |
 | `.claude/rules/registry.md`, `scripts/lib/registry.mjs` or `scripts/lib/contract.mjs` | `docs/templates/registry.md`, `docs/templates/feature-contract.md`, `qa-design`, `qa-automate`, `qa-publish`, `lint-suite`, `traceability`, every pack registry |
+| `scripts/lib/decision-table.mjs` | `qa-design`, `.claude/rules/generation.md`, `lint-suite`, every `apps/<pack>/rules/*.yaml` |
 | `.claude/rules/tagging.md` or `scripts/lib/tags.mjs` | each other, `qa-automate`, `qa-run`, `playwright.config.ts` |
 | `.claude/rules/generation.md` | `qa-automate`, `scripts/scaffold-app.mjs`, `apps/juice-shop/` as the worked example |
 | `.claude/rules/reporting.md` | `helpers/case-meta.ts`, the adapters, `docs/test-management.md`, `qa-publish`, `qa-run` |

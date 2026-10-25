@@ -16,6 +16,12 @@
 //   spec-without-case  a test whose title starts with a case id that no registry of its pack has.
 //   tags-mismatch      a test's tags (with its describes') differ from its case's Tags cell.
 //   status-behind      a test exists for a case still marked draft or approved; mark it automated.
+//   decision-table-shape     a table in apps/<pack>/rules/ breaks its format
+//                            (scripts/lib/decision-table.mjs), or names no decision-table case of
+//                            its pack's registries.
+//   decision-table-gap       a combination of condition values no rule of the table covers.
+//   decision-table-conflict  two rules give the same combination different actions.
+//   case-without-table       a decision-table case with no apps/<pack>/rules/<id>.yaml.
 //
 // Usage:
 //   node scripts/lint-suite.mjs [--root <dir>]   the repository, or another tree
@@ -29,6 +35,7 @@ import { parseArgs } from 'node:util';
 import { REPO_ROOT } from './lib/cli.mjs';
 import { specCases } from './lib/corpus.mjs';
 import { parseContractRules } from './lib/contract.mjs';
+import { parseDecisionTable } from './lib/decision-table.mjs';
 import { finding, report, selfTest } from './lib/lint.mjs';
 import { applyingDimensions, loadRegistries } from './lib/registry.mjs';
 import { DIMENSIONS } from './lib/tags.mjs';
@@ -44,7 +51,33 @@ export const RULES = [
   'spec-without-case',
   'tags-mismatch',
   'status-behind',
+  'decision-table-shape',
+  'decision-table-gap',
+  'decision-table-conflict',
+  'case-without-table',
 ];
+
+/** The decision tables of every pack: apps/<pack>/rules/*.yaml, parsed, with their pack. */
+function loadDecisionTables(root) {
+  const apps = join(root, 'apps');
+  if (!existsSync(apps)) return [];
+  return readdirSync(apps)
+    .sort()
+    .flatMap((pack) => {
+      const dir = join(apps, pack, 'rules');
+      if (!existsSync(dir)) return [];
+      return readdirSync(dir)
+        .filter((name) => /\.ya?ml$/.test(name))
+        .sort()
+        .map((name) => ({
+          pack,
+          ...parseDecisionTable(
+            readFileSync(join(dir, name), 'utf8'),
+            `apps/${pack}/rules/${name}`,
+          ),
+        }));
+    });
+}
 
 /** The business rules of every contract under apps/<pack>/docs/features/. */
 function loadContracts(root) {
@@ -137,6 +170,40 @@ export function lintSuite(root = REPO_ROOT) {
         row.line,
         `${row.id} has a test in ${test.file} but is still ${row.status}`,
       );
+    }
+  }
+
+  const tables = loadDecisionTables(root);
+  for (const table of tables) {
+    for (const problem of table.problems)
+      add(problem.rule, problem.file, problem.line, problem.message);
+    const row = casesByPack.get(table.pack)?.get(table.id);
+    if (!row) {
+      add(
+        'decision-table-shape',
+        table.file,
+        1,
+        `${table.id} is not a case of any apps/${table.pack} registry`,
+      );
+    } else if (row.technique !== 'decision-table') {
+      add(
+        'decision-table-shape',
+        table.file,
+        1,
+        `${table.id} is a ${row.technique} case; a table belongs to a decision-table case`,
+      );
+    }
+  }
+  for (const [pack, cases] of casesByPack) {
+    for (const row of cases.values()) {
+      if (row.technique !== 'decision-table') continue;
+      if (!tables.some((table) => table.pack === pack && table.id === row.id))
+        add(
+          'case-without-table',
+          row.file,
+          row.line,
+          `${row.id} is a decision-table case; its table goes in apps/${pack}/rules/${row.id}.yaml`,
+        );
     }
   }
 

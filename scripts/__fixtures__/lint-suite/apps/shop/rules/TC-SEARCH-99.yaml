@@ -1,0 +1,10 @@
+# No registry of the pack has this case. expect-finding: decision-table-shape
+conditions:
+  term: [empty, typed]
+actions:
+  submit: [disabled, enabled]
+rules:
+  - when: { term: empty }
+    then: { submit: disabled }
+  - when: { term: typed }
+    then: { submit: enabled }

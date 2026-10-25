@@ -1,0 +1,13 @@
+# Two of the six combinations have no rule.
+conditions:
+  results: [none, one, many]
+  signed_in: [no, yes]
+actions:
+  sort: [hidden, shown]
+rules: # expect-finding: decision-table-gap
+  - when: { results: none, signed_in: '-' }
+    then: { sort: hidden }
+  - when: { results: one, signed_in: no }
+    then: { sort: hidden }
+  - when: { results: many, signed_in: yes }
+    then: { sort: shown }

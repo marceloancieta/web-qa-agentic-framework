@@ -1,0 +1,10 @@
+# Each marked line breaks the format once.
+conditions: # expect-finding: decision-table-shape
+  term: [empty, typed]
+  scope: [all] # one value is no condition; the problem is reported at the key above
+actions:
+  submit: [disabled, enabled]
+owner: search team # expect-finding: decision-table-shape
+rules:
+  - when: { term: empty }
+    then: { submit: disabled }

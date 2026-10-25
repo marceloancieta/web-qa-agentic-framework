@@ -1,0 +1,8 @@
+# A well-formed table for a boundary-value case. expect-finding: decision-table-shape
+conditions:
+  length: [short, long]
+actions:
+  card: [intact, broken]
+rules:
+  - when: { length: '-' }
+    then: { card: intact }

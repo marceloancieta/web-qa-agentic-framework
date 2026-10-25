@@ -1,0 +1,25 @@
+# REQ-SIGNUP-01: the Register button stays disabled until every field is valid.
+# password: too_short is 4 characters, in_range 5; repeat compares with the password typed.
+conditions:
+  email: [empty, malformed, valid]
+  password: [too_short, in_range]
+  repeat: [different, same]
+  question: [none, chosen]
+  answer: [empty, given]
+actions:
+  register: [disabled, enabled]
+rules:
+  - when: { email: empty, password: '-', repeat: '-', question: '-', answer: '-' }
+    then: { register: disabled }
+  - when: { email: malformed, password: '-', repeat: '-', question: '-', answer: '-' }
+    then: { register: disabled }
+  - when: { email: valid, password: too_short, repeat: '-', question: '-', answer: '-' }
+    then: { register: disabled }
+  - when: { email: valid, password: in_range, repeat: different, question: '-', answer: '-' }
+    then: { register: disabled }
+  - when: { email: valid, password: in_range, repeat: same, question: none, answer: '-' }
+    then: { register: disabled }
+  - when: { email: valid, password: in_range, repeat: same, question: chosen, answer: empty }
+    then: { register: disabled }
+  - when: { email: valid, password: in_range, repeat: same, question: chosen, answer: given }
+    then: { register: enabled }

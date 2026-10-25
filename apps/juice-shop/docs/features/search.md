@@ -64,7 +64,7 @@ term. The page sizes are the paginator's options.
 | all products | REQ-SEARCH-01 | `/#/search` or `/#/` |
 | results | REQ-SEARCH-02 | `/#/search?q=<term>` |
 | no results | REQ-SEARCH-03 | a term no product has |
-| loading | REQ-SEARCH-09, unobserved | `delay` on `/rest/products/search` (`@mocked`) |
+| loading | REQ-SEARCH-09, unobserved | `delay` on `/rest/products/search`, which holds the real answer (no `@mocked`) |
 | error | unobserved | `failWith` on `/rest/products/search` (`@mocked`) |
 | empty catalogue | unobserved | `mockJson` with no products (`@mocked`) |
 
@@ -81,8 +81,8 @@ columns the cards take at each width was not measured. No difference in behaviou
 ## Network dependencies
 
 `GET /rest/products/search?q=` asks for the whole catalogue whatever the term, and the page filters
-it (measured: the request never carried the term). `GET /api/Quantitys/` for the stock. A mock of
-the first call can produce the loading, error and empty states.
+it (measured: the request never carried the term). `GET /api/Quantitys/` for the stock. `delay` on the
+first call produces the loading state with the real answer; a mock of it, the error and empty states.
 
 ## Quality dimensions
 
@@ -112,8 +112,8 @@ the first call can produce the loading, error and empty states.
 | # | Gap | Source | Issue |
 |---|---|---|---|
 | G1 | Markup in the term becomes markup in the page: the title of `<b>bold</b>` holds a `<b>` element. Juice Shop is insecure on purpose and this is one of its training vulnerabilities (injection through the search). | live look, 2026-10-25 | LOCAL-2 (S2) |
-| G2 | "All Products" and "Search Results - <term>" are plain text, not headings, so the page has no heading a screen reader can jump to. | live look, 2026-10-25 | searched, none |
-| G3 | The toolbar's search box has no accessible name; it is found through "Open search". | app map and live look, 2026-10-25 | searched, none |
+| G2 | "All Products" and "Search Results - <term>" are plain text, not headings, so the page has no heading a screen reader can jump to. | live look, 2026-10-25 | LOCAL-5 (S2) |
+| G3 | The toolbar's search box has no accessible name; it is found through "Open search". | app map and live look, 2026-10-25 | LOCAL-6 (S2) |
 
 ## Out of scope
 

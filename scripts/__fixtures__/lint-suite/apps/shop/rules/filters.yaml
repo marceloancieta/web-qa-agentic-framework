@@ -1,0 +1,8 @@
+# Named after a topic instead of its case. expect-finding: decision-table-shape
+conditions:
+  term: [empty, typed]
+actions:
+  submit: [disabled, enabled]
+rules:
+  - when: { term: '-' }
+    then: { submit: enabled }

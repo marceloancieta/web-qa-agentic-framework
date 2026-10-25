@@ -1,0 +1,13 @@
+# REQ-LOGIN-03: the Log in button is disabled until both fields have a value.
+conditions:
+  email: [empty, filled]
+  password: [empty, filled]
+actions:
+  login: [disabled, enabled]
+rules:
+  - when: { email: empty, password: '-' }
+    then: { login: disabled }
+  - when: { email: filled, password: empty }
+    then: { login: disabled }
+  - when: { email: filled, password: filled }
+    then: { login: enabled }

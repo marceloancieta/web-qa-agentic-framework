@@ -72,7 +72,7 @@ the limit, the limit, one more.
 | empty | REQ-BASKET-02 | a customer created for the run |
 | with products | a row per product and the total ("Total Price: 1.99¤" for one Apple Juice) | add through the UI, or through `api/` (`POST /api/BasketItems/`) |
 | at a product's limit | unobserved | add up to `/api/Quantitys/`'s limit |
-| loading | unobserved: the table is empty until `/rest/basket/<bid>` answers | `delay` on that call (`@mocked`), to see whether the empty state flashes first |
+| loading | unobserved: the table is empty until `/rest/basket/<bid>` answers | `delay` on that call, which holds the real answer (no `@mocked`), to see whether the empty state flashes first |
 | error | unobserved | `failWith` on `/rest/basket/<bid>` (`@mocked`) |
 | anonymous | today "Your Basket (anonymous)", empty, no redirect (LOCAL-3); expected: the login | no session |
 | another customer's basket | today that customer's products (LOCAL-1); expected: refused | a second account created by the case, with the first basket's id |

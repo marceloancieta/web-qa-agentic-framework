@@ -18,7 +18,7 @@ the locator order in ADR 0007; `apps/juice-shop/` is the worked example.
 | Data | `builders/`, unique per run, with boundary and very long texts | never types an email or a password |
 | Answers the application will not give on demand (500, timeout, empty) | `mocks/`, over `helpers/network.ts` (`mockJson`, `failWith`, `delay`, `offline`, `blockThirdParties`) | calls a mock by name and carries `@mocked`; never calls `page.route` (`lint-layers` spec-routes-network) |
 | A business task used by two or more specs | `flows/` | calls the flow; a flow does not assert |
-| Combinations of conditions | `rules/<id>.yaml` decision tables | iterates the table, one step per rule |
+| Combinations of conditions | `rules/<case id>.yaml` decision tables | iterates `loadDecisionTable` (`scripts/lib/decision-table.mjs`), one step per combination |
 | Accessibility | the `a11y` fixture: `a11y.expectNoNewViolations(page)` against `a11y-known.json` | scans the state the case is about, after it settles |
 | Visual | the `visual` fixture: `visual.expectToMatch(target, name, mask)`; masks belong to the page object | carries `@visual`; runs only in the visual lane |
 | Keyboard, overflow, time, files | `helpers/keyboard.ts`, `helpers/layout.ts`, `helpers/time.ts`, `helpers/files.ts` | asserts on what they return |

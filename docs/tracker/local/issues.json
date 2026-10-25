@@ -1,5 +1,5 @@
 {
-  "next": 4,
+  "next": 7,
   "issues": {
     "LOCAL-1": {
       "title": "Basket: a customer can read another customer's basket by its id",
@@ -29,6 +29,39 @@
       "labels": [
         "ui",
         "severity:S3"
+      ],
+      "status": "open",
+      "category": "open",
+      "comments": []
+    },
+    "LOCAL-4": {
+      "title": "Sign-up: the password counter reads /20 while the field takes 40 characters",
+      "body": "**What happens:** on `<base_url>/#/register` the counter under the password field reads `0/20`,\nwhile the field takes up to 40 characters (`maxlength=40`) and its hint says \"Password must be\n5-40 characters long.\". The counter under \"Repeat Password\" reads `0/40`.\n\n**What should happen:** the counter shows the same limit as the field and its hint, `/40`\n(contract rule REQ-SIGNUP-03, `apps/juice-shop/docs/features/signup.md`, gap G1).\n\n**Seen:** 2026-10-25, desktop Chromium, Juice Shop 20.3.0 (local container), on the empty form; the\napp map records `maxlength=40` on the field.\n\n**Severity proposal:** S3: a wrong message with a way around it (the field and the hint say 40).\n\n**Cases:** TC-SIGNUP-19 runs as a known gap with this key.\n",
+      "labels": [
+        "ui",
+        "severity:S3"
+      ],
+      "status": "open",
+      "category": "open",
+      "comments": []
+    },
+    "LOCAL-5": {
+      "title": "Search: the title of the product list is not a heading",
+      "body": "**What happens:** on `<base_url>/#/search` the title of the list, \"All Products\" or\n\"Search Results - `<term>`\", is plain text, not a heading. The page has no heading at all, so a\nscreen reader user cannot jump to the list or learn what it holds from the headings.\n\n**What should happen:** the title is a heading (WCAG 2.1 SC 1.3.1, level A; the a11y row of the\nquality dimensions in `apps/juice-shop/docs/features/search.md`, gap G2). The login and basket pages\nhave a level-1 heading.\n\n**Seen:** 2026-10-25, desktop Chromium and 412 px wide, Juice Shop 20.3.0 (local container), in the\naccessibility tree of the page; the app map records no heading on the route.\n\n**Severity proposal:** S2: a WCAG A failure on a main path, for screen reader users.\n\n**Cases:** TC-SEARCH-22 runs as a known gap with this key.\n",
+      "labels": [
+        "ui",
+        "severity:S2"
+      ],
+      "status": "open",
+      "category": "open",
+      "comments": []
+    },
+    "LOCAL-6": {
+      "title": "Toolbar: the search box has no accessible name",
+      "body": "**What happens:** the toolbar's search box, shown by \"Open search\", has no accessible name: the\naccessibility tree has a `textbox` with no name, on every route, since the toolbar is on every page.\n\n**What should happen:** the box has a name that says what it is for, such as \"Search\" (WCAG 2.1\nSC 4.1.2 and 1.3.1, level A; `apps/juice-shop/docs/features/search.md`, gap G3).\n\n**Seen:** 2026-10-25, desktop Chromium, Juice Shop 20.3.0 (local container), after pressing \"Open\nsearch\" on `<base_url>/#/search`; the app map records the textbox without a name.\n\n**Severity proposal:** S2: a WCAG A failure on the main way into search, for screen reader and\nvoice control users.\n\n**Cases:** TC-SEARCH-23 runs as a known gap with this key.\n",
+      "labels": [
+        "ui",
+        "severity:S2"
       ],
       "status": "open",
       "category": "open",

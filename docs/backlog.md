@@ -26,8 +26,8 @@ regression in a container, network mocking and state injection, proven on Juice 
 
 | Id | Stage | Item | Origin | Status |
 |---|---|---|---|---|
-| CORE-16 | W6 | App map with sessions and pack cookies: app.json `cookies` every context starts with (test contexts and the walk), `app:map --actor <role>` walking with the newest state an actor fixture wrote (session storage included) into `docs/app-map.<role>.json`, routes per role under `app_map.actors`, the signed-in email replaced by `<EMAIL>`. | plan | in-progress |
 | JS-05 | W6 | Juice Shop phases 0 and 1: app map, contract docs and registries for sign-up and login, basket and search. | plan | in-progress |
+| GATE-09 | W6 | Decision tables: `scripts/lib/decision-table.mjs` reads `apps/<pack>/rules/<case>.yaml` and expands its rules for the spec; `lint-suite` reports a malformed table, a combination no rule covers, two rules that give one combination different actions, and a `decision-table` case without its table. | practice | in-progress |
 | AGT-01 | W7 | `spec-author`: writes, runs and reports the specs of an assigned set of approved cases. | plan | todo |
 | AGT-02 | W7 | `ui-spec-reviewer` with evaluation fixtures: brittle locators, waits, assertions that cannot fail or pass by coincidence, layers, title against body. | plan | todo |
 | AGT-03 | W7 | `behaviour-investigator`: one requirement against the observed UI, read-only. | plan | todo |
@@ -70,6 +70,7 @@ regression in a container, network mocking and state injection, proven on Juice 
 | FUT-07 | TOTP two-factor login and a mail-catcher pattern (Mailpit). | plan | todo |
 | FUT-08 | `qa-explore` skill for chartered exploratory sessions, after an ADR decides its mode. | plan | todo |
 | FUT-09 | Extract a shared core with the sibling API framework once both are stable. | plan | todo |
+| FUT-10 | Pairwise: a library that reduces browser × device × role to a covering set, used by the full CI projects (architecture section 2) and to check the pairwise notes of a registry. | practice | todo |
 
 ---
 
@@ -81,7 +82,7 @@ regression in a container, network mocking and state injection, proven on Juice 
 | CORE-01 | qa-config schema with app packs (`app.environments.<env>.packs.<pack>`, `app.projects`, `quality_gate`), `qa-config.example.json` with the commit rules on, and `config:check` in the gates. | `12b64de` |
 | CORE-02 | `playwright.config.ts` built from qa-config: desktop Chromium, WebKit and Firefox, tablet, mobile Chrome and Safari, landscape variants; `@desktop-only` and `@mobile-only` filtered per project. | `12b64de` |
 | CORE-10 | Per-pack preflight: every entry point names a missing secret before the run starts. | `12b64de` |
-| CORE-11 | The script libraries the core uses from the start: env, env-names, tags, lint, corpus. The other generic libraries arrive with their first consumer: results, playwright-lane and container with the gates and lanes (W3), registry with the suite linter (W3), pairwise and decision-table with the design phase (W5), and the anonymization, rng, clock, run-lock and data-gate helpers with the fixtures that use them. | `12b64de` |
+| CORE-11 | The script libraries the core uses from the start: env, env-names, tags, lint, corpus. The other generic libraries arrive with their first consumer: results, playwright-lane and container with the gates and lanes (W3), registry with the suite linter (W3), decision-table with the first registries (W6, GATE-09; pairwise moved to FUT-10), and the anonymization, rng, clock, run-lock and data-gate helpers with the fixtures that use them. | `12b64de` |
 | GATE-01 | `lint:layers`: no `page.locator`, `page.route` or CSS in specs, no `expect` in page objects, no import of `apps/` from the core. | `12b64de` |
 | CORE-03 | Actor fixture: a user per worker created through the pack's API, `storageState` under `.auth/`, the pack's API client bound to the same user, cleanup in `finally`. | `58a7a83` |
 | CORE-04 | Accessibility fixture on axe with the WCAG tags from qa-config and a per-pack baseline (`a11y-known.json`: rule, target, tracker key, expiry). | `58a7a83` |
@@ -111,3 +112,4 @@ regression in a container, network mocking and state injection, proven on Juice 
 | PROC-02 | Skills: `qa-intake`, `qa-design`, `qa-automate`, `qa-publish`, `qa-run`, `qa-report-bug`; `lint-docs` broken-reference, so a path a skill or a rule names exists. | `4530c9b` |
 | PROC-04 | `juice-shop-ui` pack skill; `scaffold:app` writes a new pack's skill from the template. | `4530c9b` |
 | CORE-15 | `QA_SLOWMO`: milliseconds the browser waits before each action, to watch a headed run; the test timeout grows with it. | `41321bd` |
+| CORE-16 | App map with sessions and pack cookies: app.json `cookies` every context starts with (test contexts and the walk), `app:map --actor <role>` walking with the newest state an actor fixture wrote (session storage included) into `docs/app-map.<role>.json`, routes per role under `app_map.actors`, the signed-in email replaced by `<EMAIL>`. | `80d284c` |
