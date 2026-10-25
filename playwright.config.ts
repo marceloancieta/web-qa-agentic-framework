@@ -7,12 +7,17 @@ import {
 import { appPacks, loadAppPack } from './helpers/app-pack';
 import { configuredPacks, loadLocalEnvFile, loadRuntime, loadSettings } from './helpers/config';
 import { DEVICE_PROJECTS, deviceUse, type DeviceName } from './helpers/devices';
+import { slowMoMs, testTimeoutMs } from './helpers/run-options';
 import { projectTagFilter } from './scripts/lib/tags.mjs';
 
 loadLocalEnvFile();
 
 const settings = loadSettings();
 const configured = new Set(configuredPacks());
+
+// QA_SLOWMO=800 waits 800 ms before each browser action, to follow a headed run by eye; the test
+// timeout grows with it so a slowed case is not cut short.
+const slowMo = slowMoMs();
 
 // With `--list` nothing executes, so only the console reporter is kept: a results reporter would
 // file every listed case as skipped.
@@ -93,7 +98,7 @@ export default defineConfig({
   fullyParallel: false,
   forbidOnly: !!process.env.CI,
   retries: retries(),
-  timeout: 30_000,
+  timeout: testTimeoutMs(30_000, slowMo),
   expect: { timeout: 5_000 },
   // One set of baselines per pack and project, with no OS suffix: they are only ever rendered in
   // the pinned image of the visual lane (ADR 0009).
@@ -110,6 +115,7 @@ export default defineConfig({
   use: {
     trace: traceMode(),
     screenshot: 'only-on-failure',
+    ...(slowMo > 0 ? { launchOptions: { slowMo } } : {}),
   },
   projects: [
     // Unit tests of the core and the packs: part of `npm run gates`.

@@ -16,6 +16,13 @@ npx playwright test --project='juice-shop-*'
 npm run juice-shop:down                     # stop it; the next start has an empty database
 ```
 
+To watch a run, open the browser and slow every action down (`QA_SLOWMO`, in milliseconds), or step
+through it with `--debug`, or replay it action by action with `--ui`:
+
+```sh
+QA_SLOWMO=800 npx playwright test --project=juice-shop-desktop-chromium --headed --workers=1
+```
+
 The `local` environment of `qa-config.example.json` points the pack at `http://localhost:3000`,
 allows writes and restarts the container as the recovery of destructive cases.
 

@@ -26,8 +26,7 @@ regression in a container, network mocking and state injection, proven on Juice 
 
 | Id | Stage | Item | Origin | Status |
 |---|---|---|---|---|
-| PROC-02 | W5 | Skills: `qa-intake`, `qa-design`, `qa-automate`, `qa-publish`, `qa-run`, `qa-report-bug`; `lint-docs` broken-reference, so a path a skill or a rule names exists. | plan | in-progress |
-| PROC-04 | W5 | `juice-shop-ui` pack skill; `scaffold:app` writes a new pack's skill from the template. | plan | in-progress |
+| CORE-15 | W5 | `QA_SLOWMO`: milliseconds the browser waits before each action, to watch a headed run; the test timeout grows with it. | plan | in-progress |
 | JS-05 | W6 | Juice Shop phases 0 and 1: app map, contract docs and registries for sign-up and login, basket and search. | plan | todo |
 | AGT-01 | W7 | `spec-author`: writes, runs and reports the specs of an assigned set of approved cases. | plan | todo |
 | AGT-02 | W7 | `ui-spec-reviewer` with evaluation fixtures: brittle locators, waits, assertions that cannot fail or pass by coincidence, layers, title against body. | plan | todo |
@@ -109,3 +108,5 @@ regression in a container, network mocking and state injection, proven on Juice 
 | TM-03 | Contract tests with read-back of every write; metadata repair with a scope; ADR on how known gaps appear in test management. | `457f6a5` |
 | PROC-01 | Rules: modes, app packs, registry, generation (locator policy), tagging (one tag per dimension), reporting, documentation, reachability. | `b854691` |
 | PROC-03 | Templates: intake (manual exploration notes accepted as a source), UI feature contract with the quality-dimensions checklist, registry with declared dimensions; the cited status of each contract rule. | `b854691` |
+| PROC-02 | Skills: `qa-intake`, `qa-design`, `qa-automate`, `qa-publish`, `qa-run`, `qa-report-bug`; `lint-docs` broken-reference, so a path a skill or a rule names exists. | `4530c9b` |
+| PROC-04 | `juice-shop-ui` pack skill; `scaffold:app` writes a new pack's skill from the template. | `4530c9b` |
