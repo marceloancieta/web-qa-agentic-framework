@@ -40,7 +40,7 @@ import { join, resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { parseArgs } from 'node:util';
 import { REPO_ROOT } from './lib/cli.mjs';
-import { classifyCall, literalText, tagsOf, ts } from './lib/corpus.mjs';
+import { classifyCall, literalText, tagsOf, testsIn, ts } from './lib/corpus.mjs';
 import { finding, report, selfTest } from './lib/lint.mjs';
 import { DESTRUCTIVE_TAG, LAYER_TAGS, TAGS } from './lib/tags.mjs';
 
@@ -175,28 +175,6 @@ function layerRules(sourceFile, layer, add) {
   });
 }
 
-/** The test calls of a spec, each with the tags of the describes around it. */
-function testsOf(sourceFile) {
-  const tests = [];
-  const walk = (node, inherited) => {
-    if (ts.isCallExpression(node)) {
-      const { kind } = classifyCall(node);
-      if (kind === 'describe') {
-        const tags = [...inherited, ...tagsOf(node)];
-        node.arguments.forEach((argument) => walk(argument, tags));
-        return;
-      }
-      if (kind === 'test') {
-        tests.push({ call: node, tags: [...inherited, ...tagsOf(node)] });
-        return;
-      }
-    }
-    ts.forEachChild(node, (child) => walk(child, inherited));
-  };
-  walk(sourceFile, []);
-  return tests;
-}
-
 function specRules(sourceFile, add) {
   const known = new Set(TAGS);
   visit(sourceFile, (node) => {
@@ -209,7 +187,7 @@ function specRules(sourceFile, add) {
     }
   });
 
-  const tests = testsOf(sourceFile);
+  const tests = testsIn(sourceFile);
   for (const { call, tags } of tests) {
     const layers = [...new Set(tags.filter((tag) => LAYER_TAGS.includes(tag)))];
     if (layers.length !== 1) {

@@ -1,10 +1,15 @@
 // Types for scripts/lib/tags.mjs.
 
 export const LAYER_TAGS: string[];
+export const DIMENSIONS: Record<
+  'responsive' | 'perf' | 'security' | 'layout' | 'navigation' | 'a11y' | 'content',
+  string
+>;
 export const DIMENSION_TAGS: string[];
 export const HANDLING_TAGS: string[];
 export const TAGS: string[];
 export const VISUAL_TAG: string;
+export const MOCKED_TAG: string;
 export const QUARANTINE_TAG: string;
 export const DESTRUCTIVE_TAG: string;
 export const DESKTOP_ONLY_TAG: string;

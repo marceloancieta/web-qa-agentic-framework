@@ -230,7 +230,9 @@ missing one fails by name), never from specs or docs.
 **Enforced, not only written down:** the feature contract template carries a checklist of the seven
 dimensions; each registry declares in its header which apply (or `n/a` with a reason), and
 `lint-suite` fails when a declared dimension has no case. One tag per dimension, defined in the
-single tag taxonomy: `@responsive`, `@perf`, `@security`, `@a11y`, `@visual`, `@i18n`.
+single tag taxonomy (`scripts/lib/tags.mjs`): `@responsive`, `@perf`, `@security`, `@layout`,
+`@navigation`, `@a11y`, `@content`. `@visual` (the visual lane) and `@i18n` (locale projects, v0.2)
+say how a case runs rather than which dimension it covers.
 
 | Dimension | v0.1 | v0.2 |
 |---|---|---|

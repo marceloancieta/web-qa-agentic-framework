@@ -1,14 +1,30 @@
 // The tag taxonomy, defined here and nowhere else. The tagging rule explains when each tag applies,
-// and the suite linter reports any tag missing from these lists.
+// and the linters report any tag missing from these lists.
 
 /** Exactly one per designed case: the depth of the run that selects it. */
 export const LAYER_TAGS = ['@smoke', '@sanity', '@regression'];
 
-/** One per UI quality dimension a case covers (architecture section 6b). */
-export const DIMENSION_TAGS = ['@responsive', '@perf', '@security', '@a11y', '@visual', '@i18n'];
+/**
+ * The UI quality dimensions (architecture section 6b), each with its tag. A registry declares in its
+ * header whether each one applies to the feature, and a dimension that applies needs a case with
+ * its tag.
+ */
+export const DIMENSIONS = {
+  responsive: '@responsive',
+  perf: '@perf',
+  security: '@security',
+  layout: '@layout',
+  navigation: '@navigation',
+  a11y: '@a11y',
+  content: '@content',
+};
+
+export const DIMENSION_TAGS = Object.values(DIMENSIONS);
 
 /** How a case is run or where it applies. */
 export const HANDLING_TAGS = [
+  '@visual',
+  '@i18n',
   '@mocked',
   '@known-gap',
   '@quarantine',
@@ -20,6 +36,7 @@ export const HANDLING_TAGS = [
 export const TAGS = [...LAYER_TAGS, ...DIMENSION_TAGS, ...HANDLING_TAGS];
 
 export const VISUAL_TAG = '@visual';
+export const MOCKED_TAG = '@mocked';
 export const QUARANTINE_TAG = '@quarantine';
 export const DESTRUCTIVE_TAG = '@destructive';
 export const DESKTOP_ONLY_TAG = '@desktop-only';

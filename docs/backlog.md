@@ -26,10 +26,8 @@ regression in a container, network mocking and state injection, proven on Juice 
 
 | Id | Stage | Item | Origin | Status |
 |---|---|---|---|---|
-| GATE-02 | W3 | `lint:harness`: no `waitForTimeout`, no XPath or `nth-child`, the locator policy (ADR 0007), soft assertions above an expected-failure arm. | ADR 0007 | in-progress |
-| GATE-03 | W3 | `lint:suite`, including a declared quality dimension without cases and `@desktop-only`/`@mobile-only` cases without a reason. | plan | todo |
-| GATE-04 | W3 | `lint:docs`: links and file references resolve, host placeholders in hand-written repro steps, and a `public-wording` rule over tracked docs, code comments and commit messages that reports phrases presenting the framework as taken from another codebase ("predecessor", "ported from", "copied from", "based on an earlier", "carried over"), matched on word boundaries so words such as "reporting" pass; its self-test holds the phrases and accepted look-alikes. Tone in general stays a DOC-02 review. | exp | in-progress |
-| GATE-05 | W3 | Coverage status, cited status and traceability; an integration requirement covered only by `@mocked` cases is refused. | plan | todo |
+| GATE-03 | W3 | `lint:suite`, including a declared quality dimension without cases and `@desktop-only`/`@mobile-only` cases without a reason. | plan | in-progress |
+| GATE-05 | W3 | Coverage status and traceability; an integration requirement covered only by `@mocked` cases is refused. The cited status (contract rules cited by cases) moves to PROC-03, with the contract format. | plan | in-progress |
 | GATE-06 | W3 | Quality gate: pass rate, new critical and serious accessibility violations, visual diff limits. | plan | todo |
 | GATE-07 | W3 | Visual lane runs only in the pinned Playwright image (a gate checks the image matches `@playwright/test`), refuses `--update-snapshots` in the run phase; ADR on container lanes. | plan | todo |
 | TM-01 | W4 | Test-management adapters (`local`, `allure-report`, `allure-testops`) and the manifest; a case's identity is its id, never its title. | plan | todo |
@@ -37,7 +35,7 @@ regression in a container, network mocking and state injection, proven on Juice 
 | TM-03 | W4 | Contract tests with read-back of every write; metadata repair with a scope; ADR on how known gaps appear in test management. | exp | todo |
 | PROC-01 | W5 | Rules: modes, app packs, registry, generation (locator policy), tagging (one tag per dimension), reporting, documentation, reachability. | plan | todo |
 | PROC-02 | W5 | Skills: `qa-intake`, `qa-design`, `qa-automate`, `qa-publish`, `qa-run`, `qa-report-bug`. | plan | todo |
-| PROC-03 | W5 | Templates: intake (manual exploration notes accepted as a source), UI feature contract with the quality-dimensions checklist, registry with declared dimensions. | plan | todo |
+| PROC-03 | W5 | Templates: intake (manual exploration notes accepted as a source), UI feature contract with the quality-dimensions checklist, registry with declared dimensions; the cited status of each contract rule. | plan | todo |
 | PROC-04 | W5 | `juice-shop-ui` pack skill. | plan | todo |
 | JS-05 | W6 | Juice Shop phases 0 and 1: app map, contract docs and registries for sign-up and login, basket and search. | plan | todo |
 | AGT-01 | W7 | `spec-author`: writes, runs and reports the specs of an assigned set of approved cases. | plan | todo |
@@ -109,3 +107,5 @@ regression in a container, network mocking and state injection, proven on Juice 
 | CORE-12 | `scaffold:app` creates a pack skeleton. | `5e8e527` |
 | CORE-13 | `app:map`: a read-only walk that records routes, landmarks, a summarized accessibility tree, forms with their HTML constraints and the endpoints seen; tracked, with a drift lane. | `5e8e527` |
 | CORE-14 | `session-probe` also checks each pack's login page, not only its host. | `5e8e527` |
+| GATE-02 | `lint:harness`: no `waitForTimeout`, no XPath or `nth-child`, the locator policy (ADR 0007), soft assertions above an expected-failure arm. | `672badc` |
+| GATE-04 | `lint:docs`: links and file references resolve, host placeholders in hand-written repro steps, and a `public-wording` rule over tracked docs, code comments and commit messages that reports phrases presenting the framework as taken from another codebase ("predecessor", "ported from", "copied from", "based on an earlier", "carried over"), matched on word boundaries so words such as "reporting" pass; its self-test holds the phrases and accepted look-alikes. Tone in general stays a DOC-02 review. | `672badc` |
