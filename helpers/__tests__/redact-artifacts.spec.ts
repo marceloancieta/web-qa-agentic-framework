@@ -6,7 +6,14 @@ import AdmZip from 'adm-zip';
 import config from '../../playwright.config';
 import { MASK } from '../redact';
 import { redactArtifacts } from '../redact-artifacts';
-import { forgetRunSecrets, rememberSecret, runSecrets } from '../run-secrets';
+import {
+  forgetRunSecrets,
+  rememberSecret,
+  RUN_SECRETS_ROOT,
+  runnerRunDir,
+  runSecrets,
+  workerRunDir,
+} from '../run-secrets';
 
 // Built while the test runs, as a real run's secrets are.
 const SECRET = ['Qa', 'artifact', String(4000 + 21), 'secret'].join('-');
@@ -78,6 +85,19 @@ test('the run remembers each secret once, and forgets them all', () => {
   expect(runSecrets(dir).sort()).toEqual([SECRET, TOKEN].sort());
   forgetRunSecrets(dir);
   expect(runSecrets(dir)).toEqual([]);
+});
+
+test('runs that overlap keep their own secrets: one run forgetting leaves the other alone', () => {
+  const root = mkdtempSync(join(tmpdir(), 'qa-run-secrets-'));
+  const [first, second] = [join(root, '1001'), join(root, '1002')];
+  rememberSecret(SECRET, first);
+  rememberSecret(TOKEN, second);
+  forgetRunSecrets(first);
+  expect(runSecrets(first)).toEqual([]);
+  expect(runSecrets(second)).toEqual([TOKEN]);
+  // A worker files under its test runner, the parent process the reporter runs in.
+  expect(workerRunDir()).toBe(join(RUN_SECRETS_ROOT, String(process.ppid)));
+  expect(runnerRunDir()).toBe(join(RUN_SECRETS_ROOT, String(process.pid)));
 });
 
 test('the redaction reporter runs last, after every reporter that writes an artifact', () => {
