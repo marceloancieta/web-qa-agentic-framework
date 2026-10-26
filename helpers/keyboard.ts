@@ -94,3 +94,18 @@ export async function hasVisibleFocus(locator: Locator): Promise<boolean> {
   const withFocus = await style();
   return resting !== withFocus;
 }
+
+/**
+ * Whether focusing `target` changes how `region` is drawn. A component library often draws the
+ * focus indicator on a wrapper or a pseudo-element (an outline on the form field around an input,
+ * a ripple behind a button), which `hasVisibleFocus` cannot read from the element's own style. The
+ * region is a screenshot at rest and with focus; animations are disabled so the two only differ
+ * by the focus.
+ */
+export async function focusChangesRendering(target: Locator, region: Locator): Promise<boolean> {
+  await target.evaluate((element) => (element as HTMLElement).blur());
+  const resting = await region.screenshot({ animations: 'disabled', caret: 'hide' });
+  await target.focus();
+  const withFocus = await region.screenshot({ animations: 'disabled', caret: 'hide' });
+  return !resting.equals(withFocus);
+}

@@ -53,6 +53,11 @@ export class RegisterPage {
     return this.page.getByRole('button', { name: 'Button to complete the registration' });
   }
 
+  /** The form's alert, where a refused registration says why ("email must be unique"). */
+  alert(): Locator {
+    return this.page.getByRole('main').getByRole('alert');
+  }
+
   /** A field's message, such as "Email address is not valid." or "Passwords do not match". */
   message(text: string): Locator {
     return this.page.getByText(text, { exact: true });

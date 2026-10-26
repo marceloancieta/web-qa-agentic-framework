@@ -33,12 +33,12 @@ export class SearchPage {
    * until LOCAL-5 is fixed.
    */
   title(): Locator {
-    return this.page.getByText(/^(All Products|Search Results - .*)$/);
+    return this.page.getByText(/^(All Products|Search Results - .+)$/);
   }
 
   /** The same title as a heading, for the case about it (LOCAL-5). */
   titleHeading(): Locator {
-    return this.page.getByRole('heading', { name: /^(All Products|Search Results - .*)$/ });
+    return this.page.getByRole('heading', { name: /^(All Products|Search Results - .+)$/ });
   }
 
   noResults(): Locator {

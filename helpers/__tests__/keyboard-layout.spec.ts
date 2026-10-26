@@ -1,5 +1,11 @@
 import { expect, test } from '@playwright/test';
-import { findFocusTrap, focused, hasVisibleFocus, tabOrder } from '../keyboard';
+import {
+  findFocusTrap,
+  focusChangesRendering,
+  focused,
+  hasVisibleFocus,
+  tabOrder,
+} from '../keyboard';
 import { clippedText, horizontalOverflow } from '../layout';
 
 const FORM = `<!doctype html><html lang="en"><head><title>Form</title><style>
@@ -41,6 +47,23 @@ test('a focus indicator is visible unless the page removed it', async ({ page })
   await page.setContent(FORM);
   expect(await hasVisibleFocus(page.getByRole('button', { name: 'Show password' }))).toBe(true);
   expect(await hasVisibleFocus(page.getByRole('button', { name: 'Sign in' }))).toBe(false);
+});
+
+test("a focus indicator drawn on the field's wrapper is seen by rendering, not by the element's style", async ({
+  page,
+}) => {
+  await page.setContent(`<!doctype html><html lang="en"><head><title>Wrapped</title><style>
+    .field { padding: 6px; border: 2px solid transparent; }
+    .field.marked:focus-within { border-color: #1a73e8; }
+    input { border: 1px solid #888; outline: none; }
+    </style></head><body>
+    <div class="field marked" id="marked"><label>Name <input></label></div>
+    <div class="field" id="plain"><label>Code <input></label></div></body></html>`);
+  const name = page.getByRole('textbox', { name: 'Name' });
+  const code = page.getByRole('textbox', { name: 'Code' });
+  expect(await hasVisibleFocus(name)).toBe(false);
+  expect(await focusChangesRendering(name, page.locator('#marked'))).toBe(true);
+  expect(await focusChangesRendering(code, page.locator('#plain'))).toBe(false);
 });
 
 test('horizontal overflow and clipped text are measured, an ellipsis is accepted', async ({

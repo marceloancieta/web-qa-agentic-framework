@@ -20,8 +20,14 @@ export class Toolbar {
    * placeholder (LOCAL-6), so it is found inside its container; until that is fixed CSS is the
    * only handle on it.
    */
+  /** Open the box and send a term. Once open, the box replaces the "Open search" button. */
   async search(term: string): Promise<void> {
     await this.openSearch();
+    await this.submitSearch(term);
+  }
+
+  /** Send a term into the box when it is already open. */
+  async submitSearch(term: string): Promise<void> {
     await this.searchBox().fill(term);
     await this.searchBox().press('Enter');
   }

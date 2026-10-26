@@ -26,6 +26,19 @@ export class LoginPage {
     return this.page.getByText(text, { exact: true });
   }
 
+  showPassword(): Locator {
+    return this.page.getByRole('button', { name: 'Show password' });
+  }
+
+  forgotPassword(): Locator {
+    return this.page.getByRole('link', { name: 'Forgot your password?' });
+  }
+
+  /** Any alert the form shows, whatever its text: the sign that a refused login was handled. */
+  anyAlert(): Locator {
+    return this.page.getByRole('main').getByRole('alert');
+  }
+
   /** The message as an alert, the way a screen reader is told about it. */
   alert(): Locator {
     return this.page.getByRole('alert').filter({ hasText: 'Invalid email or password.' });
