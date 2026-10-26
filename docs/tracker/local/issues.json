@@ -1,5 +1,5 @@
 {
-  "next": 7,
+  "next": 14,
   "issues": {
     "LOCAL-1": {
       "title": "Basket: a customer can read another customer's basket by its id",
@@ -32,7 +32,9 @@
       ],
       "status": "open",
       "category": "open",
-      "comments": []
+      "comments": [
+        "**The checkout routes open without a session too** (checkout intake, 2026-10-26, contract rule\nREQ-CHECKOUT-12 in `apps/juice-shop/docs/features/checkout.md`, which applies the owner's decision\nof REQ-BASKET-10 to the checkout).\n\nIn a fresh context without a session, desktop Chromium 1280 px:\n\n- `<base_url>/#/address/select` and `/#/address/create` open with no heading and no redirect;\n- `<base_url>/#/delivery-method` shows \"Choose a delivery speed\";\n- `<base_url>/#/payment/shop` shows \"My Payment Options\";\n- `<base_url>/#/order-summary` shows \"Your Basket (anonymous)\";\n- `<base_url>/#/order-history` opens with no heading.\n\nNone sends the visitor to the login. The fix this issue asks for, a guard on the routes that need a\nsession, covers them as well.\n"
+      ]
     },
     "LOCAL-4": {
       "title": "Sign-up: the password counter reads /20 while the field takes 40 characters",
@@ -62,6 +64,83 @@
       "labels": [
         "ui",
         "severity:S2"
+      ],
+      "status": "open",
+      "category": "open",
+      "comments": []
+    },
+    "LOCAL-7": {
+      "title": "Checkout: an order is placed without an address, a delivery method or a payment",
+      "body": "**What happens:** an order is placed without an address, a delivery method or a payment. With a\nproduct in the basket, opening `<base_url>/#/order-summary` directly shows the product, \"Delivery\n0.00¤\" and an enabled \"Place your order and pay\"; pressing it opens the completion page, and the\norder history holds an order with `addressId` and `paymentId` null, `deliveryPrice` 0 and `eta` \"5\".\n\n**What should happen:** an order needs an address, a delivery method and a payment; placing one\nwithout them is refused (contract rule REQ-CHECKOUT-11, `apps/juice-shop/docs/features/checkout.md`).\n\n**Steps** (an account created for the run):\n1. Sign in at `<base_url>` and put a product into the basket (`POST <base_url>/api/BasketItems/`).\n2. Without choosing an address, a delivery method or a card, open `<base_url>/#/order-summary`. The\n   page asks for `/api/Addresss/null`, `/api/Deliverys/null` and `/api/Cards/null` (`400` each).\n3. Press \"Place your order and pay\": `POST <base_url>/rest/basket/<bid>/checkout` answers `200` and the\n   page moves to `/#/order-completion/<ORDER_ID>`.\n4. `GET <base_url>/rest/order-history` lists the order with no address and no payment.\n\n**Seen:** twice with two accounts, 2026-10-26, desktop Chromium 1280 px, Juice Shop 20.3.0 (local\ncontainer), through a throwaway script approved at intake.\n",
+      "labels": [
+        "ui",
+        "severity:S2"
+      ],
+      "status": "open",
+      "category": "open",
+      "comments": []
+    },
+    "LOCAL-8": {
+      "title": "Checkout: anyone with an order id reads the order without a session",
+      "body": "**What happens:** anyone who has an order's id reads the order without a session.\n`GET <base_url>/rest/track-order/<ORDER_ID>` answers `200` with the order's products, quantities,\nprices, total, delivery price, address and payment ids and the customer's email with its vowels\nstarred; the tracking page `<base_url>/#/track-result/new?id=<ORDER_ID>` shows the products and the\nexpected delivery.\n\n**What should happen:** an order's details are shown only to the customer who placed it (contract\nrule REQ-CHECKOUT-15, `apps/juice-shop/docs/features/checkout.md`; the owner's decision at the\ncheckout intake, 2026-10-26).\n\n**Steps** (an account created for the run):\n1. Sign in at `<base_url>` and place an order; note the id in `/#/order-completion/<ORDER_ID>`.\n2. Without any session, send `GET <base_url>/rest/track-order/<ORDER_ID>`.\n\n**Seen:** twice with two orders of two accounts, 2026-10-26, Juice Shop 20.3.0 (local container).\n\n**Severity proposal:** S2, agreed with the owner. The id is long and random and the email is\nstarred, so the order is exposed only to someone who already holds its id; a way to leak or\nenumerate ids would make it S1.\n",
+      "labels": [
+        "ui",
+        "severity:S2"
+      ],
+      "status": "open",
+      "category": "open",
+      "comments": []
+    },
+    "LOCAL-9": {
+      "title": "Checkout: the radios of the address, delivery and card tables have no accessible name",
+      "body": "**What happens:** the radio buttons that choose an address (`<base_url>/#/address/select`), a\ndelivery method (`/#/delivery-method`) and a card (`/#/payment/shop`) have no accessible name, so a\nscreen reader announces \"radio button\" with nothing to tell the rows apart. The header rows of the\nsame tables have empty cells: the delivery table names only \"Price\" and \"Expected Delivery\", the\naddress and card tables name no column.\n\n**What should happen:** every control has an accessible name (WCAG 2.1 4.1.2 Name, Role, Value, level\nA; 1.3.1 Info and Relationships for the headers). The contract's accessibility dimension expects\nnamed radios (`apps/juice-shop/docs/features/checkout.md`, G4).\n\n**Steps:** sign in at `<base_url>`, put a product into the basket and check out; read the\naccessibility tree of each step: `row \"One Day Delivery 0.99¤ 1 Days\"` holds `cell > radio` with no\nname, and likewise for each address and card row.\n\n**Seen:** 2026-10-26, Chromium 1280 and 412 px, four walks, Juice Shop 20.3.0 (local container); the\napp map of 2026-10-26 lists `radio \"\" x3` on `/#/delivery-method`.\n",
+      "labels": [
+        "ui",
+        "severity:S2"
+      ],
+      "status": "open",
+      "category": "open",
+      "comments": []
+    },
+    "LOCAL-10": {
+      "title": "Checkout: the step buttons are named differently from their text, and two name the wrong step",
+      "body": "**What happens:** the checkout's step buttons have accessible names that differ from the text they\nshow, and two of them name the wrong step:\n\n| Route | Shows | Accessible name | Leads to |\n|---|---|---|---|\n| `/#/address/select` | Continue | Proceed to payment selection | `/#/delivery-method` |\n| `/#/delivery-method` | Continue | Proceed to delivery method selection | `/#/payment/shop` |\n| `/#/payment/shop` | Continue | Proceed to review | `/#/order-summary` |\n| `/#/order-summary` | Place your order and pay | Complete your purchase | `/#/order-completion/<ORDER_ID>` |\n\nA speech-input user who says \"click Continue\" reaches none of them, and a screen-reader user hears a\nstep that is not the next one.\n\n**What should happen:** the accessible name contains the visible text (WCAG 2.1 2.5.3 Label in Name,\nlevel A) and names where the button leads (`apps/juice-shop/docs/features/checkout.md`, G5).\n\n**Steps:** sign in at `<base_url>`, put a product into the basket, check out, and read the\naccessibility tree of each step.\n\n**Seen:** 2026-10-26, Chromium 1280 and 412 px, four walks, Juice Shop 20.3.0 (local container).\n",
+      "labels": [
+        "ui",
+        "severity:S2"
+      ],
+      "status": "open",
+      "category": "open",
+      "comments": []
+    },
+    "LOCAL-11": {
+      "title": "Checkout: the order summary and the order history have no heading for their content",
+      "body": "**What happens:** \"Order Summary\" on `<base_url>/#/order-summary` and \"Order History\" on\n`<base_url>/#/order-history` are plain text, not headings. The summary's only heading is \"Your Basket\n(`<EMAIL>`)\"; the history page has no heading at all, so heading navigation finds nothing on it.\n\n**What should happen:** each section's title is a heading (WCAG 2.1 1.3.1 Info and Relationships,\nlevel A; 2.4.6 Headings and Labels, AA), as the contract's accessibility dimension expects\n(`apps/juice-shop/docs/features/checkout.md`, G6). LOCAL-5 is the same pattern on the search list.\n\n**Steps:** sign in at `<base_url>`, place an order, and read the accessibility tree of\n`/#/order-summary` before placing it and of `/#/order-history` after.\n\n**Seen:** 2026-10-26, Chromium 1280 and 412 px, Juice Shop 20.3.0 (local container).\n",
+      "labels": [
+        "ui",
+        "severity:S3"
+      ],
+      "status": "open",
+      "category": "open",
+      "comments": []
+    },
+    "LOCAL-12": {
+      "title": "Checkout: an address without a State shows an empty slot",
+      "body": "**What happens:** an address saved without a State (an optional field) is shown with an empty slot,\n\", ,\": \"1 Probe Street, Probe City, , 10001\" on `<base_url>/#/address/select`, the delivery step, the\norder summary and the completion page.\n\n**What should happen:** an empty optional part is left out of the line\n(`apps/juice-shop/docs/features/checkout.md`, G7).\n\n**Steps:** sign in at `<base_url>`, add an address leaving State empty, and look at it on the address\nlist.\n\n**Seen:** 2026-10-26, Chromium 1280 and 412 px, Juice Shop 20.3.0 (local container).\n",
+      "labels": [
+        "ui",
+        "severity:S4"
+      ],
+      "status": "open",
+      "category": "open",
+      "comments": []
+    },
+    "LOCAL-13": {
+      "title": "Checkout: the summary and the completion page show 0.00 amounts and raw template text before their answers",
+      "body": "**What happens:** before their answers arrive, `<base_url>/#/order-summary` shows an empty products\ntable with Items, Delivery, Promotion and Total Price at 0.00¤, and the completion page\n`/#/order-completion/<ORDER_ID>` shows 0.00¤ amounts and the raw template text \"You have gained\n{{bonus}} Bonus Points from this order!\". A customer about to pay sees a total of zero for a moment.\n\n**What should happen:** a loading state, or nothing, until the amounts are known; never a wrong amount\nor template text (the contract's perceived-performance dimension,\n`apps/juice-shop/docs/features/checkout.md`, G8).\n\n**Steps:** sign in at `<base_url>`, go through the checkout and read the summary and the completion\npage as soon as their heading appears.\n\n**Seen:** 2026-10-26, Chromium 1280 and 412 px, in the first walk at each width, Juice Shop 20.3.0\n(local container); later reads of the same pages show the right amounts.\n",
+      "labels": [
+        "ui",
+        "severity:S3"
       ],
       "status": "open",
       "category": "open",

@@ -29,7 +29,17 @@
     ],
     "exclude": ["^/redirect", "logout", "score-board", "/ftp", "/api-docs", "/metrics"],
     "actors": {
-      "customer": { "start": ["/#/basket"] }
+      "customer": {
+        "start": [
+          "/#/basket",
+          "/#/address/select",
+          "/#/address/create",
+          "/#/delivery-method",
+          "/#/payment/shop",
+          "/#/order-summary",
+          "/#/order-history"
+        ]
+      }
     }
   }
 }

@@ -132,6 +132,164 @@
       ]
     },
     {
+      "route": "/#/address/create",
+      "title": "OWASP Juice Shop",
+      "landmarks": [],
+      "headings": [
+        "h1 Add New Address"
+      ],
+      "interactive": [
+        "button \"Back to homepage\"",
+        "button \"Back\"",
+        "button \"Close search\"",
+        "button \"Language selection menu\"",
+        "button \"Open Sidenav\"",
+        "button \"Open search\"",
+        "button \"Show the shopping cart\"",
+        "button \"Show/hide account menu\"",
+        "button \"Submit\"",
+        "textbox \"\"",
+        "textbox \"Address\"",
+        "textbox \"City\"",
+        "textbox \"Country\"",
+        "textbox \"Name\"",
+        "textbox \"State\"",
+        "textbox \"ZIP Code\""
+      ],
+      "fields": [
+        {
+          "tag": "input",
+          "type": "text",
+          "label": "",
+          "constraints": {}
+        },
+        {
+          "tag": "input",
+          "type": "text",
+          "label": "Country",
+          "constraints": {
+            "required": true
+          }
+        },
+        {
+          "tag": "input",
+          "type": "text",
+          "label": "Name",
+          "constraints": {
+            "required": true
+          }
+        },
+        {
+          "tag": "input",
+          "type": "number",
+          "label": "Mobile Number",
+          "constraints": {
+            "required": true
+          }
+        },
+        {
+          "tag": "input",
+          "type": "text",
+          "label": "ZIP Code",
+          "constraints": {
+            "required": true
+          }
+        },
+        {
+          "tag": "textarea",
+          "type": "",
+          "label": "Address",
+          "constraints": {
+            "required": true,
+            "maxlength": "160"
+          }
+        },
+        {
+          "tag": "input",
+          "type": "text",
+          "label": "City",
+          "constraints": {
+            "required": true
+          }
+        },
+        {
+          "tag": "input",
+          "type": "text",
+          "label": "State",
+          "constraints": {}
+        }
+      ],
+      "api_calls": [
+        "GET /api/Challenges/",
+        "GET /assets/i18n/en.json",
+        "GET /rest/admin/application-configuration",
+        "GET /rest/admin/application-version",
+        "GET /rest/basket/:id",
+        "GET /rest/languages",
+        "GET /rest/user/whoami",
+        "GET /socket.io/",
+        "POST /socket.io/"
+      ],
+      "links": [
+        "/#/about",
+        "/#/chatbot",
+        "/#/complain",
+        "/#/contact",
+        "/#/deluxe-membership",
+        "/#/photo-wall",
+        "/redirect"
+      ]
+    },
+    {
+      "route": "/#/address/select",
+      "title": "OWASP Juice Shop",
+      "landmarks": [],
+      "headings": [
+        "h1 Select an address"
+      ],
+      "interactive": [
+        "button \"Add a new address\"",
+        "button \"Back to homepage\"",
+        "button \"Close search\"",
+        "button \"Language selection menu\"",
+        "button \"Open Sidenav\"",
+        "button \"Open search\"",
+        "button \"Proceed to payment selection\"",
+        "button \"Show the shopping cart\"",
+        "button \"Show/hide account menu\"",
+        "textbox \"\""
+      ],
+      "fields": [
+        {
+          "tag": "input",
+          "type": "text",
+          "label": "",
+          "constraints": {}
+        }
+      ],
+      "api_calls": [
+        "GET /api/Addresss",
+        "GET /api/Challenges/",
+        "GET /assets/i18n/en.json",
+        "GET /rest/admin/application-configuration",
+        "GET /rest/admin/application-version",
+        "GET /rest/basket/:id",
+        "GET /rest/languages",
+        "GET /rest/user/whoami",
+        "GET /socket.io/",
+        "POST /socket.io/"
+      ],
+      "links": [
+        "/#/about",
+        "/#/chatbot",
+        "/#/complain",
+        "/#/contact",
+        "/#/deluxe-membership",
+        "/#/photo-wall",
+        "/redirect"
+      ]
+    },
+    {
       "route": "/#/basket",
       "title": "OWASP Juice Shop",
       "landmarks": [],
@@ -402,6 +560,75 @@
       ]
     },
     {
+      "route": "/#/delivery-method",
+      "title": "OWASP Juice Shop",
+      "landmarks": [],
+      "headings": [
+        "h1 Choose a delivery speed"
+      ],
+      "interactive": [
+        "button \"Back to homepage\"",
+        "button \"Back\"",
+        "button \"Close search\"",
+        "button \"Language selection menu\"",
+        "button \"Open Sidenav\"",
+        "button \"Open search\"",
+        "button \"Proceed to delivery method selection\"",
+        "button \"Show the shopping cart\"",
+        "button \"Show/hide account menu\"",
+        "radio \"\" x3",
+        "textbox \"\""
+      ],
+      "fields": [
+        {
+          "tag": "input",
+          "type": "text",
+          "label": "",
+          "constraints": {}
+        },
+        {
+          "tag": "input",
+          "type": "radio",
+          "label": "",
+          "constraints": {}
+        },
+        {
+          "tag": "input",
+          "type": "radio",
+          "label": "",
+          "constraints": {}
+        },
+        {
+          "tag": "input",
+          "type": "radio",
+          "label": "",
+          "constraints": {}
+        }
+      ],
+      "api_calls": [
+        "GET /api/Addresss/null",
+        "GET /api/Challenges/",
+        "GET /api/Deliverys",
+        "GET /assets/i18n/en.json",
+        "GET /rest/admin/application-configuration",
+        "GET /rest/admin/application-version",
+        "GET /rest/basket/:id",
+        "GET /rest/languages",
+        "GET /rest/user/whoami",
+        "GET /socket.io/",
+        "POST /socket.io/"
+      ],
+      "links": [
+        "/#/about",
+        "/#/chatbot",
+        "/#/complain",
+        "/#/contact",
+        "/#/deluxe-membership",
+        "/#/photo-wall",
+        "/redirect"
+      ]
+    },
+    {
       "route": "/#/deluxe-membership",
       "title": "OWASP Juice Shop",
       "landmarks": [],
@@ -612,6 +839,196 @@
         "/#/forgot-password",
         "/#/photo-wall",
         "/#/register",
+        "/redirect"
+      ]
+    },
+    {
+      "route": "/#/order-history",
+      "title": "OWASP Juice Shop",
+      "landmarks": [],
+      "headings": [],
+      "interactive": [
+        "button \"Back to homepage\"",
+        "button \"Close search\"",
+        "button \"Language selection menu\"",
+        "button \"Open Sidenav\"",
+        "button \"Open search\"",
+        "button \"Show the shopping cart\"",
+        "button \"Show/hide account menu\"",
+        "textbox \"\""
+      ],
+      "fields": [
+        {
+          "tag": "input",
+          "type": "text",
+          "label": "",
+          "constraints": {}
+        }
+      ],
+      "api_calls": [
+        "GET /api/Challenges/",
+        "GET /assets/i18n/en.json",
+        "GET /rest/admin/application-configuration",
+        "GET /rest/admin/application-version",
+        "GET /rest/basket/:id",
+        "GET /rest/languages",
+        "GET /rest/order-history",
+        "GET /rest/user/whoami",
+        "GET /socket.io/",
+        "POST /socket.io/"
+      ],
+      "links": [
+        "/#/about",
+        "/#/chatbot",
+        "/#/complain",
+        "/#/contact",
+        "/#/deluxe-membership",
+        "/#/photo-wall",
+        "/redirect"
+      ]
+    },
+    {
+      "route": "/#/order-summary",
+      "title": "OWASP Juice Shop",
+      "landmarks": [],
+      "headings": [
+        "h1 Your Basket (<EMAIL>)"
+      ],
+      "interactive": [
+        "button \"Back to homepage\"",
+        "button \"Close search\"",
+        "button \"Complete your purchase\"",
+        "button \"Language selection menu\"",
+        "button \"Open Sidenav\"",
+        "button \"Open search\"",
+        "button \"Show the shopping cart\"",
+        "button \"Show/hide account menu\"",
+        "textbox \"\""
+      ],
+      "fields": [
+        {
+          "tag": "input",
+          "type": "text",
+          "label": "",
+          "constraints": {}
+        }
+      ],
+      "api_calls": [
+        "GET /api/Addresss/null",
+        "GET /api/Cards/null",
+        "GET /api/Challenges/",
+        "GET /api/Deliverys/null",
+        "GET /assets/i18n/en.json",
+        "GET /rest/admin/application-configuration",
+        "GET /rest/admin/application-version",
+        "GET /rest/basket/:id",
+        "GET /rest/languages",
+        "GET /rest/user/whoami",
+        "GET /socket.io/",
+        "POST /socket.io/"
+      ],
+      "links": [
+        "/#/about",
+        "/#/chatbot",
+        "/#/complain",
+        "/#/contact",
+        "/#/deluxe-membership",
+        "/#/photo-wall",
+        "/redirect"
+      ]
+    },
+    {
+      "route": "/#/payment/shop",
+      "title": "OWASP Juice Shop",
+      "landmarks": [],
+      "headings": [
+        "h1 My Payment Options"
+      ],
+      "interactive": [
+        "button \"Add a coupon Add a coupon code to receive discounts\"",
+        "button \"Add new card Add a credit or debit card\"",
+        "button \"Back to homepage\"",
+        "button \"Back\"",
+        "button \"Close search\"",
+        "button \"Language selection menu\"",
+        "button \"Open Sidenav\"",
+        "button \"Open search\"",
+        "button \"Other payment options\"",
+        "button \"Pay 0.00¤\"",
+        "button \"Proceed to review\"",
+        "button \"Show the shopping cart\"",
+        "button \"Show/hide account menu\"",
+        "textbox \"\""
+      ],
+      "fields": [
+        {
+          "tag": "input",
+          "type": "text",
+          "label": "",
+          "constraints": {}
+        },
+        {
+          "tag": "input",
+          "type": "text",
+          "label": "Name",
+          "constraints": {
+            "required": true
+          }
+        },
+        {
+          "tag": "input",
+          "type": "number",
+          "label": "Card Number",
+          "constraints": {
+            "required": true
+          }
+        },
+        {
+          "tag": "select",
+          "type": "",
+          "label": "Expiry Month",
+          "constraints": {
+            "required": true
+          }
+        },
+        {
+          "tag": "select",
+          "type": "",
+          "label": "Expiry Year",
+          "constraints": {
+            "required": true
+          }
+        },
+        {
+          "tag": "input",
+          "type": "text",
+          "label": "Coupon",
+          "constraints": {
+            "required": true
+          }
+        }
+      ],
+      "api_calls": [
+        "GET /api/Cards",
+        "GET /api/Challenges/",
+        "GET /api/Deliverys/null",
+        "GET /assets/i18n/en.json",
+        "GET /rest/admin/application-configuration",
+        "GET /rest/admin/application-version",
+        "GET /rest/basket/:id",
+        "GET /rest/languages",
+        "GET /rest/user/whoami",
+        "GET /rest/wallet/balance",
+        "GET /socket.io/",
+        "POST /socket.io/"
+      ],
+      "links": [
+        "/#/about",
+        "/#/chatbot",
+        "/#/complain",
+        "/#/contact",
+        "/#/deluxe-membership",
+        "/#/photo-wall",
         "/redirect"
       ]
     },

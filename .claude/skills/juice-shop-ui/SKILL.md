@@ -51,7 +51,8 @@ API, so a spec never branches on the device.
   and payment forms all write; their states after a submit are unobserved until a spec or a run
   shows them.
 - Automate: accounts a spec creates cannot be removed, so every case asserts on its own account and
-  never on counts or listings other runs share. The login message does not say which field was
+  never on counts or listings other runs share. A checkout case adds an address, a card or an
+  order to its account, so it takes a customer of its own, not the worker's shared one. The login message does not say which field was
   wrong, so a case checks the generic text. A login through the form lands on `/#/search`; wait for
   that route before the next step.
 - Run: a restart (the pack's `recovery`, or `npm run juice-shop:down` then `juice-shop:up`) empties
@@ -59,14 +60,25 @@ API, so a spec never branches on the device.
 
 ## Known defects
 
-Filed in the local tracker at the W6 intake gate (2026-10-25). Juice Shop's training
-vulnerabilities are filed like any defect, so the cases that check them run as known gaps.
+Filed in the local tracker at the intake gates of W6 (2026-10-25) and W8a (2026-10-26). Juice
+Shop's training vulnerabilities are filed like any defect, so the cases that check them run as known
+gaps. The registries' Defect column says which cases cite each key.
 
-| Key | What | Cases armed with it |
-|---|---|---|
-| LOCAL-1 (S1) | a customer reads another customer's basket by its id (REQ-BASKET-09) | none yet: designed in W6b |
-| LOCAL-2 (S2) | the search term is rendered as markup (REQ-SEARCH-04) | none yet: designed in W6b |
-| LOCAL-3 (S3) | `/#/basket` opens without a session (REQ-BASKET-10) | none yet: designed in W6b |
+| Key | What |
+|---|---|
+| LOCAL-1 (S1) | a customer reads another customer's basket by its id (REQ-BASKET-09) |
+| LOCAL-2 (S2) | the search term is rendered as markup (REQ-SEARCH-04) |
+| LOCAL-3 (S3) | `/#/basket` and the checkout routes open without a session (REQ-BASKET-10, REQ-CHECKOUT-12) |
+| LOCAL-4 (S3) | the password counter reads `/20` while the field takes 40 |
+| LOCAL-5 (S2) | the title of the search list is not a heading |
+| LOCAL-6 (S2) | the toolbar's search box has no accessible name |
+| LOCAL-7 (S2) | an order is placed without an address, a delivery method or a payment (REQ-CHECKOUT-11) |
+| LOCAL-8 (S2) | anyone with an order id reads the order without a session (REQ-CHECKOUT-15) |
+| LOCAL-9 (S2) | the checkout's radios have no accessible name |
+| LOCAL-10 (S2) | the checkout's step buttons are named differently from their text |
+| LOCAL-11 (S3) | the order summary and history have no heading for their content |
+| LOCAL-12 (S4) | an address without a State shows an empty slot |
+| LOCAL-13 (S3) | the summary and completion page show 0.00 amounts before their answers |
 
 ## Accessibility baseline
 

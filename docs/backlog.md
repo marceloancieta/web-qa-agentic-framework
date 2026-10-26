@@ -26,10 +26,9 @@ regression in a container, network mocking and state injection, proven on Juice 
 
 | Id | Stage | Item | Origin | Status |
 |---|---|---|---|---|
-| AGT-01 | W7 | `spec-author`: writes, runs and reports the specs of an assigned set of approved cases. | plan | in-progress |
-| AGT-02 | W7 | `ui-spec-reviewer` with evaluation fixtures: brittle locators, waits, assertions that cannot fail or pass by coincidence, layers, title against body. | plan | in-progress |
-| AGT-03 | W7 | `behaviour-investigator`: one requirement against the observed UI, read-only. | plan | in-progress |
-| JS-06 | W8 | Juice Shop phases 2 to 4 for a representative sample. | plan | todo |
+| JS-06 | W8 | Juice Shop phases 2 to 4 for a representative sample. | plan | in-progress |
+| JS-07 | W8 | Juice Shop checkout: intake (address, delivery, payment, summary, completion, history), design, and the purchase journey from the login form to the order in the history. | plan | in-progress |
+| PROC-05 | W8 | End-to-end journeys as a capability of their own: a journey registry per pack whose rules chain the rules of several features, the `@e2e` tag the lanes and CI select, and the generation rules for a journey (every step through the UI, flows, the end checked through `api/`, few journeys). | plan | in-progress |
 | GATE-08 | W8 | Lanes: visual, a11y sweep over the app map, mocked, known-gap, destructive, flake. | plan | todo |
 | CI-01 | W8 | Project matrix with `--shard` and the `blob` reporter, `merge-reports`, quality gate, report to test management. | plan | todo |
 | CI-02 | W8 | GitHub Actions workflow and a Jenkinsfile that only call the npm scripts. | plan | todo |
@@ -113,3 +112,6 @@ regression in a container, network mocking and state injection, proven on Juice 
 | CORE-16 | App map with sessions and pack cookies: app.json `cookies` every context starts with (test contexts and the walk), `app:map --actor <role>` walking with the newest state an actor fixture wrote (session storage included) into `docs/app-map.<role>.json`, routes per role under `app_map.actors`, the signed-in email replaced by `<EMAIL>`. | `80d284c` |
 | JS-05 | Juice Shop phases 0 and 1: app map, contract docs and registries for sign-up and login, basket and search. | `9302196` |
 | GATE-09 | Decision tables: `scripts/lib/decision-table.mjs` reads `apps/<pack>/rules/<case>.yaml` and expands its rules for the spec; `lint-suite` reports a malformed table, a combination no rule covers, two rules that give one combination different actions, and a `decision-table` case without its table. | `9302196` |
+| AGT-01 | `spec-author`: writes, runs and reports the specs of an assigned set of approved cases. | `8cd45ad` |
+| AGT-02 | `ui-spec-reviewer` with evaluation fixtures: brittle locators, waits, assertions that cannot fail or pass by coincidence, layers, title against body. | `8cd45ad` |
+| AGT-03 | `behaviour-investigator`: one requirement against the observed UI, read-only. | `f6b9e06` |

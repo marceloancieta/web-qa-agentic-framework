@@ -47,7 +47,7 @@ banners and fix the language. Accounts are not removed; the [application notes](
 | `specs/smoke/` | the sign-in smoke on every device project |
 | `specs/visual/`, `visual/` | the visual cases and their baselines, one per device project, rendered in the pinned image: `npm run lanes:visual` compares, `npm run lanes:visual -- --phase automate --update` rewrites them (ADR 0009) |
 | `docs/app-map.json` | the app map: `npm run app:map -- --pack juice-shop --write` walks the routes of `app.json` `app_map` read-only; `npm run app:map:check -- --pack juice-shop` reports drift |
-| `docs/app-map.customer.json` | the same walk signed in as `customer`, plus `/#/basket`: `--actor customer` with either command, after a spec run that signed a customer in |
+| `docs/app-map.customer.json` | the same walk signed in as `customer`, plus the basket and checkout routes of `app.json` `app_map.actors.customer`: `--actor customer` with either command, after a spec run that signed a customer in |
 
 ## Features
 
@@ -57,6 +57,7 @@ banners and fix the language. Accounts are not removed; the [application notes](
 | `SIGNUP` | [sign-up](docs/features/signup.md) | design (W6b) |
 | `BASKET` | [basket](docs/features/basket.md) | design (W6b) |
 | `SEARCH` | [product search](docs/features/search.md) | design (W6b) |
+| `CHECKOUT` | [checkout](docs/features/checkout.md) | design (W8a) |
 
 ## Facts about the application
 
