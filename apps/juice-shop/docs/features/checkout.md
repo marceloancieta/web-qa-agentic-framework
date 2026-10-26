@@ -100,7 +100,8 @@ Address 160 and 161; card 15, 16 and 17 digits.
 | completion loading | `{{bonus}}` shown raw and amounts 0.00¤ until the order arrives (G8) | `delay` on the order's call |
 | order placed | REQ-CHECKOUT-09 | the whole flow, or `api/` up to the summary |
 | empty history | "You have not placed any orders yet." | a customer created for the case |
-| an address or card call fails | unobserved | `failWith` (`@mocked`) |
+| an address save fails | the form empties every field and stays on `/#/address/create`, with no message and no success notification; nothing is listed (TC-CHECKOUT-23 runs, 2026-10-26). What the customer typed is lost without a word: defect LOCAL-15 (G10) | `failWith` (`@mocked`) |
+| a card save fails | unobserved | `failWith` (`@mocked`) |
 | no session | the route opens: an empty page on the address routes, the delivery and payment forms, "Your Basket (anonymous)" on the summary (G2) | a fresh context |
 
 ## Navigation
@@ -164,7 +165,10 @@ A failing address, card or checkout call can only be produced with a mock.
 | G5 | The step buttons are named differently from what they show ("Continue", "Place your order and pay"), and two name the wrong step: the address step's "Proceed to payment selection" leads to delivery, the delivery step's "Proceed to delivery method selection" leads to payment. | walk, 2026-10-26 | LOCAL-10 (S2) |
 | G6 | "Order Summary" on the summary and "Order History" on the history are plain text, not headings; the history page has no heading at all. | walk, 2026-10-26 | LOCAL-11 (S3) |
 | G7 | An address without a State shows ", ," in its line on the list, the delivery step, the summary and the completion page. | walk, 2026-10-26 | LOCAL-12 (S4) |
-| G8 | The summary and the completion page show 0.00¤ amounts, an empty table and the raw `{{bonus}}` before their answers arrive. | early reads in the walk, 2026-10-26 | LOCAL-13 (S3) |
+| G8 | The summary and the completion page show 0.00¤ amounts, an empty table and the raw `{{bonus}}` before their answers arrive; with a paid delivery method the summary's total is the delivery price alone. | early reads in the walk; TC-CHECKOUT-22 runs, 2026-10-26 | LOCAL-13 (S3), the second form in a comment |
+| G9 | The new address form refuses mobile numbers from 1000000 to 1111110, which its message and REQ-CHECKOUT-03 allow. | TC-CHECKOUT-06 runs, 2026-10-26 | LOCAL-14 (S3) |
+| G10 | A failed address save empties the form without saying it failed. | TC-CHECKOUT-23 runs, 2026-10-26 | LOCAL-15 (S3) |
+| G11 | On a phone, the Print icon covers "Track Your Order" in the order history. | a TC-CHECKOUT-14 run and an isolated reproduction, 2026-10-26 | LOCAL-16 (S2) |
 
 ## Out of scope
 
@@ -179,7 +183,8 @@ A failing address, card or checkout call can only be produced with a mock.
 ## Assumptions to confirm
 
 - A1: the steps keep their choices in session storage, so a reload keeps them (REQ-CHECKOUT-14).
-  The first spec run records it here.
+  Held in TC-CHECKOUT-20's runs (2026-10-26, both projects): after a reload of the payment step the
+  summary showed the chosen address and Fast Delivery's price.
 - A2: an address and a card can be created through the API with the customer's token, as the page
   does, so cases that are not about those forms arrange them without the UI.
 

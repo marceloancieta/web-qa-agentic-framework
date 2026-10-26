@@ -1,5 +1,5 @@
 {
-  "next": 14,
+  "next": 17,
   "issues": {
     "LOCAL-1": {
       "title": "Basket: a customer can read another customer's basket by its id",
@@ -141,6 +141,41 @@
       "labels": [
         "ui",
         "severity:S3"
+      ],
+      "status": "open",
+      "category": "open",
+      "comments": [
+        "**A second form of the same gap** (TC-CHECKOUT-22 runs, 2026-10-26, desktop Chromium and Pixel 5 emulation).\n\nWith a paid delivery method, the summary's Total Price while the basket's answer is held is the delivery price alone, not 0.00¤: with Fast Delivery it read 0.50¤ for a basket worth more. So the page shows a wrong, non-zero total for a moment, which a customer is even less likely to recognise as a loading state than 0.00¤. TC-CHECKOUT-22 uses Standard Delivery (0.00¤), so its check of a 0.00¤ total does not cover this form; the fix this issue asks for, no amount until the data has arrived, covers both.\n"
+      ]
+    },
+    "LOCAL-14": {
+      "title": "Checkout: the address form refuses mobile numbers from 1000000 to 1111110, which its message allows",
+      "body": "**What happens:** the new address form refuses a Mobile Number of 1000000, the lower end of the range its own message gives. Typing 1000000 marks the field invalid, shows \"Mobile number must match 1000000-9999999999 format.\" and keeps Submit disabled. Every value from 1000000 to 1111110 that was tried is refused (1000000, 1000001, 1000010, 1100000, 1111110); 1111111 and above are accepted, up to 9999999999.\n\n**What should happen:** a mobile number from 1000000 to 9999999999 is accepted, as the message states (contract rule REQ-CHECKOUT-03, `apps/juice-shop/docs/features/checkout.md`).\n\n**Steps:**\n1. Sign in at `<base_url>`, open `<base_url>/#/address/create`.\n2. Type 1000000 into Mobile Number and leave the field: the format message shows and Submit stays disabled.\n3. Type 1111111: the message goes away.\n\n**Seen:** in every run of TC-CHECKOUT-06 (`apps/juice-shop/specs/checkout/address.spec.ts`), desktop Chromium and Pixel 5 emulation, 2026-10-26, Juice Shop 20.3.0 (local container). What the server accepts was not checked.\n",
+      "labels": [
+        "ui",
+        "severity:S3"
+      ],
+      "status": "open",
+      "category": "open",
+      "comments": []
+    },
+    "LOCAL-15": {
+      "title": "Checkout: a failed address save empties the form without saying it failed",
+      "body": "**What happens:** when saving a new address fails, the form empties every field and stays on `<base_url>/#/address/create` without a word: no error message, no notification. Everything the customer typed is lost, and nothing tells them the address was not saved.\n\n**What should happen:** a failed save keeps what was typed and says that it failed, so the customer can try again (the contract records the observed behaviour as a candidate defect: `apps/juice-shop/docs/features/checkout.md`, States, \"an address save fails\"; REQ-CHECKOUT-04 covers the successful save).\n\n**Steps:** with the address save answering an error (TC-CHECKOUT-23 answers `500` to `POST /api/Addresss/` through `addressSaveFails` in `apps/juice-shop/mocks/checkout-mocks.ts`):\n1. Sign in at `<base_url>`, open `<base_url>/#/address/create` and fill every field.\n2. Press Submit: the fields empty, no message appears, and the address is not listed on `/#/address/select`.\n\n**Seen:** in every run of TC-CHECKOUT-23, desktop Chromium and Pixel 5 emulation, 2026-10-26, Juice Shop 20.3.0 (local container). The error was produced by a mock; a real server error was not observed.\n",
+      "labels": [
+        "ui",
+        "severity:S3"
+      ],
+      "status": "open",
+      "category": "open",
+      "comments": []
+    },
+    "LOCAL-16": {
+      "title": "Checkout: on a phone the Print icon covers Track Your Order in the order history",
+      "body": "**What happens:** on a phone, \"Track Your Order\" on `<base_url>/#/order-history` cannot be pressed: the icon of the \"Print order confirmation\" button next to it covers it. A click or tap on the button's centre lands on the Print icon (Playwright: \"`<mat-icon>note</mat-icon>` from `<div class=\"col col-5 align-end\">` subtree intercepts pointer events\"). At 1280 px wide the button works.\n\n**What should happen:** the history's tracking is reachable on every device (contract rule REQ-CHECKOUT-10; the contract's responsive expectation that every step shows the same elements, `apps/juice-shop/docs/features/checkout.md`).\n\n**Steps:**\n1. Place an order with an account of your own at `<base_url>`.\n2. Open `<base_url>/#/order-history` at a phone's width (Pixel 5 emulation, 393 px).\n3. Tap \"Track Your Order\": the Print icon takes the tap.\n\n**Seen:** in a TC-CHECKOUT-14 run (mobile-chrome, trace) and twice in an isolated reproduction with an account and order of its own, Pixel 5 emulation, 2026-10-26, Juice Shop 20.3.0 (local container); the same reproduction at 1280 px could press it. The completion page's \"Track Orders\" link still works on a phone.\n",
+      "labels": [
+        "ui",
+        "severity:S2"
       ],
       "status": "open",
       "category": "open",

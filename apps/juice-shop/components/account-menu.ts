@@ -44,6 +44,19 @@ export class AccountMenu {
       : this.page.getByRole('navigation').getByText('Login', { exact: true });
   }
 
+  /** Open the menu and go to the order history, under "Orders & Payment" in both layouts. */
+  async openOrderHistory(): Promise<void> {
+    await this.open();
+    if (this.layout === 'toolbar') {
+      await this.page.getByRole('menuitem', { name: 'Show Orders and Payment Menu' }).click();
+      await this.page.getByRole('menuitem', { name: 'Go to order history page' }).click();
+    } else {
+      const nav = this.page.getByRole('navigation');
+      await nav.getByText('Orders & Payment', { exact: true }).click();
+      await nav.getByText('Order History', { exact: true }).click();
+    }
+  }
+
   logout(): Locator {
     return this.layout === 'toolbar'
       ? this.page.getByRole('menuitem', { name: 'Logout' })

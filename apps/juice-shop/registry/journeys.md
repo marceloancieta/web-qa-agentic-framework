@@ -28,7 +28,7 @@ dimensions:
   content: "n/a: each feature's registry covers its texts"
 test_data:
   <EMAIL>: the address of an account the account builder makes unique per run
-  <PRODUCT>: Apple Juice (1000ml), found by searching "apple"
+  <PRODUCT>: the most stocked product without a limit per customer, read from the API per worker (orders use stock up; app notes)
   <ORDER_ID>: the id the checkout answers, read from the completion URL
 ---
 
@@ -41,8 +41,8 @@ feature's cases cross: from the login to an order, and from a new account to its
 
 | ID | Title | Requirement | Technique | Priority | Tags | Devices | Status | Spec | Defect |
 |---|---|---|---|---|---|---|---|---|---|
-| TC-JOURNEY-01 | a customer signs in through the form, searches "apple", adds <PRODUCT>, checks out with a new address, One Day Delivery and a new card, places the order and finds it in the order history with the completion page's total | REQ-JOURNEY-01 | use-case | high | @smoke @e2e | all | approved | | |
-| TC-JOURNEY-02 | a visitor registers through the form, signs in through the form with the new account, and sees <EMAIL> in the account menu and an empty basket titled with it | REQ-JOURNEY-02 | use-case | high | @smoke @e2e | all | approved | | |
+| TC-JOURNEY-01 | a customer signs in through the form, searches for <PRODUCT> by its name, adds it, checks out with a new address, One Day Delivery and a new card, places the order and finds it in the order history with the completion page's total | REQ-JOURNEY-01 | use-case | high | @smoke @e2e | all | automated | specs/journeys/journeys.spec.ts | |
+| TC-JOURNEY-02 | a visitor registers through the form, signs in through the form with the new account, and sees <EMAIL> in the account menu and an empty basket titled with it | REQ-JOURNEY-02 | use-case | high | @smoke @e2e | all | automated | specs/journeys/journeys.spec.ts | |
 
 ## Notes
 

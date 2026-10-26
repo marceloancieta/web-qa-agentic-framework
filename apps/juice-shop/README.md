@@ -40,11 +40,14 @@ banners and fix the language. Accounts are not removed; the [application notes](
 
 | Folder | Holds |
 |---|---|
-| `api/` | `AccountApi`: sign-up, login, the signed-in account |
-| `builders/` | accounts with a unique email and a random password |
-| `pages/` | `LoginPage` |
-| `components/` | `AccountMenu`: one API for the toolbar menu (from 960 px wide, `breakpoints.toolbar`) and the side navigation below it |
+| `api/` | `AccountApi` (sign-up, login, the signed-in account), `BasketApi`, `CatalogueApi` (products, and the most stocked ones a run can order), `CheckoutApi` (addresses, cards, delivery methods, orders, tracking) |
+| `builders/` | accounts with a unique email and a random password; addresses and fake cards (numbers starting 9000) |
+| `pages/` | the login, registration, search and basket pages and each checkout step, from the address to the order history |
+| `components/` | `AccountMenu`: one API for the toolbar menu (from 960 px wide, `breakpoints.toolbar`) and the side navigation below it; `Toolbar`: the search box and the basket button |
+| `flows/` | `shopping.ts`: sign in and register through the forms, search and add, and each checkout step, shared by the journeys and the feature specs |
+| `mocks/` | `checkout-mocks.ts`: a failed address save, a slow basket or order answer |
 | `specs/smoke/` | the sign-in smoke on every device project |
+| `specs/journeys/`, `specs/checkout/` | the journeys (`@e2e`) and the checkout cases |
 | `specs/visual/`, `visual/` | the visual cases and their baselines, one per device project, rendered in the pinned image: `npm run lanes:visual` compares, `npm run lanes:visual -- --phase automate --update` rewrites them (ADR 0009) |
 | `docs/app-map.json` | the app map: `npm run app:map -- --pack juice-shop --write` walks the routes of `app.json` `app_map` read-only; `npm run app:map:check -- --pack juice-shop` reports drift |
 | `docs/app-map.customer.json` | the same walk signed in as `customer`, plus the basket and checkout routes of `app.json` `app_map.actors.customer`: `--actor customer` with either command, after a spec run that signed a customer in |

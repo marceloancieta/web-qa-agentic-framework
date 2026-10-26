@@ -12,6 +12,7 @@
 import type { ActorProvider } from '../../helpers/actors';
 import { createTest, expect, type Actor } from '../../fixtures';
 import { AccountApi } from './api/account-api';
+import { CatalogueApi, type Product } from './api/catalogue-api';
 import { aCustomer } from './builders/account-builder';
 
 export const provider: ActorProvider = {
@@ -47,8 +48,23 @@ export const provider: ActorProvider = {
   },
 };
 
-export const test = createTest(provider).extend<{ customer: Actor }>({
+export const test = createTest(provider).extend<
+  { customer: Actor },
+  { stockedProduct: Product & { stock: number } }
+>({
   customer: async ({ actor }, use) => use(await actor('customer')),
+  // The product a worker's orders use: the most stocked one without a limit per customer, read
+  // once per worker. Orders use stock up and only a restart gives it back (docs/app-notes.md).
+  stockedProduct: [
+    async ({ playwright, qa }, use) => {
+      const api = await playwright.request.newContext({ baseURL: `${qa.baseUrl}/` });
+      const [most] = await new CatalogueApi(api).stocked();
+      await api.dispose();
+      if (!most) throw new Error('No product has stock left: restore it with the pack recovery.');
+      await use(most);
+    },
+    { scope: 'worker' },
+  ],
 });
 
-export { expect };
+export { expect, type Actor };

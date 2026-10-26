@@ -31,8 +31,8 @@ test_data:
   <LONG_ADDRESS>: an address line of exactly 160 characters from the address builder
   <CARD>: a sixteen-digit card number from the card builder that no issuer uses for real cards
   <LAST4>: the last four digits of <CARD>
-  <PRODUCT>: Apple Juice (1000ml), price 1.99
-  <SECOND_PRODUCT>: a second product of the catalogue whose price differs from <PRODUCT>'s, its price read from the API
+  <PRODUCT>: the most stocked product without a limit per customer, read from the API per worker (orders use stock up and a start sets it differently; app notes); Apple Juice (1000ml) at intake
+  <SECOND_PRODUCT>: the next most stocked product whose price differs from <PRODUCT>'s, its price read from the API
   <ORDER_ID>: the id the checkout answers, read from the completion URL
 ---
 
@@ -46,35 +46,40 @@ intake, so their cases run as known gaps (LOCAL-3, LOCAL-7 to LOCAL-13).
 
 | ID | Title | Requirement | Technique | Priority | Tags | Devices | Status | Spec | Defect |
 |---|---|---|---|---|---|---|---|---|---|
-| TC-CHECKOUT-01 | Checkout from a basket with <PRODUCT> opens "Select an address" with no address listed and Continue disabled | REQ-CHECKOUT-01 | state-transition | medium | @regression @navigation | all | approved | | |
-| TC-CHECKOUT-02 | an address added through the form returns to "Select an address", says "The address at <CITY> has been successfully added to your addresses." and lists it, and the API holds it | REQ-CHECKOUT-04 | use-case | high | @regression | all | approved | | |
+| TC-CHECKOUT-01 | Checkout from a basket with <PRODUCT> opens "Select an address" with no address listed and Continue disabled | REQ-CHECKOUT-01 | state-transition | medium | @regression @navigation | all | automated | specs/checkout/address.spec.ts | |
+| TC-CHECKOUT-02 | an address added through the form returns to "Select an address", says "The address at <CITY> has been successfully added to your addresses." and lists it, and the API holds it | REQ-CHECKOUT-04 | use-case | high | @regression | all | automated | specs/checkout/address.spec.ts | |
 | TC-CHECKOUT-03 | the new address form keeps Submit disabled while empty, and each required field left empty says "Please provide a <field>." | REQ-CHECKOUT-02 | equivalence-partition | medium | @regression @navigation | all | approved | | |
 | TC-CHECKOUT-04 | an address with every required field and no State is saved | REQ-CHECKOUT-02 | equivalence-partition | low | @regression | all | approved | | |
 | TC-CHECKOUT-05 | an address without a State shows no empty slot in its line on the list and the summary | REQ-CHECKOUT-04 | error-guessing | low | @regression @content @known-gap | all | approved | | LOCAL-12 |
-| TC-CHECKOUT-06 | a mobile number of 999999 or 10000000000 says "Mobile number must match 1000000-9999999999 format." and keeps Submit disabled; 1000000 and 9999999999 are accepted | REQ-CHECKOUT-03 | boundary-value | medium | @regression | all | approved | | |
-| TC-CHECKOUT-07 | a ZIP Code of 8 characters is accepted and one of 9 is invalid ("9/8"); <LONG_ADDRESS> is accepted and a 161st character is not taken | REQ-CHECKOUT-03 | boundary-value | low | @regression @content | all | approved | | |
+| TC-CHECKOUT-06 | a mobile number of 999999 or 10000000000 says "Mobile number must match 1000000-9999999999 format." and keeps Submit disabled; 1000000 and 9999999999 are accepted | REQ-CHECKOUT-03 | boundary-value | medium | @regression @known-gap | all | automated | specs/checkout/address.spec.ts | LOCAL-14 |
+| TC-CHECKOUT-07 | a ZIP Code of 8 characters is accepted and one of 9 is invalid ("9/8"); <LONG_ADDRESS> is accepted and a 161st character is not taken | REQ-CHECKOUT-03 | boundary-value | low | @regression @content | all | automated | specs/checkout/address.spec.ts | |
 | TC-CHECKOUT-08 | with one saved address, Continue is enabled only once it is chosen, and leads to the delivery step showing that address and its mobile number | REQ-CHECKOUT-01 | state-transition | medium | @regression @navigation | all | approved | | |
 | TC-CHECKOUT-09 | the delivery step lists One Day Delivery 0.99¤ 1 day, Fast Delivery 0.50¤ 3 days and Standard Delivery 0.00¤ 5 days, and Continue stays disabled until one is chosen | REQ-CHECKOUT-05 | equivalence-partition | medium | @regression | all | approved | | |
-| TC-CHECKOUT-10 | the new card form keeps Submit disabled until valid; 15 and 17 digits say "Please enter a valid sixteen digit card number.", 16 digits are accepted, and an empty Name says "Please provide a name." | REQ-CHECKOUT-06 | boundary-value | medium | @regression | all | approved | | |
-| TC-CHECKOUT-11 | a saved card is listed as "************<LAST4>" with its holder and expiry, says "Your card ending with <LAST4> has been saved for your convenience.", the API holds it, and Continue is enabled once it is chosen | REQ-CHECKOUT-07 | use-case | high | @regression @security | all | approved | | |
-| TC-CHECKOUT-12 | with <PRODUCT> twice and <SECOND_PRODUCT> once and Fast Delivery, the summary shows the chosen address, the card ending in <LAST4>, both rows, and Items, Delivery 0.50¤, Promotion and a Total that is their sum | REQ-CHECKOUT-08 | equivalence-partition | high | @regression | all | approved | | |
-| TC-CHECKOUT-13 | placing the order opens /#/order-completion/<ORDER_ID> with "Thank you for your purchase!", the products, the totals and the delivery days, and empties the basket on the page and in the API | REQ-CHECKOUT-09 | use-case | high | @smoke | all | approved | | |
-| TC-CHECKOUT-14 | the placed order is in the order history with <ORDER_ID>, its total, "In Transit" and its products, and Track Orders shows its products and expected delivery | REQ-CHECKOUT-10 | use-case | medium | @regression | all | approved | | |
+| TC-CHECKOUT-10 | the new card form keeps Submit disabled until valid; 15 and 17 digits say "Please enter a valid sixteen digit card number.", 16 digits are accepted, and an empty Name says "Please provide a name." | REQ-CHECKOUT-06 | boundary-value | medium | @regression | all | automated | specs/checkout/payment.spec.ts | |
+| TC-CHECKOUT-11 | a saved card is listed as "************<LAST4>" with its holder and expiry, says "Your card ending with <LAST4> has been saved for your convenience.", the API holds it, and Continue is enabled once it is chosen | REQ-CHECKOUT-07 | use-case | high | @regression @security | all | automated | specs/checkout/payment.spec.ts | |
+| TC-CHECKOUT-12 | with <PRODUCT> twice and <SECOND_PRODUCT> once and Fast Delivery, the summary shows the chosen address, the card ending in <LAST4>, both rows, and Items, Delivery 0.50¤, Promotion and a Total that is their sum | REQ-CHECKOUT-08 | equivalence-partition | high | @regression | all | automated | specs/checkout/order.spec.ts | |
+| TC-CHECKOUT-13 | placing the order opens /#/order-completion/<ORDER_ID> with "Thank you for your purchase!", the products, the totals and the delivery days, and empties the basket on the page and in the API | REQ-CHECKOUT-09 | use-case | high | @smoke | all | automated | specs/checkout/order.spec.ts | |
+| TC-CHECKOUT-14 | the placed order is in the order history with <ORDER_ID>, its total, "In Transit" and its products, and Track Orders shows its products and expected delivery | REQ-CHECKOUT-10 | use-case | medium | @regression | all | automated | specs/checkout/order.spec.ts | |
 | TC-CHECKOUT-15 | a customer with no orders sees "You have not placed any orders yet." in the order history | REQ-CHECKOUT-10 | state-transition | low | @regression | all | approved | | |
-| TC-CHECKOUT-16 | /#/order-summary opened directly, without an address, a delivery method and a card, refuses to place the order and no order is created | REQ-CHECKOUT-11 | error-guessing | high | @regression @security @known-gap | all | approved | | LOCAL-7 |
-| TC-CHECKOUT-17 | without a session, each checkout route opens the login and shows no checkout | REQ-CHECKOUT-12 | state-transition | high | @regression @security @known-gap | all | approved | | LOCAL-3 |
+| TC-CHECKOUT-16 | /#/order-summary opened directly, without an address, a delivery method and a card, refuses to place the order and no order is created | REQ-CHECKOUT-11 | error-guessing | high | @regression @security @known-gap | all | automated | specs/checkout/order.spec.ts | LOCAL-7 |
+| TC-CHECKOUT-17 | without a session, each checkout route opens the login and shows no checkout | REQ-CHECKOUT-12 | state-transition | high | @regression @security @known-gap | all | automated | specs/checkout/order.spec.ts | LOCAL-3 |
 | TC-CHECKOUT-18 | without a session, the tracking of a customer's order is refused by the API and the tracking page shows none of its products | REQ-CHECKOUT-15 | error-guessing | high | @regression @security @known-gap | all | approved | | LOCAL-8 |
-| TC-CHECKOUT-19 | after a card is saved, its whole number appears nowhere: not in the card list, the summary, the order history, the URL or browser storage | REQ-CHECKOUT-13 | error-guessing | high | @regression @security | all | approved | | |
-| TC-CHECKOUT-20 | Back on the payment and delivery steps returns to the step before, and a reload of the payment step keeps the chosen address and delivery method | REQ-CHECKOUT-14 | state-transition | medium | @regression @navigation | all | approved | | |
-| TC-CHECKOUT-21 | no checkout step scrolls sideways with <LONG_ADDRESS> and a long holder name, and the summary rows keep name, quantity and price visible | REQ-CHECKOUT-08 | boundary-value | medium | @regression @responsive | all | approved | | |
-| TC-CHECKOUT-22 | a slow basket answer never shows a 0.00¤ total or an empty products table on the summary, nor raw template text on the completion page | REQ-CHECKOUT-08 | error-guessing | medium | @regression @perf @known-gap | all | approved | | LOCAL-13 |
-| TC-CHECKOUT-23 | a failed answer to saving an address is not reported as saved and the list stays empty | REQ-CHECKOUT-04 | error-guessing | low | @regression @mocked | all | approved | | |
-| TC-CHECKOUT-24 | every product image of the summary loads | REQ-CHECKOUT-08 | use-case | low | @regression @layout | all | approved | | |
+| TC-CHECKOUT-19 | after a card is saved, its whole number appears nowhere: not in the card list, the summary, the order history, the URL or browser storage | REQ-CHECKOUT-13 | error-guessing | high | @regression @security | all | automated | specs/checkout/payment.spec.ts | |
+| TC-CHECKOUT-20 | Back on the payment and delivery steps returns to the step before, and a reload of the payment step keeps the chosen address and delivery method | REQ-CHECKOUT-14 | state-transition | medium | @regression @navigation | all | automated | specs/checkout/payment.spec.ts | |
+| TC-CHECKOUT-21 | no checkout step scrolls sideways with <LONG_ADDRESS> and a long holder name, and the summary rows keep name, quantity and price visible | REQ-CHECKOUT-08 | boundary-value | medium | @regression @responsive | all | automated | specs/checkout/order.spec.ts | |
+| TC-CHECKOUT-22 | a slow basket answer never shows a 0.00¤ total or an empty products table on the summary | REQ-CHECKOUT-08 | error-guessing | medium | @regression @perf @known-gap | all | automated | specs/checkout/order.spec.ts | LOCAL-13 |
+| TC-CHECKOUT-23 | a failed answer to saving an address is not reported as saved and the list stays empty | REQ-CHECKOUT-04 | error-guessing | low | @regression @mocked | all | automated | specs/checkout/address.spec.ts | |
+| TC-CHECKOUT-24 | every product image of the summary loads | REQ-CHECKOUT-08 | use-case | low | @regression @layout | all | automated | specs/checkout/order.spec.ts | |
 | TC-CHECKOUT-25 | the completion page looks as designed, the order id and date masked | REQ-CHECKOUT-09 | use-case | low | @regression @visual @layout | all | approved | | |
 | TC-CHECKOUT-26 | the radios of the address, delivery and card tables are named after their rows | REQ-CHECKOUT-05 | use-case | medium | @regression @a11y @known-gap | all | approved | | LOCAL-9 |
-| TC-CHECKOUT-27 | each step button's accessible name contains the text it shows and names the step it leads to | REQ-CHECKOUT-01 | use-case | medium | @regression @a11y @known-gap | all | approved | | LOCAL-10 |
+| TC-CHECKOUT-27 | each step button's accessible name contains the text it shows and names the step it leads to | REQ-CHECKOUT-01 | use-case | medium | @regression @a11y @known-gap | all | automated | specs/checkout/order.spec.ts | LOCAL-10 |
 | TC-CHECKOUT-28 | the summary and the order history each have a heading for their content | REQ-CHECKOUT-10 | use-case | low | @regression @a11y @known-gap | all | approved | | LOCAL-11 |
 | TC-CHECKOUT-29 | the checkout is completed with the keyboard alone, the focus visible at each control, and no step has an axe violation beyond the baseline | REQ-CHECKOUT-09 | use-case | medium | @regression @a11y | all | approved | | |
+| TC-CHECKOUT-30 | a slow order answer never shows raw template text or a 0.00¤ total on the completion page | REQ-CHECKOUT-09 | error-guessing | medium | @regression @perf @known-gap | all | automated | specs/checkout/order.spec.ts | LOCAL-13 |
+
+Changed at the W8b gate (2026-10-26): TC-CHECKOUT-22 covered the summary and the completion page
+under one known-gap arm, so a failure on the way to the completion page read as the gap. The
+completion page moved to TC-CHECKOUT-30, approved by the owner, each case with its own arm.
 
 ## Notes
 

@@ -26,7 +26,8 @@ with those features' cases.
 ## Acceptance criteria
 
 - **Given** an account created for the run and the shop's catalogue, **when** the customer signs in,
-  searches "apple", adds Apple Juice (1000ml), adds an address, chooses One Day Delivery, adds a
+  searches for a product by its name (the most stocked one, since orders use stock up), adds it,
+  adds an address, chooses One Day Delivery, adds a
   card, places the order and opens the order history, **then** the history lists an order with that
   product and the completion page's total, and `GET /rest/order-history` holds it with the address
   and card the journey chose (REQ-JOURNEY-01).

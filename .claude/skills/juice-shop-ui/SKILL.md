@@ -52,7 +52,9 @@ API, so a spec never branches on the device.
   shows them.
 - Automate: accounts a spec creates cannot be removed, so every case asserts on its own account and
   never on counts or listings other runs share. A checkout case adds an address, a card or an
-  order to its account, so it takes a customer of its own, not the worker's shared one. The login message does not say which field was
+  order to its account, so it takes a customer of its own (`actor('customer', { fresh: true })`),
+  not the worker's shared one. The order summary and completion page show 0.00¤ until their data
+  arrives (LOCAL-13): wait for a product row before reading an amount. The login message does not say which field was
   wrong, so a case checks the generic text. A login through the form lands on `/#/search`; wait for
   that route before the next step.
 - Run: a restart (the pack's `recovery`, or `npm run juice-shop:down` then `juice-shop:up`) empties
@@ -60,7 +62,7 @@ API, so a spec never branches on the device.
 
 ## Known defects
 
-Filed in the local tracker at the intake gates of W6 (2026-10-25) and W8a (2026-10-26). Juice
+Filed in the local tracker at the intake gates of W6 (2026-10-25) and W8a, and the automate gate of W8b (2026-10-26). Juice
 Shop's training vulnerabilities are filed like any defect, so the cases that check them run as known
 gaps. The registries' Defect column says which cases cite each key.
 
@@ -79,6 +81,9 @@ gaps. The registries' Defect column says which cases cite each key.
 | LOCAL-11 (S3) | the order summary and history have no heading for their content |
 | LOCAL-12 (S4) | an address without a State shows an empty slot |
 | LOCAL-13 (S3) | the summary and completion page show 0.00 amounts before their answers |
+| LOCAL-14 (S3) | the address form refuses mobile numbers from 1000000 to 1111110 (REQ-CHECKOUT-03) |
+| LOCAL-15 (S3) | a failed address save empties the form without saying it failed |
+| LOCAL-16 (S2) | on a phone the Print icon covers Track Your Order in the order history |
 
 ## Accessibility baseline
 

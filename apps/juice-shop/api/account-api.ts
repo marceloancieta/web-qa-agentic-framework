@@ -47,9 +47,15 @@ export class AccountApi {
     return ((await response.json()) as { authentication: Authentication }).authentication;
   }
 
-  /** The signed-in account as the server sees it: its email, or null without a session. */
-  async whoami(): Promise<string | null> {
-    const response = await this.api.get('rest/user/whoami');
+  /**
+   * The signed-in account as the server sees it: its email, or null without a session. With a
+   * token, the session that token names instead of the client's own; this call reads the `token`
+   * cookie, not the bearer header.
+   */
+  async whoami(token?: string): Promise<string | null> {
+    const response = await this.api.get('rest/user/whoami', {
+      headers: token ? { Cookie: `token=${token}` } : {},
+    });
     const { user } = (await response.json()) as { user: { email?: string } };
     return user.email ?? null;
   }
