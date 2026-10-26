@@ -73,7 +73,9 @@ The generation rule is the reference, and the reviewer checks against it:
   exactly as the registry writes them;
 - arrange through the role fixtures (`customer`) or `actor(role)` and `api/`, act through page
   objects, assert with web-first assertions on locators the page objects return. Only the case about
-  the login form types a password;
+  the login form and a journey type a password;
+- a journey (`@e2e`) takes each step it claims through the UI over the pack's flows, asserts at
+  each hand-over inside a step, and reads its end back through `api/`;
 - every assertion runs every time: no assertion in one branch only, no device branch. A difference
   between devices is a tag and a registry reason;
 - wait for what the user would see (an element, a URL, a response registered before the action),

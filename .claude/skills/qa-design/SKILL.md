@@ -51,15 +51,19 @@ phase opens no browser.
    contract records a real difference. An answer the application will not give on demand (a 500, a
    timeout, an empty list) comes from a mock and carries `@mocked`; the rule it covers still needs a
    case without a mock.
-5. **Fill the registry** from [the template](../../../docs/templates/registry.md), every row
+5. **A journey** across features goes to the pack's journey registry (`kind: journey`,
+   `.claude/rules/registry.md`), never to a feature's: its contract rule cites the feature rules it
+   chains, and the case carries `@e2e` with its layer tag. Keep one to three per pack; a detail a
+   journey would check becomes a case of the feature it belongs to.
+6. **Fill the registry** from [the template](../../../docs/templates/registry.md), every row
    `draft`. When an open issue already explains a case, its key goes in the Defect column and the
    case still runs as a known gap.
-6. **Check**: `npm run lint:suite` (registry shape, dimensions without cases, device reasons),
+7. **Check**: `npm run lint:suite` (registry shape, dimensions without cases, device reasons),
    `npm run traceability` (every contract rule cited, no rule covered only by mocks) and
    `npm run coverage:status`. A finding is fixed or explained under the table, never left silent.
-7. **Review gate.** Show the cases grouped by rule and by dimension, the rules with no case and why,
+8. **Review gate.** Show the cases grouped by rule and by dimension, the rules with no case and why,
    and the pairwise choices. Apply the reviewer's changes, then set the approved rows to `approved`.
-8. **Hand off** to `qa-automate` with the counts by status, dimension and priority.
+9. **Hand off** to `qa-automate` with the counts by status, dimension and priority.
 
 ## If it stops halfway
 

@@ -50,6 +50,7 @@ A registry declares which dimensions apply, and each one that applies needs a ca
 | `@quarantine` | confirmed flaky; every run leaves it out except the flake lane, until the linked fix lands |
 | `@destructive` | leaves the application unusable for other cases until its recovery runs; it lives in a spec file of its own (`lint-harness` destructive-isolation) and only the destructive lane selects it |
 | `@desktop-only`, `@mobile-only` | a real difference in behaviour; the other form factor's projects leave it out, and the registry's Devices cell gives the reason |
+| `@e2e` | a journey's case: it crosses features from end to end. Every case of a journey registry (`kind: journey`) carries it and no other case does (`lint-suite` journey-tag); `--grep @e2e` runs the journeys alone |
 
 What each project and lane leaves out is computed in one place, `projectTagFilter` in
 `scripts/lib/tags.mjs`.
@@ -58,6 +59,8 @@ What each project and lane leaves out is computed in one place, `projectTagFilte
 
 - **Severity does not choose the layer.** A critical negative is still `@regression`; its weight is
   the case's priority.
+- **`@e2e` is not a layer.** A journey also carries one layer tag: `@smoke` when it walks the
+  critical path the product exists for, `@regression` otherwise.
 - **Tags describe the code as written**, whatever the registry once planned. A case that does not
   check the keyboard is not `@a11y` because the page is accessible.
 - **`@known-gap` and the arm go together.** The tag without `knownGap()` in the body, or the arm

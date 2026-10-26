@@ -9,6 +9,10 @@ exploration notes, a read-only look at the live application (with the date), or 
 as one. A look at the live application outranks a document, and the contract says so where they
 differ. Repro steps and notes write `<base_url>`, never an environment's host.
 
+A pack's journeys contract (`docs/features/journeys.md`) uses the same template: each rule is an
+end-to-end outcome, and its Source cites the feature rules it chains
+([the registry rule](../../.claude/rules/registry.md#journeys)).
+
 The **Business rules** table is read by the tools (`scripts/lib/contract.mjs`): keep its three
 columns, one rule per row, ids `REQ-<FEATURE>-NN`. Every rule must be cited by at least one case of
 a registry that names this contract (`npm run traceability`, `uncited-rule`).

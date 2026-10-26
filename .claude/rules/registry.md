@@ -47,6 +47,7 @@ may name the same contract, and its rules may be cited from any of them.
 | `title` | yes | the feature name |
 | `routes` | yes | the routes the cases visit, each starting with `/`, as the app map writes them |
 | `contract` | no | the feature contract, relative to the pack |
+| `kind` | no | `feature`, the default, or `journey` (below) |
 | `actors` | no | the roles the cases act as (`anonymous`, roles from the pack's `actors` in qa-config) |
 | `dimensions` | yes | each of the seven UI quality dimensions: `applies`, or `n/a: <why>` |
 | `requirements` | no | `{ id: REQ-<FEATURE>-NN, text }`, only for a registry without a contract |
@@ -66,6 +67,25 @@ computes them, and a number typed by hand goes stale.
 - **A mock is not the integration.** A requirement or rule covered only by `@mocked` cases is a
   finding (`mocked-only`): a mock shows how the UI handles an answer, not that the application gives
   it.
+
+## Journeys
+
+A journey is what a user does from end to end across features: sign in, find a product, buy it,
+see the order. Its cases prove that the features work together, which no feature's registry can, so
+they have a registry of their own.
+
+- **One journey registry per pack**, `kind: journey`, with its own code (`JOURNEY`) and a contract
+  of its own (`apps/<pack>/docs/features/journeys.md`, from the feature contract template). Each of the
+  contract's rules is one end-to-end outcome, and its Source cites the feature rules it chains
+  (`REQ-LOGIN-01`, `REQ-CHECKOUT-09`); `lint-suite` journey-chain reports a rule that cites none, or
+  one no other contract of the pack has.
+- **Every case carries `@e2e`** and one layer tag, and no feature case carries `@e2e` (`lint-suite`
+  journey-tag).
+- **Few, and only what features cannot show.** A journey proves the hand-over between features; the
+  rules of each step stay with the feature's cases. A detail a journey would check (a message, a
+  boundary, a state) belongs in the feature's registry. Keep one to three journeys per pack.
+- **Its dimensions** are usually `n/a`, each saying which feature registry covers it; a journey that
+  checks one (the keyboard through the whole purchase) declares it and tags the case.
 
 ## Dimensions
 

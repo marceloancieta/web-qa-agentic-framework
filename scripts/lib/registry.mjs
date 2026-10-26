@@ -7,6 +7,8 @@
 //   title: Sign-in and sign-up
 //   routes: [/#/login, /#/register]           the routes the cases visit
 //   contract: docs/features/login.md          optional; the feature contract, relative to the pack
+//   kind: journey                             optional; `feature` (the default) or `journey`, whose
+//                                               cases cross features end to end and carry @e2e
 //   actors: [anonymous, customer]             optional; the roles the cases act as
 //   dimensions:                               every UI quality dimension, `applies` or `n/a: <why>`
 //     responsive: applies
@@ -60,11 +62,14 @@ export const TECHNIQUES = [
   'exploratory',
 ];
 export const PRIORITIES = ['high', 'medium', 'low'];
+/** A feature's registry, or a journey's: cases that chain the rules of several features. */
+export const KINDS = ['feature', 'journey'];
 export const HEADER_KEYS = [
   'feature',
   'title',
   'routes',
   'contract',
+  'kind',
   'actors',
   'dimensions',
   'requirements',
@@ -123,6 +128,9 @@ function headerProblems(meta, problem, at) {
       at('contract'),
       'front matter `contract` must be the path of a Markdown file, relative to the pack',
     );
+  }
+  if (meta.kind !== undefined && !KINDS.includes(meta.kind)) {
+    problem(at('kind'), `front matter \`kind\` must be one of ${KINDS.join(', ')}`);
   }
   if (
     meta.actors !== undefined &&
@@ -278,6 +286,9 @@ export function parseRegistry(text, file = 'registry.md', contractRules = []) {
   }
   return { file, meta, requirements, contractRules, cases, problems, keyLines };
 }
+
+/** Whether a registry holds a journey's cases rather than a feature's. */
+export const isJourney = (registry) => registry.meta.kind === 'journey';
 
 /** The dimensions a registry declares as applying. */
 export function applyingDimensions(registry) {

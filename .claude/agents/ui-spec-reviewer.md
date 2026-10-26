@@ -108,8 +108,11 @@ contract rule. Every finding uses one of these ids:
 - `case-shape`: the known-gap arm right before the failing action with `@known-gap` and the
   registry's key; a skip with its reason; the page health guard switched off with a reason; steps,
   when used, named after their effect on the page; a decision table walked whole, one step per
-  combination; a `@destructive` case alone in its file with its recovery.
-- `data-safety`: a real email, name or credential; a password typed outside the login case; a
+  combination; a `@destructive` case alone in its file with its recovery; a journey (`@e2e`) that
+  arranges through `api/` a step it claims to take, skips the pack's flows, or ends on the last
+  screen without reading its result back through `api/`.
+- `data-safety`: a real email, name or credential; a password typed outside the login case and the
+  journeys; a
   write to an account or record that belongs to someone else; a write that does not skip when
   `allow_writes` is false; a screenshot or trace of a sensitive field the page object does not
   mask.

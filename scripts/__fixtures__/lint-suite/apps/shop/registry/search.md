@@ -1,6 +1,7 @@
 ---
 feature: SEARCH
 title: Product search
+kind: feature
 routes: [/#/search]
 dimensions:
   responsive: applies
@@ -28,4 +29,5 @@ Search has its own feature code, so its ids never meet the login ones.
 | TC-SEARCH-06 | the sort options depend on the result count | | decision-table | low | @regression | all | draft | | |
 | TC-SEARCH-07 | the price filter and the stock filter together | | decision-table | low | @regression | all | draft | | |
 | TC-SEARCH-08 | the table of this case was never written | | decision-table | low | @regression | all | draft | | | <!-- expect-finding: case-without-table -->
+| TC-SEARCH-10 | search, add and pay from end to end | | use-case | high | @smoke @e2e | all | draft | | | <!-- expect-finding: journey-tag -->
 | TC-SEARCH-09 | a table that breaks its format | | decision-table | low | @regression | all | draft | | |

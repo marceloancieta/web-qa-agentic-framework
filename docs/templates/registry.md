@@ -8,6 +8,8 @@ Copy the example below and replace its content. A test parses this example, so i
 - **Header.** `feature`, `title`, `routes` and all seven `dimensions` are required. Name the
   feature contract in `contract`, and cite its business rule ids in the Requirement column; use
   `requirements` only when the feature has no contract.
+- **Journeys.** A registry of end-to-end journeys across features adds `kind: journey`, and each of
+  its cases carries `@e2e` (the registry rule's Journeys section).
 - **Dimensions.** Copy the verdicts of the contract's quality dimensions table: `applies`, or
   `n/a: <why>`. Each dimension that applies needs a case with its tag.
 - **Cases.** One row per case, with every column, even the empty ones. Exactly one layer tag. Devices

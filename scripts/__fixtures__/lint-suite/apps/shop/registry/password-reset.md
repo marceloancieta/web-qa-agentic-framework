@@ -1,6 +1,7 @@
 ---
 feature: LOGIN
 title: Sign-in recovery
+kind: flow # expect-finding: registry-shape
 routes: [/#/forgot-password]
 dimensions:
   responsive: 'n/a: one column at every width'

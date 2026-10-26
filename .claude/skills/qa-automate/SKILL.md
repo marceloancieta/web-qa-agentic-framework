@@ -37,6 +37,8 @@ writes go to data they create, in an environment whose entry for the pack has `a
    web-first assertions on what the case created. A case the registry maps to an open issue arms
    `test.fail(true, await knownGap('<KEY>', why))` right before the action and carries
    `@known-gap`. A `@destructive` case goes in a spec file of its own and ends with its recovery.
+   A journey (`@e2e`) takes every step it claims through the UI over flows and proves its end
+   through `api/` (the generation rule's journey section), so its flows are built first.
    With several spec files, split the cases by file and launch one
    [`spec-author`](../../agents/spec-author.md) per file, in parallel, once the blocks they need
    exist. Each writes only its file and reports per case; a **Need** it reports is built here and

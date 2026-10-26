@@ -16,7 +16,7 @@ description: >-
 ## Steps
 
 1. **Pick the selection**: a pack (`--project='<pack>-*'`), a device of every pack
-   (`--project='*-<device>'`), a tag (`--grep @smoke`), named cases (`--grep "TC-LOGIN-0[1-3]"`), or
+   (`--project='*-<device>'`), a tag (`--grep @smoke`, `--grep @e2e` for the journeys), named cases (`--grep "TC-LOGIN-0[1-3]"`), or
    the visual lane (`npm run lanes:visual`, in the pinned container). If `--list` shows no test, say
    so and stop; never widen the selection on your own. `@visual`, `@destructive` and `@quarantine`
    cases are excluded from the device projects (`projectTagFilter` in `scripts/lib/tags.mjs`);

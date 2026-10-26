@@ -31,6 +31,7 @@ export const HANDLING_TAGS = [
   '@destructive',
   '@desktop-only',
   '@mobile-only',
+  '@e2e',
 ];
 
 export const TAGS = [...LAYER_TAGS, ...DIMENSION_TAGS, ...HANDLING_TAGS];
@@ -41,6 +42,8 @@ export const QUARANTINE_TAG = '@quarantine';
 export const DESTRUCTIVE_TAG = '@destructive';
 export const DESKTOP_ONLY_TAG = '@desktop-only';
 export const MOBILE_ONLY_TAG = '@mobile-only';
+/** A journey's case: it crosses features end to end, and only a journey registry holds it. */
+export const E2E_TAG = '@e2e';
 
 /** Set to `1` by the destructive lane only: the run selects the `@destructive` cases. */
 export const DESTRUCTIVE_LANE_ENV = 'QA_DESTRUCTIVE';

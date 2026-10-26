@@ -65,6 +65,10 @@ are not, and the name says so.
   names the fixture.
 - **Flows** are optional business tasks (sign up, checkout) over pages and the API client. A flow is
   written only when the same sequence appears in two or more specs.
+- **Journeys** are end-to-end cases across features (sign in, find, buy, see the order), kept in a
+  journey registry of their own and tagged `@e2e`. They chain flows through the UI and prove their
+  end through the API client; a pack keeps one to three
+  ([registry rule](../.claude/rules/registry.md#journeys)).
 
 | Criterion | Page objects only | Full Screenplay | Page objects + components + fixtures (+ flows) |
 |---|---|---|---|

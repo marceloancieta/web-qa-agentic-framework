@@ -68,13 +68,29 @@ changed in review.
    (`test.use({ pageHealth: { off: '<why>' } })`).
 9. **Steps** (`test.step`) are optional; a step's name says what it does to the page.
 
+## A journey
+
+A journey's case (`@e2e`, `.claude/rules/registry.md`) differs from a feature's in three ways:
+
+1. **Every step it claims goes through the UI**, as a user would take it, signing in through the
+   form included; arranging a step through `api/` would skip the hand-over the journey exists to
+   prove. Only what comes before the journey (the account, the stock) is arranged through `api/`.
+2. **The steps are flows** (`flows/`), the same business tasks the feature specs reuse, so a change
+   to a page breaks one flow, not every journey. A flow acts and returns what it saw; the journey
+   asserts at each hand-over, inside a `test.step` named after the step.
+3. **The end is proved through `api/`**: the order, the account or the record the journey claims to
+   have created is read back from the application, not from the last screen.
+
+A journey runs on every device project like any case, and it uses data of its own: an account
+created for it, never the worker's shared one, since it changes what the account holds.
+
 ## Data and secrets
 
 - No real people, accounts or credentials anywhere in a pack, its skill or the docs. Prose uses
   placeholders (`<EMAIL>`), code uses builders. Fake secrets in tests are built while the test
   runs, never written as a credential-shaped literal.
-- Only the login case types a password, with an account the run created; every other case starts
-  signed in through the API, so no password reaches a trace. Screenshots mask the sensitive fields
+- Only the login case and a journey type a password, with an account the run created; every other
+  case starts signed in through the API, so no password reaches a trace. Screenshots mask the sensitive fields
   the page object names.
 - `.auth/` holds browser sessions; it is ignored by git and guarded by `secret-guard`.
 - Modules do no I/O at import time, so one failure cannot abort the collection of a whole project.
