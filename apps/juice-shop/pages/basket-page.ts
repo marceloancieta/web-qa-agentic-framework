@@ -33,6 +33,37 @@ export class BasketPage {
       .filter({ has: this.page.getByRole('cell') });
   }
 
+  /**
+   * A row's cells are image, name, quantity (with a decrease and an increase button around it),
+   * price, and a cell with the remove button. None of the three buttons has an accessible name, so
+   * they are found by their place in the row (a finding of the W8b2 gate).
+   */
+  quantity(name: string): Locator {
+    return this.row(name).getByRole('cell').nth(2); // the third cell is the quantity
+  }
+
+  decrease(name: string): Locator {
+    return this.quantity(name).getByRole('button').first(); // the button before the number
+  }
+
+  increase(name: string): Locator {
+    return this.quantity(name).getByRole('button').last(); // the button after the number
+  }
+
+  remove(name: string): Locator {
+    return this.row(name).getByRole('cell').last().getByRole('button'); // the last cell holds it
+  }
+
+  /** A notification such as "You can order only up to 5 items of this product.". */
+  notification(text: string): Locator {
+    return this.page.getByText(text, { exact: true });
+  }
+
+  /** The text that names the products' bonus points: "You will gain <n> Bonus Points…". */
+  bonus(): Locator {
+    return this.page.getByText(/^You will gain \d+ Bonus Points from this order!$/);
+  }
+
   total(): Locator {
     return this.page.getByText(/^Total Price: /);
   }

@@ -21,6 +21,16 @@ export class LoginPage {
     return this.page.getByRole('button', { name: 'Login', exact: true });
   }
 
+  /** A field's message once it was left empty, such as "Please provide an email address.". */
+  message(text: string): Locator {
+    return this.page.getByText(text, { exact: true });
+  }
+
+  /** The message as an alert, the way a screen reader is told about it. */
+  alert(): Locator {
+    return this.page.getByRole('alert').filter({ hasText: 'Invalid email or password.' });
+  }
+
   /** The message shown when the server refuses the credentials. */
   error(): Locator {
     return this.page.getByRole('main').getByText('Invalid email or password.', { exact: true });

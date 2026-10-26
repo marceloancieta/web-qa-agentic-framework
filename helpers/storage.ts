@@ -26,6 +26,24 @@ export async function browserStorage(page: Page): Promise<BrowserStorage> {
   return { ...stores, cookies };
 }
 
+/**
+ * Put `items` into the session storage of every page the context opens on `origin`, before the
+ * page's own scripts run: a case that needs the page to start from a given session state.
+ */
+export async function seedSessionStorage(
+  page: Page,
+  origin: string,
+  items: Record<string, string>,
+): Promise<void> {
+  await page.context().addInitScript(
+    ({ target, entries }) => {
+      if (location.origin !== target) return;
+      for (const [name, value] of entries) sessionStorage.setItem(name, value);
+    },
+    { target: origin, entries: Object.entries(items) },
+  );
+}
+
 /** Every value the page keeps, joined, for a check that a text appears nowhere in storage. */
 export async function storedText(page: Page): Promise<string> {
   const { localStorage, sessionStorage, cookies } = await browserStorage(page);

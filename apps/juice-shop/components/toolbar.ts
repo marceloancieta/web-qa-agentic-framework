@@ -21,9 +21,17 @@ export class Toolbar {
    * only handle on it.
    */
   async search(term: string): Promise<void> {
+    await this.openSearch();
+    await this.searchBox().fill(term);
+    await this.searchBox().press('Enter');
+  }
+
+  async openSearch(): Promise<void> {
     await this.page.getByRole('button', { name: 'Open search' }).click();
-    const box = this.page.locator('#searchQuery input'); // no name or label to find it by (LOCAL-6)
-    await box.fill(term);
-    await box.press('Enter');
+  }
+
+  /** The search box, for the case about its name (LOCAL-6). */
+  searchBox(): Locator {
+    return this.page.locator('#searchQuery input'); // no name or label to find it by (LOCAL-6)
   }
 }

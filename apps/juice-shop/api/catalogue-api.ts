@@ -37,6 +37,18 @@ export class CatalogueApi {
       .map((q) => ({ ...(products.get(q.ProductId) as Product), stock: q.quantity }));
   }
 
+  /** A product's stock and its limit per customer (null when it has none). */
+  async quantity(productId: number): Promise<{ stock: number; limitPerUser: number | null }> {
+    const response = await this.api.get('api/Quantitys/');
+    if (!response.ok()) throw new Error(`The stock did not load: ${response.status()}.`);
+    const { data } = (await response.json()) as {
+      data: { ProductId: number; quantity: number; limitPerUser: number | null }[];
+    };
+    const row = data.find((q) => q.ProductId === productId);
+    if (!row) throw new Error(`Product ${productId} has no stock record.`);
+    return { stock: row.quantity, limitPerUser: row.limitPerUser };
+  }
+
   async product(name: string): Promise<Product> {
     const found = (await this.products()).find((p) => p.name === name);
     if (!found) throw new Error(`The catalogue has no product named "${name}".`);
