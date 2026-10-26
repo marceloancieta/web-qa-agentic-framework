@@ -2,7 +2,7 @@
 // login screen, the browser state is kept per worker, the API client shares the session, and the
 // page health guard and the accessibility check fail the test they run in.
 
-import { existsSync, mkdtempSync, readdirSync } from 'node:fs';
+import { existsSync, mkdtempSync, readdirSync, readFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { generatedPassword, uniqueSuffix, type ActorProvider } from '../../helpers/actors';
@@ -111,6 +111,28 @@ test('the API client shares the session of the page', async ({ actor }) => {
   const me = await customer.api.get('api/me');
   expect(me.status()).toBe(200);
   expect(((await me.json()) as { username: string }).username).toBe(customer.account?.username);
+});
+
+test("a fresh actor has an account of its own and leaves the worker's state alone", async ({
+  actor,
+  authDir,
+  fakeApp,
+}) => {
+  const shared = await actor('customer');
+  const file = join(authDir, 'unit', 'fake-app', `customer-${test.info().workerIndex}.json`);
+  const before = readFileSync(file, 'utf8');
+  const own = await actor('customer', { fresh: true });
+  const other = await actor('customer', { fresh: true });
+  const names = [shared, own, other].map((a) => a.account?.username);
+  expect(new Set(names).size).toBe(3);
+  expect(fakeApp.accounts.has(own.account?.username ?? '')).toBe(true);
+  const me = await own.api.get('api/me');
+  expect(((await me.json()) as { username: string }).username).toBe(own.account?.username);
+  await own.page.goto('/');
+  await expect(own.page.getByText(`Signed in as ${own.account?.username}`)).toBeVisible();
+  expect(readFileSync(file, 'utf8')).toBe(before);
+  await expect(actor('admin', { fresh: true })).rejects.toThrow(/only a provisioned role/);
+  await expect(actor('anonymous', { fresh: true })).rejects.toThrow(/has no account/);
 });
 
 test('an existing account, anonymous, and one session per role and worker', async ({

@@ -71,7 +71,8 @@ The generation rule is the reference, and the reviewer checks against it:
 
 - one test per case, titled `TC-<FEATURE>-NN <registry title> <registry Tags cell>`, the tags
   exactly as the registry writes them;
-- arrange through the role fixtures (`customer`) or `actor(role)` and `api/`, act through page
+- arrange through the role fixtures (`customer`) or `actor(role)` and `api/` (`actor(role, { fresh:
+  true })` when the case changes what its account holds), act through page
   objects, assert with web-first assertions on locators the page objects return. Only the case about
   the login form and a journey type a password;
 - a journey (`@e2e`) takes each step it claims through the UI over the pack's flows, asserts at

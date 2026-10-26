@@ -13,7 +13,7 @@ the locator order in ADR 0007; `apps/juice-shop/` is the worked example.
 | Concern | Lives in | A spec... |
 |---|---|---|
 | Locators and actions | `pages/`, and `components/` for a part of a page several pages share | asserts on the `Locator`s a page object returns; never builds one (`lint-layers` spec-builds-locator) |
-| A signed-in user | the pack's role fixtures (`customer`) or `actor(role)` | starts signed in; only the case about the login form goes through it |
+| A signed-in user | the pack's role fixtures (`customer`) or `actor(role)`; `actor(role, { fresh: true })` for an account of the case's own | starts signed in; only the case about the login form goes through it |
 | State before and after | `api/` clients bound to the actor's session | prepares data and checks what the UI claims through them; never sends HTTP itself (`lint-layers` spec-sends-request) |
 | Data | `builders/`, unique per run, with boundary and very long texts | never types an email or a password |
 | Answers the application will not give on demand (500, timeout, empty) | `mocks/`, over `helpers/network.ts` (`mockJson`, `failWith`, `delay`, `offline`, `blockThirdParties`) | calls a mock by name and carries `@mocked`; never calls `page.route` (`lint-layers` spec-routes-network) |

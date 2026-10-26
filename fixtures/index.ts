@@ -7,7 +7,9 @@
 //   authDir     worker   where browser states are kept; `.auth/` at the repository root
 //   redaction   worker   what evidence must hide: the pack's keys plus every secret the run learned
 //   actor       test     actor(role?) opens a signed-in context and page for a role, plus an API
-//                        client with the same session; `anonymous` gives a fresh context
+//                        client with the same session; `anonymous` gives a fresh context.
+//                        actor(role, { fresh: true }) signs in an account created for this test
+//                        alone, for a case that changes what the account holds
 //   page        test     Playwright's page, watched by the page health guard
 //   pageHealth  option   test.use({ pageHealth: { off: '<why>' } }) switches the guard off
 //   a11y        test     a11y.expectNoNewViolations(page) against the pack's baseline
@@ -75,7 +77,7 @@ export interface Actor {
 export interface CoreTestFixtures {
   /** Automatic: the case identity and labels of the results (helpers/case-meta.ts). */
   caseMeta: void;
-  actor: (role?: string) => Promise<Actor>;
+  actor: (role?: string, options?: ActorOptions) => Promise<Actor>;
   pageHealth: PageHealthOptions;
   a11y: {
     expectNoNewViolations(
@@ -88,10 +90,19 @@ export interface CoreTestFixtures {
   };
 }
 
+export interface ActorOptions {
+  /**
+   * Sign in an account created for this test alone instead of the worker's shared one. Only a
+   * provisioned role can: a case that adds addresses, orders or settings to its account would
+   * otherwise change what the other cases of the worker see.
+   */
+  fresh?: boolean;
+}
+
 interface Session {
   account: Account;
   signedIn: SignedIn;
-  file: string;
+  file: string | null;
   provisioned: boolean;
 }
 
@@ -100,7 +111,7 @@ export interface CoreWorkerFixtures {
   app: AppPack;
   authDir: string;
   redaction: RedactionPolicy & { knownSecrets: string[] };
-  sessions: { get(role: string): Promise<Session> };
+  sessions: { get(role: string): Promise<Session>; fresh(role: string): Promise<Session> };
 }
 
 // What a new context needs from the project to look like the device the project emulates.
@@ -174,10 +185,16 @@ export function createTest(provider: ActorProvider) {
       async ({ qa, authDir, redaction, playwright }, use, workerInfo) => {
         const api = await playwright.request.newContext({ baseURL: `${qa.baseUrl}/` });
         const open = new Map<string, Promise<Session>>();
+        const started: [string, Promise<Session>][] = [];
         const context = (role: string) => ({ api, qa, role, worker: workerInfo.workerIndex });
-        const start = async (role: string): Promise<Session> => {
+        const start = async (role: string, fresh: boolean): Promise<Session> => {
           const config = actorConfig(qa, role);
           if (!config) throw new Error('The anonymous actor has no session.');
+          if (fresh && config.account !== 'provisioned') {
+            throw new Error(
+              `Actor "${role}" uses an existing account; only a provisioned role can be fresh.`,
+            );
+          }
           let account: Account;
           if (config.account === 'existing') account = existingAccount(config, role);
           else if (provider.provision) account = await provider.provision(context(role));
@@ -188,6 +205,9 @@ export function createTest(provider: ActorProvider) {
           redaction.knownSecrets.push(account.password);
           const signedIn = await provider.signIn({ ...context(role), account });
           redaction.knownSecrets.push(...(signedIn.secrets ?? []));
+          // A fresh session is never written: the file of the role stays the worker's shared one,
+          // which tools that walk as the role read.
+          if (fresh) return { account, signedIn, file: null, provisioned: true };
           const file = storageStatePath(authDir, qa, role, workerInfo.workerIndex);
           mkdirSync(dirname(file), { recursive: true });
           // The session storage goes into the file too, so a tool that walks as this role (app:map
@@ -204,12 +224,21 @@ export function createTest(provider: ActorProvider) {
         try {
           await use({
             get(role) {
-              if (!open.has(role)) open.set(role, start(role));
+              if (!open.has(role)) {
+                const pending = start(role, false);
+                open.set(role, pending);
+                started.push([role, pending]);
+              }
               return open.get(role) as Promise<Session>;
+            },
+            fresh(role) {
+              const pending = start(role, true);
+              started.push([role, pending]);
+              return pending;
             },
           });
         } finally {
-          for (const [role, pending] of open) {
+          for (const [role, pending] of started) {
             const session = await pending.catch(() => null);
             if (session?.provisioned && provider.remove) {
               await provider.remove({
@@ -241,9 +270,14 @@ export function createTest(provider: ActorProvider) {
     actor: async ({ browser, playwright, qa, app, sessions, pageHealth }, use, testInfo) => {
       checkOptions(pageHealth);
       const opened: { actor: Actor; guard: PageHealthGuard }[] = [];
-      await use(async (role = qa.defaultActor) => {
+      await use(async (role = qa.defaultActor, { fresh = false }: ActorOptions = {}) => {
         const options = projectContextOptions(testInfo);
-        const session = role === ANONYMOUS_ACTOR ? null : await sessions.get(role);
+        if (fresh && role === ANONYMOUS_ACTOR)
+          throw new Error('The anonymous actor has no account.');
+        const session =
+          role === ANONYMOUS_ACTOR
+            ? null
+            : await (fresh ? sessions.fresh(role) : sessions.get(role));
         const context = await browser.newContext({
           ...options,
           baseURL: `${qa.baseUrl}/`,

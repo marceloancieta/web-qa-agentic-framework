@@ -21,7 +21,8 @@ that does. ADR 0005 gives the layers, ADR 0008 the configuration.
   the environment cannot run there; there is no global fallback. `qa-config.json` belongs to one
   machine; without it, `qa-config.example.json` applies.
 - **Accounts** are named by the pack's `actors`: `provisioned` accounts are created during the run
-  through the pack's API, one per worker; `existing` accounts name the variables that hold their
+  through the pack's API, one per worker, or one per test with `actor(role, { fresh: true })` for a
+  case that changes what its account holds; `existing` accounts name the variables that hold their
   user and password. Values come from the environment, never from the config file.
 - **Run one pack** with `npx playwright test --project='<pack>-*'`, one device of every pack with
   `--project='*-<device>'`.
