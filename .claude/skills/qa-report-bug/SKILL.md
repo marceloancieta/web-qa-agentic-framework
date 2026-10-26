@@ -32,7 +32,10 @@ are in [test management](../../../docs/test-management.md#trackers).
    - `S3` a wrong state, message or layout with a way around it.
    - `S4` cosmetic, with no effect on the task.
 4. **Siblings**: the same component on other routes, the other device projects, the other roles.
-   Check them; what they show decides how wide the issue is.
+   Check them; what they show decides how wide the issue is. When the confirmation or the siblings
+   need a read-only look across roles and devices, a
+   [`behaviour-investigator`](../../agents/behaviour-investigator.md) gathers it; its
+   classification is a proposal, and the triage stays here.
 5. **One issue or a comment?** Search at the width the fix would have:
    `npm run tracker -- search <words> --open`, once per distinctive term (the route, the message,
    the component), then read each candidate with `npm run tracker -- get <KEY>`. Repeat without

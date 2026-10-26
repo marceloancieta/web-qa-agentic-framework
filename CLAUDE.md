@@ -25,7 +25,7 @@ Work here as four specialists at once:
 | Hooks (`.claude/hooks/`) | W0, in place | REPO-01 |
 | Rules (`.claude/rules/`) and templates (`docs/templates/`) | W5, in place | PROC-01, PROC-03 |
 | Skills (`.claude/skills/`) | W5, in place | PROC-02, PROC-04 |
-| Agents (`spec-author`, `ui-spec-reviewer`, `behaviour-investigator`) | W7 | AGT-01 to AGT-03 |
+| Agents (`.claude/agents/`) | W7, in place | AGT-01 to AGT-03 |
 
 ## Skill or agent
 
@@ -35,6 +35,17 @@ Work here as four specialists at once:
   context, such as reviewing a spec against its registry case. The agent returns a report and writes
   only what its definition allows.
 - Never hand an agent a gate. Approvals happen in the conversation.
+
+## Agents
+
+In `.claude/agents/`. Each one declares its tools, and one that writes nothing has no tool that
+edits files (`scripts/__tests__/agent-guide.test.mjs`).
+
+| Agent | Use it to | Writes |
+|---|---|---|
+| [`spec-author`](.claude/agents/spec-author.md) | write the specs of an assigned set of approved cases, run them on the device projects and report per case | the spec files it is assigned |
+| [`ui-spec-reviewer`](.claude/agents/ui-spec-reviewer.md) | review a spec and its page objects against the registry cases: title claim, oracles, coincidence, locators, waits, layers | nothing |
+| [`behaviour-investigator`](.claude/agents/behaviour-investigator.md) | investigate one requirement against what the live pages do, read-only | throwaway probe scripts in the scratchpad |
 
 ## Skills
 

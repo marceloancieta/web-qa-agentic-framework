@@ -37,6 +37,10 @@ writes go to data they create, in an environment whose entry for the pack has `a
    web-first assertions on what the case created. A case the registry maps to an open issue arms
    `test.fail(true, await knownGap('<KEY>', why))` right before the action and carries
    `@known-gap`. A `@destructive` case goes in a spec file of its own and ends with its recovery.
+   With several spec files, split the cases by file and launch one
+   [`spec-author`](../../agents/spec-author.md) per file, in parallel, once the blocks they need
+   exist. Each writes only its file and reports per case; a **Need** it reports is built here and
+   the author resumed.
 4. **Check offline**:
    ```sh
    npm run types:check
@@ -55,9 +59,10 @@ writes go to data they create, in an environment whose entry for the pack has `a
    `npm run lanes:visual -- --phase automate --update`, then run `npm run lanes:visual` to compare.
    The lane runs in the pinned container (ADR 0009). Look at every new or changed baseline image
    before the gate.
-7. **Review each spec against its case** before the gate: the title against the body, each
-   assertion able to fail, no fixed waits, no assertion in a branch, locators in the right order,
-   the layers kept. Fix what the review finds and run again.
+7. **Review each spec against its cases** with [`ui-spec-reviewer`](../../agents/ui-spec-reviewer.md),
+   one launch per spec file with its registry and case ids. It reads with a fresh context and
+   changes nothing. Fix every `blocker` and `major` (or resume the spec's author with the report),
+   decide each `minor`, and run again. A file whose verdict is `block` does not reach the gate.
 8. **Record**: each automated row moves to `automated` with its Spec column filled.
    `npm run lint:suite` and `npm run coverage:status` must not report the feature.
 9. **Review gate.** Show the spec files, the run summary (passed, failed as armed, skipped with

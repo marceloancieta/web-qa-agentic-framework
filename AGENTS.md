@@ -61,4 +61,5 @@ A request that needs both is split, and each half stops at its own gate.
 | the rules each phase follows | [`.claude/rules/`](.claude/rules/modes.md), starting with the modes |
 | how each phase is carried out, and the facts of each pack | [`.claude/skills/`](.claude/skills/qa-intake/SKILL.md), one `SKILL.md` per phase and per pack; a defect found in either mode goes through `qa-report-bug` |
 | the intake request, feature contract, registry and pack skill formats | [`docs/templates/`](docs/templates/feature-contract.md): [intake](docs/templates/intake.md), [feature contract](docs/templates/feature-contract.md), [registry](docs/templates/registry.md), [pack skill](docs/templates/pack-skill.md) |
+| the agents that write specs, review them and investigate a requirement, each with its limits | [`.claude/agents/`](.claude/agents/spec-author.md), listed in [`CLAUDE.md`](CLAUDE.md) |
 | the Claude Code hooks | [`.claude/hooks/README.md`](.claude/hooks/README.md) |

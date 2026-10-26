@@ -45,7 +45,10 @@ with an account that is there before the session; never submit another form or c
    back here.
 5. **Take every source in turn**: the story, the intake request, the exploration notes. Each claim
    is compared with the live page before it enters the contract. A claim the page contradicts is a
-   gap; one nobody can check yet goes to the assumptions.
+   gap; one nobody can check yet goes to the assumptions. A disagreement that needs more than a
+   quick look (several roles, devices or routes) goes to a
+   [`behaviour-investigator`](../../agents/behaviour-investigator.md), one question per launch; its
+   report is evidence for the contract, not a decision.
 6. **Search the tracker for each gap** as it is written (`npm run tracker -- search <words>`, with
    the route and the text seen), and record the key or "searched, none". `qa-report-bug` decides
    whether a gap is filed.

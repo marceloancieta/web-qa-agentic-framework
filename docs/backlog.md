@@ -26,11 +26,9 @@ regression in a container, network mocking and state injection, proven on Juice 
 
 | Id | Stage | Item | Origin | Status |
 |---|---|---|---|---|
-| JS-05 | W6 | Juice Shop phases 0 and 1: app map, contract docs and registries for sign-up and login, basket and search. | plan | in-progress |
-| GATE-09 | W6 | Decision tables: `scripts/lib/decision-table.mjs` reads `apps/<pack>/rules/<case>.yaml` and expands its rules for the spec; `lint-suite` reports a malformed table, a combination no rule covers, two rules that give one combination different actions, and a `decision-table` case without its table. | practice | in-progress |
-| AGT-01 | W7 | `spec-author`: writes, runs and reports the specs of an assigned set of approved cases. | plan | todo |
-| AGT-02 | W7 | `ui-spec-reviewer` with evaluation fixtures: brittle locators, waits, assertions that cannot fail or pass by coincidence, layers, title against body. | plan | todo |
-| AGT-03 | W7 | `behaviour-investigator`: one requirement against the observed UI, read-only. | plan | todo |
+| AGT-01 | W7 | `spec-author`: writes, runs and reports the specs of an assigned set of approved cases. | plan | in-progress |
+| AGT-02 | W7 | `ui-spec-reviewer` with evaluation fixtures: brittle locators, waits, assertions that cannot fail or pass by coincidence, layers, title against body. | plan | in-progress |
+| AGT-03 | W7 | `behaviour-investigator`: one requirement against the observed UI, read-only. | plan | in-progress |
 | JS-06 | W8 | Juice Shop phases 2 to 4 for a representative sample. | plan | todo |
 | GATE-08 | W8 | Lanes: visual, a11y sweep over the app map, mocked, known-gap, destructive, flake. | plan | todo |
 | CI-01 | W8 | Project matrix with `--shard` and the `blob` reporter, `merge-reports`, quality gate, report to test management. | plan | todo |
@@ -113,3 +111,5 @@ regression in a container, network mocking and state injection, proven on Juice 
 | PROC-04 | `juice-shop-ui` pack skill; `scaffold:app` writes a new pack's skill from the template. | `4530c9b` |
 | CORE-15 | `QA_SLOWMO`: milliseconds the browser waits before each action, to watch a headed run; the test timeout grows with it. | `41321bd` |
 | CORE-16 | App map with sessions and pack cookies: app.json `cookies` every context starts with (test contexts and the walk), `app:map --actor <role>` walking with the newest state an actor fixture wrote (session storage included) into `docs/app-map.<role>.json`, routes per role under `app_map.actors`, the signed-in email replaced by `<EMAIL>`. | `80d284c` |
+| JS-05 | Juice Shop phases 0 and 1: app map, contract docs and registries for sign-up and login, basket and search. | `9302196` |
+| GATE-09 | Decision tables: `scripts/lib/decision-table.mjs` reads `apps/<pack>/rules/<case>.yaml` and expands its rules for the spec; `lint-suite` reports a malformed table, a combination no rule covers, two rules that give one combination different actions, and a `decision-table` case without its table. | `9302196` |

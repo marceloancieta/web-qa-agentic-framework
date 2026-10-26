@@ -48,6 +48,8 @@ A disagreement between two files about a fact this table does not list means the
    - a doc under `docs/` or a pack's `docs/`: link it from a file that already has readers;
    - a rule: it loads by itself from `.claude/rules/`, and `CLAUDE.md` names the rules;
    - a skill: list it in `CLAUDE.md`;
+   - an agent: list it in the agents table of `CLAUDE.md`, and name it in the skill that launches
+     it (`scripts/__tests__/agent-guide.test.mjs` checks both);
    - a script: add it to `package.json`, and to `gates` if it is a check.
 4. **Change a policy together with everything that applies it.** Walk the table below in the same
    commit.
@@ -65,11 +67,11 @@ A disagreement between two files about a fact this table does not list means the
 | `.claude/rules/modes.md` | every `.claude/skills/qa-*/SKILL.md`, `AGENTS.md` (the process) |
 | `.claude/rules/registry.md`, `scripts/lib/registry.mjs` or `scripts/lib/contract.mjs` | `docs/templates/registry.md`, `docs/templates/feature-contract.md`, `qa-design`, `qa-automate`, `qa-publish`, `lint-suite`, `traceability`, every pack registry |
 | `scripts/lib/decision-table.mjs` | `qa-design`, `.claude/rules/generation.md`, `lint-suite`, every `apps/<pack>/rules/*.yaml` |
-| `.claude/rules/tagging.md` or `scripts/lib/tags.mjs` | each other, `qa-automate`, `qa-run`, `playwright.config.ts` |
-| `.claude/rules/generation.md` | `qa-automate`, `scripts/scaffold-app.mjs`, `apps/juice-shop/` as the worked example |
+| `.claude/rules/tagging.md` or `scripts/lib/tags.mjs` | each other, `qa-automate`, `qa-run`, `playwright.config.ts`, `spec-author`, `ui-spec-reviewer` |
+| `.claude/rules/generation.md` | `qa-automate`, `spec-author`, `ui-spec-reviewer`, `scripts/scaffold-app.mjs`, `apps/juice-shop/` as the worked example |
 | `.claude/rules/reporting.md` | `helpers/case-meta.ts`, the adapters, `docs/test-management.md`, `qa-publish`, `qa-run` |
 | a phase skill | `CLAUDE.md`, `AGENTS.md` (the process table), the skills before and after it |
-| a template in `docs/templates/` | the skill that writes from it, and `scaffold-app` for the pack skill |
+| an agent in `.claude/agents/` | `CLAUDE.md` (the agents table), the skills that launch it, its evaluation fixtures if it has them || a template in `docs/templates/` | the skill that writes from it, and `scaffold-app` for the pack skill |
 | `.githooks/`, or when the gates run | `AGENTS.md`, `CLAUDE.md` |
 | a variable in `.env.example` or a qa-config key | `schemas/qa-config.schema.json`, `helpers/config.ts`, the docs that name it |
 
