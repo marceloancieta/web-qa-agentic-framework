@@ -5,6 +5,8 @@ import { delay, failWith, mockJson } from '../../../helpers/network';
 
 /** The product search, which the page asks for the whole catalogue. */
 export const PRODUCT_SEARCH = /\/rest\/products\/search(?:\?|$)/;
+/** The stock the search page asks for beside the catalogue; it aborts when the catalogue fails. */
+export const STOCK = /\/api\/Quantitys\/?(?:\?|$)/;
 const isProductSearch = (url: URL) => PRODUCT_SEARCH.test(url.pathname + url.search);
 const BASKET = (url: URL) => /^\/rest\/basket\/\d+$/.test(url.pathname);
 

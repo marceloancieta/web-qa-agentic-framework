@@ -68,6 +68,16 @@ export class BasketPage {
     return this.page.getByText(/^Total Price: /);
   }
 
+  /** The total when it reads exactly `text`, for a watch on a state that must never show. */
+  totalReading(text: string): Locator {
+    return this.page.getByText(text, { exact: true });
+  }
+
+  /** The bonus line when it reads exactly `text`, for a watch on a state that must never show. */
+  bonusReading(text: string): Locator {
+    return this.page.getByText(text, { exact: true });
+  }
+
   checkout(): Locator {
     return this.page.getByRole('button', { name: 'Checkout' });
   }

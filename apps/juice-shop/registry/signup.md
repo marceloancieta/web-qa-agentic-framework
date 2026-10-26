@@ -27,25 +27,25 @@ are settled by the first run of TC-SIGNUP-07 and TC-SIGNUP-08 in automate.
 
 | ID | Title | Requirement | Technique | Priority | Tags | Devices | Status | Spec | Defect |
 |---|---|---|---|---|---|---|---|---|---|
-| TC-SIGNUP-01 | Register is enabled only when every field is valid, walking every combination of rules/TC-SIGNUP-01.yaml | REQ-SIGNUP-01 | decision-table | high | @regression @navigation | all | approved | | |
+| TC-SIGNUP-01 | Register is enabled only when every field is valid, walking every combination of rules/TC-SIGNUP-01.yaml | REQ-SIGNUP-01 | decision-table | high | @regression @navigation | all | automated | specs/signup/signup.spec.ts | |
 | TC-SIGNUP-02 | an email left empty says "Please provide an email address." and a malformed one "Email address is not valid." | REQ-SIGNUP-02 | equivalence-partition | medium | @regression | all | approved | | |
-| TC-SIGNUP-03 | a password of 4 characters shows "Password must be 5-40 characters long."; 5 and 40 characters are accepted | REQ-SIGNUP-03 | boundary-value | high | @regression @content | all | approved | | |
+| TC-SIGNUP-03 | a password of 4 characters shows "Password must be 5-40 characters long."; 5 and 40 characters are accepted | REQ-SIGNUP-03 | boundary-value | high | @regression @content | all | automated | specs/signup/signup.spec.ts | |
 | TC-SIGNUP-04 | a 41st character typed into the password is not taken: the field keeps 40 | REQ-SIGNUP-03 | boundary-value | medium | @regression @content | all | approved | | |
 | TC-SIGNUP-05 | a repeated password that differs says "Passwords do not match"; once equal, the message goes | REQ-SIGNUP-04 | equivalence-partition | medium | @regression | all | approved | | |
 | TC-SIGNUP-06 | the question list offers the questions of the application; leaving it or the answer empty shows their messages | REQ-SIGNUP-05 | equivalence-partition | medium | @regression | all | approved | | |
-| TC-SIGNUP-07 | a visitor registers <EMAIL> through the form, and the new account signs in with that email and password | REQ-SIGNUP-06 | use-case | high | @smoke | all | approved | | |
-| TC-SIGNUP-08 | registering <EMAIL> a second time is refused with a message, and the second password does not sign in | REQ-SIGNUP-07 | error-guessing | high | @regression | all | approved | | |
+| TC-SIGNUP-07 | a visitor registers <EMAIL> through the form, and the new account signs in with that email and password | REQ-SIGNUP-06 | use-case | high | @smoke | all | automated | specs/signup/signup.spec.ts | |
+| TC-SIGNUP-08 | registering <EMAIL> a second time is refused with a message, and the second password does not sign in | REQ-SIGNUP-07 | error-guessing | high | @regression | all | automated | specs/signup/signup.spec.ts | |
 | TC-SIGNUP-09 | both password fields are masked while typed | REQ-SIGNUP-08 | equivalence-partition | medium | @regression @security | all | approved | | |
-| TC-SIGNUP-10 | nothing typed into the form appears in the URL or in browser storage, before or after registering | REQ-SIGNUP-08 | error-guessing | medium | @regression @security | all | approved | | |
+| TC-SIGNUP-10 | nothing typed into the form appears in the URL or in browser storage, before or after registering | REQ-SIGNUP-08 | error-guessing | medium | @regression @security | all | automated | specs/signup/signup.spec.ts | |
 | TC-SIGNUP-11 | an email that carries markup is refused or shown back as text, and the page creates no element from it | REQ-SIGNUP-02 | error-guessing | medium | @regression @security | all | approved | | |
 | TC-SIGNUP-12 | the form is filled with the keyboard alone, the security question included, the focus visible in reading order | REQ-SIGNUP-09 | use-case | medium | @regression @a11y | all | approved | | |
 | TC-SIGNUP-13 | each field message is tied to its field, and the page has no axe violation beyond the baseline with the messages shown | REQ-SIGNUP-09 | use-case | medium | @regression @a11y | all | approved | | |
 | TC-SIGNUP-14 | "Already a customer?" opens /#/login | REQ-SIGNUP-10 | use-case | low | @regression @navigation | all | approved | | |
 | TC-SIGNUP-15 | the registration page has no horizontal scroll, empty and with every message shown | REQ-SIGNUP-11 | boundary-value | low | @regression @responsive | all | approved | | |
 | TC-SIGNUP-16 | <LONG_TEXT> as the email and as the answer stays inside its field | REQ-SIGNUP-11 | boundary-value | low | @regression @content | all | approved | | |
-| TC-SIGNUP-17 | when the security questions fail to load, the list is empty and Register stays disabled | REQ-SIGNUP-05 | error-guessing | low | @regression @mocked | all | approved | | |
+| TC-SIGNUP-17 | when the security questions fail to load, the list is empty and Register stays disabled | REQ-SIGNUP-05 | error-guessing | low | @regression @mocked | all | automated | specs/signup/signup.spec.ts | |
 | TC-SIGNUP-18 | the empty registration form looks as designed | | use-case | low | @regression @visual @layout | all | approved | | |
-| TC-SIGNUP-19 | the counter under the password field shows the field's limit, /40 | REQ-SIGNUP-03 | boundary-value | low | @regression @content @known-gap | all | approved | | LOCAL-4 |
+| TC-SIGNUP-19 | the counter under the password field shows the field's limit, /40 | REQ-SIGNUP-03 | boundary-value | low | @regression @content @known-gap | all | automated | specs/signup/signup.spec.ts | LOCAL-4 |
 
 ## Notes
 

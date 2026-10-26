@@ -27,7 +27,6 @@ regression in a container, network mocking and state injection, proven on Juice 
 | Id | Stage | Item | Origin | Status |
 |---|---|---|---|---|
 | JS-06 | W8 | Juice Shop phases 2 to 4 for a representative sample. | plan | in-progress |
-| CORE-18 | W8 | Secrets typed into forms reach Playwright's own artifacts: the failure context (`error-context.md`) prints the value of a `type=password` field, and traces record the typed text. Redact them as the evidence is: the run's known secrets, accounts a spec builds included. | exp | in-progress |
 | JS-07 | W8 | Juice Shop checkout: intake (address, delivery, payment, summary, completion, history), design, and the purchase journey from the login form to the order in the history. | plan | in-progress |
 | PROC-05 | W8 | End-to-end journeys as a capability of their own: a journey registry per pack whose rules chain the rules of several features, the `@e2e` tag the lanes and CI select, and the generation rules for a journey (every step through the UI, flows, the end checked through `api/`, few journeys). | plan | in-progress |
 | GATE-08 | W8 | Lanes: visual, a11y sweep over the app map, mocked, known-gap, destructive, flake. | plan | todo |
@@ -117,3 +116,4 @@ regression in a container, network mocking and state injection, proven on Juice 
 | AGT-02 | `ui-spec-reviewer` with evaluation fixtures: brittle locators, waits, assertions that cannot fail or pass by coincidence, layers, title against body. | `8cd45ad` |
 | AGT-03 | `behaviour-investigator`: one requirement against the observed UI, read-only. | `f6b9e06` |
 | CORE-17 | `actor(role, { fresh: true })`: an account created for one test, for a case that changes what its account holds, never written over the worker's shared state; `helpers/storage.ts` reads what a page keeps in the browser; `helpers/watch.ts` catches what shows and closes by itself. | `31fbfed` |
+| CORE-18 | The run's secrets removed from Playwright's own artifacts (the failure context, traces, the HTML report and the Allure results): workers remember what they learn, and the last reporter redacts every artifact, archives included; each run keeps and forgets its own secrets. | `3775015`, `7af7642` |

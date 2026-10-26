@@ -64,8 +64,8 @@ term. The page sizes are the paginator's options.
 | all products | REQ-SEARCH-01 | `/#/search` or `/#/` |
 | results | REQ-SEARCH-02 | `/#/search?q=<term>` |
 | no results | REQ-SEARCH-03 | a term no product has |
-| loading | REQ-SEARCH-09, unobserved | `delay` on `/rest/products/search`, which holds the real answer (no `@mocked`) |
-| error | unobserved | `failWith` on `/rest/products/search` (`@mocked`) |
+| loading | "All Products", an empty grid and "0 of 0", never "Searching for products" (TC-SEARCH-14, 2026-10-26; LOCAL-18, against REQ-SEARCH-09) | `delay` on `/rest/products/search`, which holds the real answer (no `@mocked`) |
+| error | "All Products", no cards and no "No results found": the same picture as loading, with no message (TC-SEARCH-15, 2026-10-26) | `failWith` on `/rest/products/search` (`@mocked`) |
 | empty catalogue | unobserved | `mockJson` with no products (`@mocked`) |
 
 ## Navigation
@@ -114,6 +114,7 @@ first call produces the loading state with the real answer; a mock of it, the er
 | G1 | Markup in the term becomes markup in the page: the title of `<b>bold</b>` holds a `<b>` element. Juice Shop is insecure on purpose and this is one of its training vulnerabilities (injection through the search). | live look, 2026-10-25 | LOCAL-2 (S2) |
 | G2 | "All Products" and "Search Results - <term>" are plain text, not headings, so the page has no heading a screen reader can jump to. | live look, 2026-10-25 | LOCAL-5 (S2) |
 | G3 | The toolbar's search box has no accessible name; it is found through "Open search". | app map and live look, 2026-10-25 | LOCAL-6 (S2) |
+| G4 | While the catalogue loads the page never says "Searching for products": it shows "All Products", an empty grid and "0 of 0", like an empty shop. | TC-SEARCH-14 runs, 2026-10-26 | LOCAL-18 (S3) |
 
 ## Out of scope
 
@@ -125,7 +126,8 @@ first call produces the loading state with the real answer; a mock of it, the er
 ## Assumptions to confirm
 
 - A1: a term sent from the toolbar's box opens `/#/search?q=<term>` (REQ-SEARCH-07). Design does
-  not type into the box; the first spec run confirms it.
+  not type into the box. Held in TC-SEARCH-10 (2026-10-26, both projects): a term sent from the open box
+  opens `/#/search?q=<term>` with exactly its products.
 
 Settled at the intake gate (2026-10-25): G1 is filed as LOCAL-2, so the case of REQ-SEARCH-04 runs
 as a known gap with that key.

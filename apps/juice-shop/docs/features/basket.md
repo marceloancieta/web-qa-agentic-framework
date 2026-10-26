@@ -72,8 +72,8 @@ the limit, the limit, one more.
 | empty | REQ-BASKET-02 | a customer created for the run |
 | with products | a row per product and the total ("Total Price: 1.99¤" for one Apple Juice) | add through the UI, or through `api/` (`POST /api/BasketItems/`) |
 | at a product's limit | unobserved | add up to `/api/Quantitys/`'s limit |
-| loading | unobserved: the table is empty until `/rest/basket/<bid>` answers | `delay` on that call, which holds the real answer (no `@mocked`), to see whether the empty state flashes first |
-| error | unobserved | `failWith` on `/rest/basket/<bid>` (`@mocked`) |
+| loading | the empty state of REQ-BASKET-02 ("Total Price: 0¤", 0 bonus points) until `/rest/basket/<bid>` answers, with no loading indicator (TC-BASKET-17, 2026-10-26; LOCAL-13) | `delay` on that call, which holds the real answer (no `@mocked`), to see whether the empty state flashes first |
+| error | an ordinary empty basket, with no message (TC-BASKET-18, 2026-10-26; LOCAL-17) | `failWith` on `/rest/basket/<bid>` (`@mocked`) |
 | anonymous | today "Your Basket (anonymous)", empty, no redirect (LOCAL-3); expected: the login | no session |
 | another customer's basket | today that customer's products (LOCAL-1); expected: refused | a second account created by the case, with the first basket's id |
 
@@ -122,6 +122,8 @@ automate).
 |---|---|---|---|
 | G1 | `/#/basket` opens without a session and shows an anonymous basket instead of sending the visitor to the login. The owner decided it should not open (2026-10-25). | live look, 2026-10-25 | LOCAL-3 (S3) |
 | G2 | A customer reads another customer's basket by its id, through the API and on the page. Juice Shop is insecure on purpose and this is one of its training vulnerabilities. | throwaway spec, 2026-10-25 | LOCAL-1 (S1) |
+| G3 | A failed basket answer is shown as an ordinary empty basket, with no message; the loading state shows the empty state too (LOCAL-13). | TC-BASKET-17 and -18 runs, 2026-10-26 | LOCAL-17 (S3) |
+| G4 | The decrease, increase and remove buttons of a basket row have no accessible name; page objects find them by their place in the row. | W8b2 locator capture, 2026-10-26 | not filed: the owner chose to note it here (2026-10-26) |
 
 ## Out of scope
 
@@ -131,6 +133,8 @@ automate).
 ## Assumptions to confirm
 
 - A1: changing a quantity and removing a product go through `/api/BasketItems/` like adding does.
+  Half held (TC-BASKET-06, 2026-10-26): an increase reads the item (`GET /api/BasketItems/<id>`),
+  saves it (`PUT`) and reloads the basket; the call a removal makes is still unrecorded.
   The first spec run records the calls here.
 
 Settled at the intake gate (2026-10-25): REQ-BASKET-09 was tried with two accounts and fails

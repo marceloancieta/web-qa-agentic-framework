@@ -1,5 +1,5 @@
 {
-  "next": 17,
+  "next": 20,
   "issues": {
     "LOCAL-1": {
       "title": "Basket: a customer can read another customer's basket by its id",
@@ -145,7 +145,8 @@
       "status": "open",
       "category": "open",
       "comments": [
-        "**A second form of the same gap** (TC-CHECKOUT-22 runs, 2026-10-26, desktop Chromium and Pixel 5 emulation).\n\nWith a paid delivery method, the summary's Total Price while the basket's answer is held is the delivery price alone, not 0.00¤: with Fast Delivery it read 0.50¤ for a basket worth more. So the page shows a wrong, non-zero total for a moment, which a customer is even less likely to recognise as a loading state than 0.00¤. TC-CHECKOUT-22 uses Standard Delivery (0.00¤), so its check of a 0.00¤ total does not cover this form; the fix this issue asks for, no amount until the data has arrived, covers both.\n"
+        "**A second form of the same gap** (TC-CHECKOUT-22 runs, 2026-10-26, desktop Chromium and Pixel 5 emulation).\n\nWith a paid delivery method, the summary's Total Price while the basket's answer is held is the delivery price alone, not 0.00¤: with Fast Delivery it read 0.50¤ for a basket worth more. So the page shows a wrong, non-zero total for a moment, which a customer is even less likely to recognise as a loading state than 0.00¤. TC-CHECKOUT-22 uses Standard Delivery (0.00¤), so its check of a 0.00¤ total does not cover this form; the fix this issue asks for, no amount until the data has arrived, covers both.\n",
+        "**The basket page has the same gap** (TC-BASKET-17 runs, 2026-10-26, desktop Chromium and Pixel 5 emulation, every run).\n\nWhile `GET /rest/basket/<bid>` is held (the real answer delayed, not mocked), `<base_url>/#/basket` shows the empty state of REQ-BASKET-02 as if it were the basket's content: \"Total Price: 0¤\" and \"You will gain 0 Bonus Points from this order!\", with no loading indicator, until the answer arrives and the products appear. The fix this issue asks for, no amount until the data has arrived, covers the basket page too; TC-BASKET-17 runs as a known gap with this key.\n"
       ]
     },
     "LOCAL-14": {
@@ -176,6 +177,39 @@
       "labels": [
         "ui",
         "severity:S2"
+      ],
+      "status": "open",
+      "category": "open",
+      "comments": []
+    },
+    "LOCAL-17": {
+      "title": "Basket: a failed basket answer is shown as an empty basket",
+      "body": "**What happens:** when the basket's answer fails, `<base_url>/#/basket` shows an ordinary empty basket: the customer's title, a table with only its header row, \"Total Price: 0¤\", \"You will gain 0 Bonus Points from this order!\" and a disabled Checkout. No message says the basket could not be loaded, so a customer whose basket holds products is told it is empty.\n\n**What should happen:** a basket that could not be loaded is not shown as an empty one; the page says it failed (contract rule REQ-BASKET-02 describes the empty state; the registry note of TC-BASKET-18 names an ordinary empty basket on an error as a defect; `apps/juice-shop/docs/features/basket.md`).\n\n**Steps** (the error produced by a mock: `basketFails` in `apps/juice-shop/mocks/shop-mocks.ts` answers `500` to `GET /rest/basket/<bid>`):\n1. Sign in at `<base_url>` with an account whose basket holds a product.\n2. Open `<base_url>/#/basket` while the basket's answer fails.\n\n**Seen:** in every run of TC-BASKET-18, desktop Chromium and Pixel 5 emulation, 2026-10-26, Juice Shop 20.3.0 (local container). A real server error was not observed.\n",
+      "labels": [
+        "ui",
+        "severity:S3"
+      ],
+      "status": "open",
+      "category": "open",
+      "comments": []
+    },
+    "LOCAL-18": {
+      "title": "Search: the page never says Searching for products while the catalogue loads",
+      "body": "**What happens:** while the product search's answer is pending, `<base_url>/#/search` never says \"Searching for products\". It shows \"All Products\", an empty grid and the paginator at \"0 of 0\" with Previous and Next disabled, so a slow catalogue looks like an empty shop.\n\n**What should happen:** while the products load, the page says \"Searching for products\" (contract rule REQ-SEARCH-09, `apps/juice-shop/docs/features/search.md`; the application's own text `SEARCH_PROCESSING`).\n\n**Steps:** hold the answer to `GET <base_url>/rest/products/search?q=` for a few seconds (TC-SEARCH-14 does it with `slowSearch`, which delays the real answer and lets it through), and open `<base_url>/#/search`.\n\n**Seen:** in the runs of TC-SEARCH-14, desktop Chromium and Pixel 5 emulation, 2026-10-26, Juice Shop 20.3.0 (local container); the trace times show the check ran while the answer was held.\n",
+      "labels": [
+        "ui",
+        "severity:S3"
+      ],
+      "status": "open",
+      "category": "open",
+      "comments": []
+    },
+    "LOCAL-19": {
+      "title": "Login: a server error shows the alert [object Object] (unconfirmed)",
+      "body": "**What happens:** when the login answers a server error, `<base_url>/#/login` shows an alert whose whole text is \"[object Object]\". The visitor stays on the form without a session, but the message says nothing a person can act on.\n\n**What should happen:** a server error on the login keeps the visitor on `/#/login` with a message (TC-LOGIN-15 and the contract's states, `apps/juice-shop/docs/features/login.md`; REQ-LOGIN-02 for the refusal's alert). Which words the message should use is for the contract owner.\n\n**Steps** (the error produced by a mock: `loginFails` in `apps/juice-shop/mocks/account-mocks.ts` answers `500` with the JSON body `{ \"error\": \"status 500\" }`):\n1. Open `<base_url>/#/login`, fill an email and a password, press Log in.\n2. The alert reads \"[object Object]\".\n\n**Seen:** in the runs of TC-LOGIN-15, desktop Chromium and Pixel 5 emulation, 2026-10-26, Juice Shop 20.3.0 (local container). The body comes from the mock; a real server error's body was not observed, so it may render differently.\n\n**Severity proposal:** S3 (a wrong message with a way around: trying again).\n",
+      "labels": [
+        "ui",
+        "type:unconfirmed-finding"
       ],
       "status": "open",
       "category": "open",

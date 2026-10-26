@@ -26,6 +26,18 @@ export class LoginPage {
     return this.page.getByText(text, { exact: true });
   }
 
+  /**
+   * The form field around each input, where Angular Material draws the focus indicator. The
+   * wrapper has no role or name of its own, so it is the form field that holds the input.
+   */
+  emailField(): Locator {
+    return this.page.locator('mat-form-field').filter({ has: this.email() }); // no role or name
+  }
+
+  passwordField(): Locator {
+    return this.page.locator('mat-form-field').filter({ has: this.password() }); // no role or name
+  }
+
   showPassword(): Locator {
     return this.page.getByRole('button', { name: 'Show password' });
   }

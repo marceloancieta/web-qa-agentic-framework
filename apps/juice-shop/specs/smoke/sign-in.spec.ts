@@ -1,48 +1,10 @@
-// Smoke: the two ways into a Juice Shop session work on every device project. Only the case
-// about the login form goes through the UI, with an account created during the run; every other
-// case starts signed in through the API.
+// Smoke of the harness: a customer starts signed in through the API on every device project, and
+// the API client shares the page's session. These check the pack's actors, not a feature, so they
+// carry no case id; the login form's own cases are TC-LOGIN-01 and -03 in specs/login/.
 
 import { AccountApi } from '../../api/account-api';
-import { aCustomer } from '../../builders/account-builder';
 import { AccountMenu } from '../../components/account-menu';
-import { LoginPage } from '../../pages/login-page';
 import { expect, test } from '../../fixtures';
-
-test('the login form signs in an account created for the run @smoke', async ({
-  page,
-  actor,
-  app,
-}) => {
-  const guest = await actor('anonymous');
-  const account = aCustomer('ui-login', test.info().workerIndex);
-  await new AccountApi(guest.api).register(account);
-
-  const login = new LoginPage(page);
-  await login.open();
-  await login.signIn(account.username, account.password);
-  // The shop moves to its product search once the login has finished; opening the menu before
-  // that would show the anonymous menu, which the navigation then closes.
-  await expect(page).toHaveURL(/#\/search$/);
-
-  const menu = AccountMenu.for(page, app);
-  await menu.open();
-  await expect(menu.account(account.username)).toBeVisible();
-});
-
-test('a wrong password gets a message that does not say which part was wrong @smoke @security', async ({
-  page,
-  actor,
-}) => {
-  const guest = await actor('anonymous');
-  const account = aCustomer('wrong-password', test.info().workerIndex);
-  await new AccountApi(guest.api).register(account);
-
-  const login = new LoginPage(page);
-  await login.open();
-  await login.signIn(account.username, `${account.password}-wrong`);
-  await expect(login.error()).toBeVisible();
-  await expect(page).toHaveURL(/#\/login$/);
-});
 
 test('a customer starts signed in, without the login screen @smoke', async ({ customer, app }) => {
   const visited: string[] = [];

@@ -46,7 +46,8 @@ banners and fix the language. Accounts are not removed; the [application notes](
 | `components/` | `AccountMenu`: one API for the toolbar menu (from 960 px wide, `breakpoints.toolbar`) and the side navigation below it; `Toolbar`: the search box and the basket button |
 | `flows/` | `shopping.ts`: sign in and register through the forms, search and add, and each checkout step, shared by the journeys and the feature specs |
 | `mocks/` | `checkout-mocks.ts`: a failed address save, a slow basket or order answer |
-| `specs/smoke/` | the sign-in smoke on every device project |
+| `specs/smoke/` | the harness smoke: a customer starts signed in through the API, and the API client shares its session, on every device project |
+| `specs/login/`, `specs/signup/`, `specs/basket/`, `specs/search/` | each feature's automated cases |
 | `specs/journeys/`, `specs/checkout/` | the journeys (`@e2e`) and the checkout cases |
 | `specs/visual/`, `visual/` | the visual cases and their baselines, one per device project, rendered in the pinned image: `npm run lanes:visual` compares, `npm run lanes:visual -- --phase automate --update` rewrites them (ADR 0009) |
 | `docs/app-map.json` | the app map: `npm run app:map -- --pack juice-shop --write` walks the routes of `app.json` `app_map` read-only; `npm run app:map:check -- --pack juice-shop` reports drift |

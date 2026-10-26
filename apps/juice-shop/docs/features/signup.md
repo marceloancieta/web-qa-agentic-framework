@@ -79,9 +79,9 @@ character, very long.
 |---|---|---|
 | initial | empty fields, Register disabled, the alert empty | open `/#/register` |
 | invalid | the field messages, Register disabled | type invalid values (a spec run) |
-| registered | unobserved: the page the application moves to and its message | a spec that registers a builder account |
-| refused | unobserved: the alert with the server's message | an email already registered (A1), or `failWith` (`@mocked`) |
-| questions not loaded | unobserved | `failWith` or `mockJson` empty on `/api/SecurityQuestions/` (`@mocked`) |
+| registered | `/#/login` with "Registration completed successfully…" (TC-SIGNUP-07, 2026-10-26) | a spec that registers a builder account |
+| refused | stays on `/#/register`; the form's alert holds the server's "email must be unique" (TC-SIGNUP-08, 2026-10-26) | an email already registered (A1), or `failWith` (`@mocked`) |
+| questions not loaded | the list opens with no option and Register stays disabled (TC-SIGNUP-17, 2026-10-26) | `failWith` or `mockJson` empty on `/api/SecurityQuestions/` (`@mocked`) |
 
 ## Navigation
 
@@ -135,8 +135,9 @@ unobserved (A3).
 ## Assumptions to confirm
 
 - A1: an email already registered is refused with a message in the alert (REQ-SIGNUP-07).
-  Confirmed or corrected by the first spec run in automate.
-- A2: a successful registration moves to `/#/login` with a confirmation message. Unobserved; the
-  first spec run records what it does here.
-- A3: the form sends the same `POST /api/Users` as the API client. The first spec run records the
-  requests here.
+  Held (TC-SIGNUP-08, 2026-10-26): the form's alert says "email must be unique", the page stays on
+  `/#/register` and the second password does not sign in.
+- A2: a successful registration moves to `/#/login` with a confirmation message. Held (TC-SIGNUP-07,
+  2026-10-26): "Registration completed successfully…".
+- A3: the form sends the same `POST /api/Users` as the API client. Held (TC-SIGNUP-07, 2026-10-26):
+  `POST /api/Users/` (201), then `POST /api/SecurityAnswers/` (201), then the move to the login.

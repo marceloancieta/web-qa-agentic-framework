@@ -78,7 +78,7 @@ whether the email has no account or the password is wrong, and the page shows th
 | refused | the alert, the URL unchanged | an unknown email or a wrong password |
 | signed in | `/#/search`, the account menu with the email | an account created for the run |
 | waiting for the answer | unobserved: the request answers in a few ms locally | `delay` on `/rest/user/login`, which holds the real answer (no `@mocked`) |
-| server error | unobserved | `failWith` on `/rest/user/login` (`@mocked`) |
+| server error | stays on `/#/login` with no session; the alert reads "[object Object]" with the mock's JSON body (TC-LOGIN-15, 2026-10-26; LOCAL-19, unconfirmed with a real server error) | `failWith` on `/rest/user/login` (`@mocked`) |
 
 ## Navigation
 

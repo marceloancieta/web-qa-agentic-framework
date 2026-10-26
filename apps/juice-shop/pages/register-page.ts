@@ -53,6 +53,15 @@ export class RegisterPage {
     return this.page.getByRole('button', { name: 'Button to complete the registration' });
   }
 
+  /**
+   * A field's error, as opposed to its hint: the password's hint and its error share the text
+   * "Password must be 5-40 characters long.", and only the error replaces the hint when the value
+   * is refused. The error element has no role, so it is found by its tag.
+   */
+  fieldError(text: string): Locator {
+    return this.page.locator('mat-error').filter({ hasText: text }); // no role tells it from the hint
+  }
+
   /** The form's alert, where a refused registration says why ("email must be unique"). */
   alert(): Locator {
     return this.page.getByRole('main').getByRole('alert');
