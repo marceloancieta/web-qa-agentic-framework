@@ -47,6 +47,10 @@ edits files (`scripts/__tests__/agent-guide.test.mjs`).
 | [`ui-spec-reviewer`](.claude/agents/ui-spec-reviewer.md) | review a spec and its page objects against the registry cases: title claim, oracles, coincidence, locators, waits, layers | nothing |
 | [`behaviour-investigator`](.claude/agents/behaviour-investigator.md) | investigate one requirement against what the live pages do, read-only | throwaway probe scripts in the scratchpad |
 
+A change to `ui-spec-reviewer` is measured against its evaluation fixtures,
+[`scripts/__fixtures__/agents/ui-spec-reviewer/`](scripts/__fixtures__/agents/ui-spec-reviewer/README.md):
+seeded defects, look-alikes and the expected report.
+
 ## Skills
 
 In `.claude/skills/`. One per phase, each ending at its review gate, plus one per pack.

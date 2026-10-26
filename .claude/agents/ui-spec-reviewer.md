@@ -80,15 +80,18 @@ contract rule. Every finding uses one of these ids:
   case is about, the state through `api/` when the UI claims a change (a toast does not prove a
   write), the session gone after a refusal, the accessible name or the role when the case is about
   them.
-- `vacuous-assertion`: an assertion that cannot fail: a `Locator` checked for truthiness or
-  definedness (a locator object always exists), a count compared with `>= 0`, a value compared with
-  itself or with what the spec typed, `not.toBeVisible()` or `toHaveCount(0)` on a locator that
+- `vacuous-assertion`: a check that passes whatever the page shows: a `Locator` checked for
+  truthiness or definedness (a locator object always exists), a count compared with `>= 0`, a value
+  compared with itself or with what the spec typed, `not.toBeVisible()` or `toHaveCount(0)` on a locator that
   matches nothing on any page (a misspelled name passes), `toBeAttached` when the claim is that the
   user sees it, an axe scan run before the state under test is on the page.
-- `coincidental-pass`: the assertion holds because of the starting state, not the behaviour: an
-  "after" state equal to the initial one (a total of 0 after removing from a basket nothing was
-  added to), a product that is first in the list anyway, a count from an account other cases share,
-  a check that passes on the page before the action took effect.
+- `coincidental-pass`: the assertion holds because of the starting state or the data chosen, not
+  the behaviour: an "after" state equal to the initial one (a total of 0 after removing from a
+  basket nothing was added to), data for which the right and a wrong behaviour give the same answer
+  (one product of quantity 1, whose total equals its price whether or not the quantity counts), a
+  product that is first in the list anyway, a count from an account other cases share, a check that
+  passes on the page before the action took effect. It comes before `registry-fidelity` even when
+  the registry named other data: the scenario is what slips through.
 - `brittle-locator` (ADR 0007, beyond the linter): a locator that will break or match the wrong
   element: a CSS reason that does not explain why role, label and text fail; a framework class or
   generated id; an accessible name that holds run data or a translated text the page sets late; a
@@ -104,10 +107,10 @@ contract rule. Every finding uses one of these ids:
   a device branch inside a page object that the project should decide.
 - `case-shape`: the known-gap arm right before the failing action with `@known-gap` and the
   registry's key; a skip with its reason; the page health guard switched off with a reason; steps,
-  when used, named for what they do to the page; a decision table walked whole, one step per
+  when used, named after their effect on the page; a decision table walked whole, one step per
   combination; a `@destructive` case alone in its file with its recovery.
 - `data-safety`: a real email, name or credential; a password typed outside the login case; a
-  write to an account or record the case did not create; a write that does not skip when
+  write to an account or record that belongs to someone else; a write that does not skip when
   `allow_writes` is false; a screenshot or trace of a sensitive field the page object does not
   mask.
 
@@ -120,13 +123,15 @@ line, under the case that depends on it.
 
 Grade by what would slip through:
 
-- `blocker`: the defect the case exists to catch would pass. Its main claim goes unchecked, is
+- `blocker`: the defect the case was designed to find would pass. Its main claim goes unchecked, is
   checked on something that cannot differ, or is replaced by another claim. Also any write that can
   change data the case does not own, and any real credential.
 - `major`: the main claim is checked, but a secondary oracle is missing, the result depends on
   timing or on data the case does not control, a locator will break on an ordinary change of the
-  page, or a layer rule is broken.
-- `minor`: shape or clarity; nothing would slip through.
+  page, a known-gap arm sits where a failure of the arrange counts as the armed failure, or a layer
+  rule is broken.
+- `minor`: shape or clarity; nothing would slip through. A `case-shape` finding with a scenario in
+  which a broken case reads as passed or as failed as armed is not minor.
 
 Verdict per spec file: `approve` (no blocker or major), `changes` (a major, no blocker), `block` (a
 blocker).
