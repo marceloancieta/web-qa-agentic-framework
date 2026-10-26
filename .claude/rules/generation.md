@@ -93,6 +93,10 @@ created for it, never the worker's shared one, since it changes what the account
   case starts signed in through the API, so no password reaches a trace. Screenshots mask the sensitive fields
   the page object names.
 - `.auth/` holds browser sessions; it is ignored by git and guarded by `secret-guard`.
+- Playwright's own artifacts (the failure context, traces, the HTML report, the Allure results) record
+  what a case types. The redaction reporter removes the run's known secrets from them once the run
+  ends (`helpers/redact-reporter.ts`), so a typed secret must be one the run knows: a password from
+  `generatedPassword()` or an actor's account, never one a spec makes up.
 - Modules do no I/O at import time, so one failure cannot abort the collection of a whole project.
 
 ## Before calling a spec done

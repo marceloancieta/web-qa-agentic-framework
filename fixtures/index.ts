@@ -60,6 +60,7 @@ import {
 } from '../helpers/page-health';
 import type { RedactionPolicy } from '../helpers/redact';
 import { applyCaseMeta } from '../helpers/case-meta';
+import { rememberSecret } from '../helpers/run-secrets';
 import { screenshotOptions } from '../helpers/visual';
 
 export { expect };
@@ -205,6 +206,9 @@ export function createTest(provider: ActorProvider) {
           redaction.knownSecrets.push(account.password);
           const signedIn = await provider.signIn({ ...context(role), account });
           redaction.knownSecrets.push(...(signedIn.secrets ?? []));
+          // The redaction reporter removes them from Playwright's own artifacts after the run.
+          for (const secret of [account.password, ...(signedIn.secrets ?? [])])
+            rememberSecret(secret);
           // A fresh session is never written: the file of the role stays the worker's shared one,
           // which tools that walk as the role read.
           if (fresh) return { account, signedIn, file: null, provisioned: true };

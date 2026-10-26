@@ -51,8 +51,8 @@ function retries(): number {
   return value;
 }
 
-// Traces record what is typed and every response; recorded cases sign in through the API, and
-// QA_TRACE=off keeps traces out of artifacts that leave the machine.
+// Traces record what is typed and every response. The redaction reporter removes the run's known
+// secrets from them after the run (CORE-18); QA_TRACE=off keeps traces out of artifacts entirely.
 function traceMode(): 'off' | 'on' | 'retain-on-failure' {
   const raw = process.env.QA_TRACE ?? 'retain-on-failure';
   if (raw === 'off' || raw === 'on' || raw === 'retain-on-failure') return raw;
@@ -111,6 +111,8 @@ export default defineConfig({
         // The results every test-management adapter reads (scripts/tm, ADR 0010).
         ['allure-playwright', { resultsDir: 'allure-results' }],
         ...extraReporters,
+        // Last: once the others have written, remove the run's secrets from every artifact.
+        ['./helpers/redact-reporter.ts'],
       ],
   use: {
     trace: traceMode(),

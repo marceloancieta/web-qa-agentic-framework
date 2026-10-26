@@ -30,7 +30,7 @@ vendor.
 | Suite tree | the pack's title and version, set by the core fixture |
 | Device | the project's `device` label |
 | Tags | the title and `{ tag }` (`.claude/rules/tagging.md`) |
-| Evidence | the trace, screenshots with sensitive fields masked, the axe result of an accessibility check, the diff images of a visual check; attached through `helpers/evidence.ts`, redacted |
+| Evidence | the trace, screenshots with sensitive fields masked, the axe result of an accessibility check, the diff images of a visual check; attached through `helpers/evidence.ts`, redacted; what Playwright writes on its own (the failure context, the trace) is redacted of the run's known secrets after the run by `helpers/redact-reporter.ts` |
 | Issue link | `knownGap(key, why)` for a known gap |
 | Run id | the `run` label (`QA_RUN_ID`), shared with `tm:report` |
 

@@ -8,6 +8,7 @@ import type { APIRequestContext, BrowserContext } from '@playwright/test';
 import { statePath } from '../scripts/lib/auth-state.mjs';
 import { missingVariableMessage } from '../scripts/lib/env-names.mjs';
 import type { ActorConfig, QaRuntime } from './config';
+import { rememberSecret } from './run-secrets';
 
 function variable(env: NodeJS.ProcessEnv, name: string, why: string): string {
   const value = env[name]?.trim();
@@ -85,7 +86,10 @@ export function uniqueSuffix(worker: number): string {
 
 /** A password for a provisioned account: random, long, with every character class. */
 export function generatedPassword(): string {
-  return `Qa-${randomBytes(12).toString('base64url')}-9a`;
+  const password = `Qa-${randomBytes(12).toString('base64url')}-9a`;
+  // Remembered for the run, so the artifacts are redacted of it even when a spec types it.
+  rememberSecret(password);
+  return password;
 }
 
 /** Where a worker keeps a role's browser state: `.auth/<env>/<pack>/<role>-<worker>.json`. */
