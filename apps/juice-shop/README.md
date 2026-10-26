@@ -57,7 +57,8 @@ banners and fix the language. Accounts are not removed; the [application notes](
 | `SIGNUP` | [sign-up](docs/features/signup.md) | design (W6b) |
 | `BASKET` | [basket](docs/features/basket.md) | design (W6b) |
 | `SEARCH` | [product search](docs/features/search.md) | design (W6b) |
-| `CHECKOUT` | [checkout](docs/features/checkout.md) | design (W8a) |
+| `CHECKOUT` | [checkout](docs/features/checkout.md) | [checkout cases](registry/checkout.md) |
+| `JOURNEY` | [journeys](docs/features/journeys.md), across the features above | [journey cases](registry/journeys.md), tagged `@e2e` |
 
 ## Facts about the application
 
