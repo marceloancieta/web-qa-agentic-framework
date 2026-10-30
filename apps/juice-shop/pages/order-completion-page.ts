@@ -10,6 +10,10 @@ export type CompletionAmount = (typeof AMOUNTS)[number];
 export class OrderCompletionPage {
   constructor(private readonly page: Page) {}
 
+  async open(orderId: string): Promise<void> {
+    await this.page.goto(`#/order-completion/${encodeURIComponent(orderId)}`);
+  }
+
   heading(): Locator {
     return this.page.getByRole('heading', { name: 'Thank you for your purchase!' });
   }
@@ -44,6 +48,11 @@ export class OrderCompletionPage {
   /** Template text the page shows before its data arrives, such as `{{bonus}}` (LOCAL-13). */
   templateText(): Locator {
     return this.page.getByText(/\{\{\s*\w+\s*\}\}/);
+  }
+
+  /** Text anywhere on the page, such as the street of the delivery address. */
+  shows(part: string | RegExp): Locator {
+    return this.page.getByText(part, { exact: false });
   }
 
   trackOrders(): Locator {

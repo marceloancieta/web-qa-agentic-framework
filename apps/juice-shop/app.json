@@ -15,6 +15,9 @@
     "cookieconsent_status": "dismiss",
     "language": "en"
   },
+  "visual": {
+    "stylePath": "visual.css"
+  },
   "app_map": {
     "start": [
       "/#/",

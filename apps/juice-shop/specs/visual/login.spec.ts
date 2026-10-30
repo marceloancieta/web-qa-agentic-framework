@@ -4,9 +4,12 @@
 import { LoginPage } from '../../pages/login-page';
 import { expect, test } from '../../fixtures';
 
-test('the login page looks as designed @regression @visual', async ({ page, visual }) => {
+test('TC-LOGIN-13 the login page looks as designed @regression @visual @layout', async ({
+  page,
+  visual,
+}) => {
   const login = new LoginPage(page);
   await login.open();
   await expect(login.submit()).toBeVisible();
-  await visual.expectToMatch(page, 'login.png');
+  await visual.expectToMatch(page, 'login.png', [], { wholePage: true });
 });

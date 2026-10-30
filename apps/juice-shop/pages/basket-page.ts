@@ -21,6 +21,11 @@ export class BasketPage {
     return this.page.getByRole('heading', { level: 1, name: /^Your Basket/ });
   }
 
+  /** What a screenshot of the basket masks: the title holds the account's email. */
+  visualMasks(): Locator[] {
+    return [this.title()];
+  }
+
   /** The row of a product, named after it. */
   row(name: string): Locator {
     return this.page.getByRole('row').filter({ hasText: name });

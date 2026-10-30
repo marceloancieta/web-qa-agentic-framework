@@ -70,7 +70,7 @@ intake, so their cases run as known gaps (LOCAL-3, LOCAL-7 to LOCAL-13).
 | TC-CHECKOUT-22 | a slow basket answer never shows a 0.00¤ total or an empty products table on the summary | REQ-CHECKOUT-08 | error-guessing | medium | @regression @perf @known-gap | all | automated | specs/checkout/order.spec.ts | LOCAL-13 |
 | TC-CHECKOUT-23 | a failed answer to saving an address is not reported as saved and the list stays empty | REQ-CHECKOUT-04 | error-guessing | low | @regression @mocked | all | automated | specs/checkout/address.spec.ts | |
 | TC-CHECKOUT-24 | every product image of the summary loads | REQ-CHECKOUT-08 | use-case | low | @regression @layout | all | automated | specs/checkout/order.spec.ts | |
-| TC-CHECKOUT-25 | the completion page looks as designed, the order id and date masked | REQ-CHECKOUT-09 | use-case | low | @regression @visual @layout | all | approved | | |
+| TC-CHECKOUT-25 | the completion page looks as designed | REQ-CHECKOUT-09 | use-case | low | @regression @visual @layout | all | automated | specs/visual/checkout.spec.ts | |
 | TC-CHECKOUT-26 | the radios of the address, delivery and card tables are named after their rows | REQ-CHECKOUT-05 | use-case | medium | @regression @a11y @known-gap | all | approved | | LOCAL-9 |
 | TC-CHECKOUT-27 | each step button's accessible name contains the text it shows and names the step it leads to | REQ-CHECKOUT-01 | use-case | medium | @regression @a11y @known-gap | all | automated | specs/checkout/order.spec.ts | LOCAL-10 |
 | TC-CHECKOUT-28 | the summary and the order history each have a heading for their content | REQ-CHECKOUT-10 | use-case | low | @regression @a11y @known-gap | all | approved | | LOCAL-11 |
@@ -80,6 +80,10 @@ intake, so their cases run as known gaps (LOCAL-3, LOCAL-7 to LOCAL-13).
 Changed at the W8b gate (2026-10-26): TC-CHECKOUT-22 covered the summary and the completion page
 under one known-gap arm, so a failure on the way to the completion page read as the gap. The
 completion page moved to TC-CHECKOUT-30, approved by the owner, each case with its own arm.
+
+Changed at the W8c gate (2026-10-29): TC-CHECKOUT-25 said the order id and the date were masked,
+but the completion page shows neither (the id is only in the Track Orders link's address), so the
+title no longer names a mask, approved by the owner.
 
 ## Notes
 

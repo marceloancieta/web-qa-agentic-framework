@@ -47,7 +47,7 @@ broken by the application today, so their cases run as known gaps (LOCAL-1, LOCA
 | TC-BASKET-17 | a slow basket answer never shows the empty state before the products arrive | REQ-BASKET-01 | error-guessing | medium | @regression @perf @known-gap | all | automated | specs/basket/basket.spec.ts | LOCAL-13 |
 | TC-BASKET-18 | a failed basket answer is not shown as an empty basket | REQ-BASKET-02 | error-guessing | low | @regression @mocked @known-gap | all | automated | specs/basket/basket.spec.ts | LOCAL-17 |
 | TC-BASKET-19 | every product image of the basket loads | REQ-BASKET-03 | use-case | low | @regression @layout | all | approved | | |
-| TC-BASKET-20 | a basket with products looks as designed | REQ-BASKET-03 | use-case | low | @regression @visual @layout | all | approved | | |
+| TC-BASKET-20 | a basket with products looks as designed | REQ-BASKET-03 | use-case | low | @regression @visual @layout | all | automated | specs/visual/basket.spec.ts | |
 | TC-BASKET-21 | the basket table names its columns, its quantity controls are reached and used with the keyboard, and the page has no axe violation beyond the baseline | REQ-BASKET-03 | use-case | medium | @regression @a11y | all | approved | | |
 | TC-BASKET-22 | the title with <LONG_EMAIL> stays inside the page | REQ-BASKET-01 | boundary-value | low | @regression @content | all | approved | | |
 | TC-BASKET-23 | the longest product name of the catalogue stays inside its row | REQ-BASKET-03 | boundary-value | low | @regression @content | all | approved | | |

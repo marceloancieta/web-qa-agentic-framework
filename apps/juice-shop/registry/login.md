@@ -38,7 +38,7 @@ signed in) was accepted by the owner and has no case.
 | TC-LOGIN-10 | "Not yet a customer?" opens /#/register and "Forgot your password?" opens /#/forgot-password | REQ-LOGIN-08 | use-case | low | @regression @navigation | all | approved | | |
 | TC-LOGIN-11 | the login page has no horizontal scroll, in its initial and refused states | REQ-LOGIN-09 | boundary-value | low | @regression @responsive | all | approved | | |
 | TC-LOGIN-12 | neither the email nor the password appears in the URL or in browser storage after a refused and after a successful login | REQ-LOGIN-01 | error-guessing | high | @regression @security | all | automated | specs/login/login.spec.ts | |
-| TC-LOGIN-13 | the login page looks as designed | | use-case | low | @regression @visual @layout | all | approved | | |
+| TC-LOGIN-13 | the login page looks as designed | | use-case | low | @regression @visual @layout | all | automated | specs/visual/login.spec.ts | |
 | TC-LOGIN-14 | a delayed login answer keeps the form as it is, then signs in when the answer arrives | REQ-LOGIN-01 | error-guessing | low | @regression | all | approved | | |
 | TC-LOGIN-15 | a server error on the login keeps the visitor on /#/login with a message and no session | REQ-LOGIN-02 | error-guessing | low | @regression @mocked @known-gap | all | automated | specs/login/login.spec.ts | LOCAL-19 |
 

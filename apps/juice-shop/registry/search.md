@@ -41,7 +41,7 @@ catalogue the application ships with.
 | TC-SEARCH-10 | "Open search" shows the box, and <TERM> sent from it opens /#/search?q=<TERM> with its results | REQ-SEARCH-07 | use-case | high | @regression | all | automated | specs/search/search.spec.ts | |
 | TC-SEARCH-11 | each card shows the product's image named after the product, its name, its price and "Add to Basket" | REQ-SEARCH-08 | use-case | medium | @regression | all | approved | | |
 | TC-SEARCH-12 | every product image of the first page loads | REQ-SEARCH-08 | use-case | low | @regression @layout | all | approved | | |
-| TC-SEARCH-13 | the first page of all products looks as designed | REQ-SEARCH-01 | use-case | low | @regression @visual @layout | all | approved | | |
+| TC-SEARCH-13 | the first page of all products looks as designed | REQ-SEARCH-01 | use-case | low | @regression @visual @layout | all | automated | specs/visual/search.spec.ts | |
 | TC-SEARCH-14 | while a slow answer is pending the page says "Searching for products", and "No results found" never shows before the products | REQ-SEARCH-09 | error-guessing | medium | @regression @perf @known-gap | all | automated | specs/search/search.spec.ts | LOCAL-18 |
 | TC-SEARCH-15 | a failed product answer is not shown as "No results found" | REQ-SEARCH-03 | error-guessing | low | @regression @mocked | all | automated | specs/search/search.spec.ts | |
 | TC-SEARCH-16 | an empty catalogue shows "No results found" and "0 of 0" | REQ-SEARCH-03 | error-guessing | low | @regression @mocked | all | approved | | |

@@ -1,0 +1,11 @@
+/*
+ * Hidden in every visual comparison of the pack (app.json `visual.stylePath`): parts whose content
+ * changes between two starts of the same build.
+ *
+ * The stock ribbon of a product card ("Only 1 left", "Sold Out"): each start gives a product a
+ * different stock (docs/app-notes.md), so a card shows it on one start and not on the next. The
+ * ribbon has no role or name to mask it by, and it must be hidden in the baseline too.
+ */
+aside.ribbon {
+  visibility: hidden !important;
+}

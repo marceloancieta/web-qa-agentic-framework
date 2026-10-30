@@ -164,7 +164,9 @@ web-qa-agentic-framework/
   run and says why. One set of baselines, no OS suffix.
 - Stability: `animations: 'disabled'`, `caret: 'hide'`, fonts installed in the image, dynamic regions
   masked by the page object (not the spec), a per-pack `stylePath` that hides volatile parts, a
-  per-pack `maxDiffPixelRatio`.
+  per-pack `maxDiffPixelRatio`. A case about a whole page grows the viewport to the content's height
+  at the same width (`wholePage`), since layouts that scroll an inner box defeat a full-page
+  screenshot.
 - **Updating baselines is design, not execution:** only the automate phase regenerates them, with the
   diff images shown at its gate; the run phase never passes `--update-snapshots` (the lane rejects
   it).

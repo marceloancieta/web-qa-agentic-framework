@@ -13,7 +13,7 @@
 //   page        test     Playwright's page, watched by the page health guard
 //   pageHealth  option   test.use({ pageHealth: { off: '<why>' } }) switches the guard off
 //   a11y        test     a11y.expectNoNewViolations(page) against the pack's baseline
-//   visual      test     visual.expectToMatch(target, name, mask) with the pack's settings
+//   visual      test     visual.expectToMatch(target, name, mask, { wholePage }) with the pack's settings
 
 import { mkdirSync, writeFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
@@ -61,7 +61,7 @@ import {
 import type { RedactionPolicy } from '../helpers/redact';
 import { applyCaseMeta } from '../helpers/case-meta';
 import { rememberSecret } from '../helpers/run-secrets';
-import { screenshotOptions } from '../helpers/visual';
+import { fitViewportToContent, screenshotOptions } from '../helpers/visual';
 
 export { expect };
 
@@ -87,7 +87,16 @@ export interface CoreTestFixtures {
     ): Promise<BaselineComparison>;
   };
   visual: {
-    expectToMatch(target: Page | Locator, name: string, mask?: Locator[]): Promise<void>;
+    /**
+     * Compare with the baseline. `wholePage` grows the viewport to the content's height first, so
+     * the screenshot holds what lies below the fold too (`fitViewportToContent`).
+     */
+    expectToMatch(
+      target: Page | Locator,
+      name: string,
+      mask?: Locator[],
+      options?: { wholePage?: boolean },
+    ): Promise<void>;
   };
 }
 
@@ -337,8 +346,14 @@ export function createTest(provider: ActorProvider) {
 
     visual: async ({ app }, use) => {
       await use({
-        async expectToMatch(target, name, mask = []) {
-          await expect(target as Page).toHaveScreenshot(name, screenshotOptions(app, mask));
+        async expectToMatch(target, name, mask = [], { wholePage = false } = {}) {
+          const page = 'page' in target ? target.page() : target;
+          const restore = wholePage ? await fitViewportToContent(page) : undefined;
+          try {
+            await expect(target as Page).toHaveScreenshot(name, screenshotOptions(app, mask));
+          } finally {
+            await restore?.();
+          }
         },
       });
     },

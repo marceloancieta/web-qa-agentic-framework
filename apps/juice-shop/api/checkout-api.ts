@@ -56,8 +56,23 @@ export class CheckoutApi {
   }
 
   /** The delivery methods with their price and expected days. */
-  async deliveryMethods(): Promise<{ name: string; price: number; eta: number }[]> {
+  async deliveryMethods(): Promise<{ id: number; name: string; price: number; eta: number }[]> {
     return data(await this.api.get('api/Deliverys'), 'Reading the delivery methods');
+  }
+
+  /**
+   * Place the order of a basket, as the summary's Place your order does, for cases about what
+   * follows it; returns the order id.
+   */
+  async placeOrder(
+    basketId: number,
+    details: { addressId: number; paymentId: number; deliveryMethodId: number },
+  ): Promise<string> {
+    const response = await this.api.post(`rest/basket/${basketId}/checkout`, {
+      data: { orderDetails: details },
+    });
+    if (!response.ok()) throw new Error(`Placing the order failed: ${response.status()}.`);
+    return ((await response.json()) as { orderConfirmation: string }).orderConfirmation;
   }
 
   /** The signed-in customer's orders. */
