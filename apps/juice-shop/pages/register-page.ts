@@ -85,9 +85,22 @@ export class RegisterPage {
     return this.page.getByText(text);
   }
 
+  /**
+   * Open the list of security questions as a user does, with a click or a tap. The point is the
+   * arrow at the select's right end: on the narrow WebKit layout (mobile-safari) the floating
+   * label's required marker covers the middle of the select, and a click there lands on the marker,
+   * which Playwright's hit test refuses (a user's tap on it still reaches the form field).
+   */
+  async openQuestions(): Promise<void> {
+    const select = this.question();
+    const box = await select.boundingBox();
+    if (!box) throw new Error('The security question select is not on the page.');
+    await select.click({ position: { x: box.width - 8, y: box.height / 2 } });
+  }
+
   /** Choose the first question of the list; it waits for the list's overlay to close. */
   async chooseFirstQuestion(): Promise<void> {
-    await this.question().click();
+    await this.openQuestions();
     await this.questionOptions().first().click(); // any question will do; the first is always there
     // The list's overlay takes a moment to close and swallows a click sent while it does.
     await this.page.getByRole('listbox').waitFor({ state: 'hidden' });

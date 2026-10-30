@@ -9,6 +9,7 @@
 // Accounts are not removed: Juice Shop has no endpoint for it, and the container starts empty on
 // every restart (`npm run juice-shop:up` after `juice-shop:down`, or the pack's recovery).
 
+import { newApiContext } from '../../helpers/api-context';
 import type { ActorProvider } from '../../helpers/actors';
 import { createTest, expect, type Actor } from '../../fixtures';
 import { AccountApi } from './api/account-api';
@@ -57,7 +58,7 @@ export const test = createTest(provider).extend<
   // once per worker. Orders use stock up and only a restart gives it back (docs/app-notes.md).
   stockedProduct: [
     async ({ playwright, qa }, use) => {
-      const api = await playwright.request.newContext({ baseURL: `${qa.baseUrl}/` });
+      const api = await newApiContext(playwright, { baseURL: `${qa.baseUrl}/` });
       const [most] = await new CatalogueApi(api).stocked();
       await api.dispose();
       if (!most) throw new Error('No product has stock left: restore it with the pack recovery.');

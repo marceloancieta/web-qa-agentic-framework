@@ -238,7 +238,7 @@ test.describe('security questions that fail to load', () => {
     await register.password().fill(account.password);
     await register.repeat().fill(account.password);
     await register.answer().fill(securityAnswer());
-    await register.question().click();
+    await register.openQuestions();
     await expect(register.questionOptions()).toHaveCount(0);
     await expect(register.submit()).toBeDisabled();
   });

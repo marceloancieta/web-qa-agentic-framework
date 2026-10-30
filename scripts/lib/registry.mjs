@@ -24,8 +24,9 @@
 //   ## Cases
 //   | ID | Title | Requirement | Technique | Priority | Tags | Devices | Status | Spec | Defect |
 //
-// Tags are the case's tags, space separated; Devices is `all`, or `desktop-only: <why>` or
-// `mobile-only: <why>` for a real difference in behaviour, matched by the tag of the same name.
+// Tags are the case's tags, space separated; Devices is `all`, or `desktop-only: <why>`,
+// `mobile-only: <why>` or `not-webkit: <why>` for a real difference in behaviour, matched by the
+// tag of the same name.
 // The shape of the table is read first: a row with the wrong number of cells is reported and
 // skipped, never read with shifted columns.
 
@@ -33,7 +34,14 @@ import { existsSync, readdirSync, readFileSync } from 'node:fs';
 import { join, relative } from 'node:path';
 import { parse as parseYaml } from 'yaml';
 import { parseContractRules } from './contract.mjs';
-import { DESKTOP_ONLY_TAG, DIMENSIONS, LAYER_TAGS, MOBILE_ONLY_TAG, TAGS } from './tags.mjs';
+import {
+  DESKTOP_ONLY_TAG,
+  DIMENSIONS,
+  LAYER_TAGS,
+  MOBILE_ONLY_TAG,
+  NOT_WEBKIT_TAG,
+  TAGS,
+} from './tags.mjs';
 import { tableCells } from './text.mjs';
 
 export const COLUMNS = [
@@ -81,7 +89,7 @@ const ACTOR = /^[a-z][a-z0-9-]*$/;
 const PLACEHOLDER = /^<[A-Z][A-Z0-9_]*>$/;
 const FRONT_MATTER = /^---\r?\n([\s\S]*?)\r?\n---\r?\n/;
 const NOT_APPLICABLE = /^n\/a:\s*\S/;
-const DEVICES = /^(?:all|(desktop-only|mobile-only):\s*(\S.*))$/;
+const DEVICES = /^(?:all|(desktop-only|mobile-only|not-webkit):\s*(\S.*))$/;
 
 /**
  * The line of each key in the front matter: top-level keys by name, nested ones as
@@ -194,10 +202,14 @@ function rowProblems(row, requirementIds, problem, line) {
     problem(line, `${row.id}: needs exactly one of ${LAYER_TAGS.join(', ')}`);
   const devices = DEVICES.exec(row.devices);
   if (!devices)
-    problem(line, `${row.id}: devices must be all, desktop-only: <why> or mobile-only: <why>`);
+    problem(
+      line,
+      `${row.id}: devices must be all, desktop-only: <why>, mobile-only: <why> or not-webkit: <why>`,
+    );
   for (const [tag, kind] of [
     [DESKTOP_ONLY_TAG, 'desktop-only'],
     [MOBILE_ONLY_TAG, 'mobile-only'],
+    [NOT_WEBKIT_TAG, 'not-webkit'],
   ]) {
     if (row.tagList.includes(tag) !== (devices?.[1] === kind)) {
       problem(line, `${row.id}: the ${tag} tag and devices "${kind}: <why>" go together`);

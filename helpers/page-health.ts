@@ -41,6 +41,19 @@ export interface PageHealthGuard {
   problems(): Promise<HealthProblem[]>;
 }
 
+/**
+ * Whether a request failed because the page itself cancelled it: a reload or a navigation while it
+ * was in flight. Each engine names that differently (Chromium net::ERR_ABORTED, Firefox
+ * NS_BINDING_ABORTED, WebKit "Load request cancelled"); none of them is a broken page. A request a
+ * mock aborts with `failed` or `internetdisconnected` is still reported; one aborted with `aborted`
+ * looks like a cancellation and is not, so no mock uses that code.
+ */
+export function cancelledByPage(errorText: string | undefined): boolean {
+  return /^(net::ERR_ABORTED|NS_BINDING_ABORTED|Load request cancelled|cancelled)$/i.test(
+    errorText ?? '',
+  );
+}
+
 /** Start watching a page. Call before navigating, so early problems are not missed. */
 export function watchPageHealth(page: Page, options: PageHealthOptions = {}): PageHealthGuard {
   const seen: HealthProblem[] = [];
@@ -58,6 +71,7 @@ export function watchPageHealth(page: Page, options: PageHealthOptions = {}): Pa
   page.on('requestfailed', (request) => {
     const url = request.url();
     if (!sameOrigin(url, page.url()) || matches(url, options.allowRequests)) return;
+    if (cancelledByPage(request.failure()?.errorText)) return;
     seen.push({
       kind: 'failed-request',
       detail: `${request.method()} ${url}: ${request.failure()?.errorText}`,

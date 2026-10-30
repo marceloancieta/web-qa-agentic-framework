@@ -16,6 +16,7 @@ export const QUARANTINE_TAG: string;
 export const DESTRUCTIVE_TAG: string;
 export const DESKTOP_ONLY_TAG: string;
 export const MOBILE_ONLY_TAG: string;
+export const NOT_WEBKIT_TAG: string;
 export const DESTRUCTIVE_LANE_ENV: string;
 export const FLAKE_LANE_ENV: string;
 export const VISUAL_LANE_ENV: string;
@@ -23,4 +24,5 @@ export const A11Y_SWEEP_LANE_ENV: string;
 export function projectTagFilter(
   formFactor: 'desktop' | 'tablet' | 'mobile',
   env?: Record<string, string | undefined>,
+  engine?: 'chromium' | 'firefox' | 'webkit',
 ): { grep?: RegExp; grepInvert: RegExp };

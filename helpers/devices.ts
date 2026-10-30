@@ -9,7 +9,10 @@ export type FormFactor = 'desktop' | 'tablet' | 'mobile';
 export interface DeviceProject {
   /** Playwright's device descriptor that the project uses. */
   descriptor: string;
-  /** Desktop projects leave out `@mobile-only` cases; tablet and mobile leave out `@desktop-only`. */
+  /**
+   * Desktop projects leave out `@mobile-only` cases; tablet and mobile leave out `@desktop-only`.
+   * The engine comes from the descriptor: WebKit projects also leave out `@not-webkit`.
+   */
   formFactor: FormFactor;
 }
 

@@ -98,7 +98,7 @@ function packProjects(pack: string): PlaywrightTestProject[] {
         testIdAttribute: app.testIdAttribute ?? 'data-testid',
       },
       ...(app.workers ? { workers: app.workers } : {}),
-      ...projectTagFilter(formFactor, process.env),
+      ...projectTagFilter(formFactor, process.env, deviceUse(device).defaultBrowserType),
     };
   };
   return [preflight, ...settings.devices.map(deviceProject)];

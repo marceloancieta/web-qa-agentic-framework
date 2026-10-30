@@ -61,6 +61,7 @@ import {
   type PageHealthOptions,
 } from '../helpers/page-health';
 import type { RedactionPolicy } from '../helpers/redact';
+import { newApiContext } from '../helpers/api-context';
 import { applyCaseMeta } from '../helpers/case-meta';
 import { rememberSecret } from '../helpers/run-secrets';
 import { fitViewportToContent, screenshotOptions } from '../helpers/visual';
@@ -195,7 +196,7 @@ export function createTest(provider: ActorProvider) {
     ],
     sessions: [
       async ({ qa, authDir, redaction, playwright }, use, workerInfo) => {
-        const api = await playwright.request.newContext({ baseURL: `${qa.baseUrl}/` });
+        const api = await newApiContext(playwright, { baseURL: `${qa.baseUrl}/` });
         const open = new Map<string, Promise<Session>>();
         const started: [string, Promise<Session>][] = [];
         const context = (role: string) => ({ api, qa, role, worker: workerInfo.workerIndex });
@@ -311,7 +312,7 @@ export function createTest(provider: ActorProvider) {
         }
         const page = await context.newPage();
         const guard = watchPageHealth(page, pageHealth);
-        const api = await playwright.request.newContext({
+        const api = await newApiContext(playwright, {
           baseURL: `${qa.baseUrl}/`,
           storageState: session?.signedIn.storageState,
           extraHTTPHeaders: session?.signedIn.apiHeaders,

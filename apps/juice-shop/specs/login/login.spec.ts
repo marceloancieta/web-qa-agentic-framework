@@ -125,7 +125,7 @@ test('TC-LOGIN-04 Log in is enabled only when both fields have a value, walking 
   }
 });
 
-test('TC-LOGIN-07 the form is filled and sent with the keyboard alone, the focus visible on each control in reading order @regression @a11y', async ({
+test('TC-LOGIN-07 the form is filled and sent with the keyboard alone, the focus visible on each control in reading order @regression @a11y @not-webkit', async ({
   page,
   qa,
 }) => {

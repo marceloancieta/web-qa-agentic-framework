@@ -75,7 +75,8 @@ and what happens without a session on a route that needs one.
 
 What changes between the device projects (the pack's `breakpoints` in `app.json`): a menu that
 becomes a side navigation, a layout that stacks. A real difference in behaviour becomes a
-`desktop-only` or `mobile-only` case with this section as its reason.
+`desktop-only` or `mobile-only` case with this section as its reason; one the WebKit engine cannot
+drive, a `not-webkit` case.
 
 ## Network dependencies
 

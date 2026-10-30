@@ -32,6 +32,7 @@ export const HANDLING_TAGS = [
   '@destructive',
   '@desktop-only',
   '@mobile-only',
+  '@not-webkit',
   '@e2e',
 ];
 
@@ -46,6 +47,8 @@ export const QUARANTINE_TAG = '@quarantine';
 export const DESTRUCTIVE_TAG = '@destructive';
 export const DESKTOP_ONLY_TAG = '@desktop-only';
 export const MOBILE_ONLY_TAG = '@mobile-only';
+/** A case the WebKit engine cannot drive, for a reason the registry's Devices cell gives. */
+export const NOT_WEBKIT_TAG = '@not-webkit';
 /** A journey's case: it crosses features end to end, and only a journey registry holds it. */
 export const E2E_TAG = '@e2e';
 
@@ -67,7 +70,8 @@ const anyTag = (tags) => new RegExp(`(?:${tags.join('|')})(?![\\w-])`);
 /**
  * The `grep` and `grepInvert` of a pack's device project. `formFactor` is the project's
  * (`desktop`, `tablet` or `mobile`): desktop projects leave out `@mobile-only` cases, tablet and
- * mobile projects leave out `@desktop-only` ones. Every run also leaves out
+ * mobile projects leave out `@desktop-only` ones, and the projects of the `webkit` `engine` leave out
+ * `@not-webkit` ones. Every run also leaves out
  * - `@destructive` cases, which break the application for everyone else until it recovers; the
  *   destructive lane selects only them instead;
  * - `@quarantine` cases, confirmed flaky; the flake lane keeps them;
@@ -76,7 +80,7 @@ const anyTag = (tags) => new RegExp(`(?:${tags.join('|')})(?![\\w-])`);
  * - `@a11y-sweep` tests, one per route of the app maps; the a11y lane selects only them.
  * A lane selects one kind at a time. A command-line `--grep` narrows this further, never widens it.
  */
-export function projectTagFilter(formFactor, env = process.env) {
+export function projectTagFilter(formFactor, env = process.env, engine = undefined) {
   const lane = [
     [DESTRUCTIVE_LANE_ENV, DESTRUCTIVE_TAG],
     [VISUAL_LANE_ENV, VISUAL_TAG],
@@ -85,6 +89,7 @@ export function projectTagFilter(formFactor, env = process.env) {
   const keepQuarantine = env[FLAKE_LANE_ENV] === '1';
   const leftOut = [
     formFactor === 'desktop' ? MOBILE_ONLY_TAG : DESKTOP_ONLY_TAG,
+    ...(engine === 'webkit' ? [NOT_WEBKIT_TAG] : []),
     ...[DESTRUCTIVE_TAG, VISUAL_TAG, A11Y_SWEEP_TAG].filter((tag) => tag !== lane?.[1]),
     ...(keepQuarantine ? [] : [QUARANTINE_TAG]),
   ];

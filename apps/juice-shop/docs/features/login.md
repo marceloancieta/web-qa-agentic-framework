@@ -92,6 +92,11 @@ From 960 px wide (`breakpoints.toolbar`) the account menu is a toolbar button; b
 the side navigation. `components/account-menu.ts` gives one API for both, so the cases run on every
 device project with no branch. The form itself has the same fields and order at both widths.
 
+The WebKit projects (desktop-webkit, tablet, mobile-safari) cannot walk the keyboard order through
+the "Forgot your password?" link: WebKit, like Safari, leaves links out of the Tab order, and the
+WebKit build Playwright runs on Windows reaches no link with Alt+Tab either (probed 2026-10-30). This
+is the engine, not the page, so the keyboard-order case (TC-LOGIN-07) is `not-webkit`.
+
 ## Network dependencies
 
 `POST /rest/user/login` (the only write; design may send it), then `GET /rest/user/whoami` for the

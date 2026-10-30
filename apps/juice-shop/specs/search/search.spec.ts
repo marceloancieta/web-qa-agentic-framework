@@ -203,8 +203,10 @@ test('TC-SEARCH-14 while a slow answer is pending the page says "Searching for p
 
   await test.step('"Searching for products" while the answer is held', async () => {
     // The hold applies to every load of the page, so a reload holds the answer again.
+    // Watched from the new document on: until the reload commits, the old page still shows its
+    // products, and a watch started before it would see them (WebKit is that fast).
+    await page.reload({ waitUntil: 'commit' });
     const early = becomesVisibleWithin(search.products(), HOLD / 2);
-    await page.reload();
     expect(await early, 'products before the held answer was let through').toBe(false);
     test.fail(
       true,

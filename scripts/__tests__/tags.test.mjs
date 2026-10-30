@@ -24,6 +24,18 @@ test('desktop projects leave out @mobile-only, tablet and mobile ones leave out 
   }
 });
 
+test('only the WebKit projects leave out @not-webkit', () => {
+  for (const form of ['desktop', 'tablet', 'mobile']) {
+    assert.equal(runs(projectTagFilter(form, {}, 'webkit'), 'tabs to the link @not-webkit'), false);
+    assert.equal(runs(projectTagFilter(form, {}, 'webkit'), 'tabs to the field'), true);
+    assert.equal(
+      runs(projectTagFilter(form, {}, 'chromium'), 'tabs to the link @not-webkit'),
+      true,
+    );
+    assert.equal(runs(projectTagFilter(form, {}, 'firefox'), 'tabs to the link @not-webkit'), true);
+  }
+});
+
 test('a plain run leaves out destructive, quarantined, visual and sweep tests, and keeps the rest', () => {
   const filter = projectTagFilter('desktop', {});
   assert.equal(filter.grep, undefined);

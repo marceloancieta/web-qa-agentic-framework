@@ -29,8 +29,9 @@ description: >-
 
    The lanes other than the visual one are `scripts/lanes.mjs`; a lane with no case says so and
    runs nothing. If `--list` shows no test, say so and stop; never widen the selection on your own. `@visual`, `@destructive`, `@quarantine`
-   and `@a11y-sweep` tests are excluded from the device projects (`projectTagFilter` in `scripts/lib/tags.mjs`);
-   report them as left out, never as missing.
+   and `@a11y-sweep` tests are excluded from the device projects, and `@desktop-only`,
+   `@mobile-only` and `@not-webkit` cases from the projects they do not apply to (`projectTagFilter`
+   in `scripts/lib/tags.mjs`); report them as left out, never as missing.
 2. **Check the environment**: `QA_ENV`, the pack's entry in it (`base_url`, `allow_writes`, the
    variables its `actors` name) and reachability (`.claude/rules/reachability.md`). Never run
    against an environment the user did not choose.

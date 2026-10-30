@@ -104,8 +104,8 @@ contract's quality checklist is where the reason is worked out.
   `low`.
 - **Tags** are the tags the test will carry, space separated, with exactly one layer tag
   (`.claude/rules/tagging.md`).
-- **Devices** is `all`, or `desktop-only: <why>` or `mobile-only: <why>` with the tag of the same
-  name, for a real difference in behaviour recorded in the contract.
+- **Devices** is `all`, or `desktop-only: <why>`, `mobile-only: <why>` or `not-webkit: <why>` with
+  the tag of the same name, for a real difference in behaviour recorded in the contract.
 - **Spec** is the spec file, relative to the pack, once the case is automated.
 - **Defect** is the tracker key of a blocked case or of a known gap.
 

@@ -1,5 +1,17 @@
-import { checkOptions, healthReport, watchPageHealth } from '../page-health';
+import { cancelledByPage, checkOptions, healthReport, watchPageHealth } from '../page-health';
 import { expect, test } from './fake-app';
+
+test("a request the page cancels is not a failure in any engine; a mock's abort still is", () => {
+  for (const reason of [
+    'net::ERR_ABORTED',
+    'NS_BINDING_ABORTED',
+    'Load request cancelled',
+    'cancelled',
+  ])
+    expect(cancelledByPage(reason)).toBe(true);
+  for (const reason of ['net::ERR_FAILED', 'net::ERR_INTERNET_DISCONNECTED', 'failed', undefined])
+    expect(cancelledByPage(reason)).toBe(false);
+});
 
 test('a healthy page has no problems, and a blocked-looking third party is not counted', async ({
   page,
