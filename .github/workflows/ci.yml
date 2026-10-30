@@ -97,7 +97,15 @@ jobs:
       - run: npm run ci:browsers
       - run: npm run juice-shop:up
       - name: Run the ${{ matrix.lane }} lane
+        if: matrix.lane != 'visual'
         run: npm run lanes:${{ matrix.lane }} -- --project='juice-shop-*'
+      - name: Run the visual lane
+        if: matrix.lane == 'visual'
+        run: npm run lanes:visual -- --project='juice-shop-*'
+        env:
+          # The lane runs in the pinned container, which reaches Juice Shop on the compose network:
+          # Linux publishes the port on 127.0.0.1 only, out of a container's reach.
+          QA_JUICE_SHOP_BASE_URL: http://juice-shop:3000
       - if: always()
         uses: actions/upload-artifact@v4
         with:

@@ -89,7 +89,11 @@ pipeline {
           sh "npm run lanes:a11y -- --project='juice-shop-*'"
         }
         catchError(buildResult: 'FAILURE', stageResult: 'FAILURE') {
-          sh "npm run lanes:visual -- --project='juice-shop-*'"
+          // The pinned container reaches Juice Shop on the compose network: Linux publishes the
+          // port on 127.0.0.1 only, out of a container's reach.
+          withEnv(['QA_JUICE_SHOP_BASE_URL=http://juice-shop:3000']) {
+            sh "npm run lanes:visual -- --project='juice-shop-*'"
+          }
         }
         catchError(buildResult: 'FAILURE', stageResult: 'FAILURE') {
           sh "npm run lanes:destructive -- --project='juice-shop-*'"

@@ -31,6 +31,12 @@ services:
     environment:
       QA_IN_PLAYWRIGHT_IMAGE: '1'
       QA_ENV: ${QA_ENV:-}
+      # The run the lane belongs to, so its report and results carry the id of the whole CI run.
+      QA_RUN_ID: ${QA_RUN_ID:-}
+      CI: ${CI:-}
+      # Juice Shop on the compose network (http://juice-shop:3000), for a host whose published
+      # port a container cannot reach: Linux publishes it on 127.0.0.1 only. Empty: qa-config's URL.
+      QA_JUICE_SHOP_BASE_URL: ${QA_JUICE_SHOP_BASE_URL:-}
     extra_hosts:
       - 'host.docker.internal:host-gateway'
     ipc: host
