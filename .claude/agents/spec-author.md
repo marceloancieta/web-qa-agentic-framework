@@ -115,8 +115,8 @@ npx playwright test <your file> --repeat-each=2
 ```
 
 - Every assigned case appears once per device project in `--list`, except those the projects leave
-  out by their tags (`@visual`, `@destructive`, `@quarantine`, the other form factor's `-only`), and
-  no case outside your assignment does.
+  out by their tags (`@visual`, `@destructive`, `@quarantine`, `@a11y-sweep`, the other form
+  factor's `-only`), and no case outside your assignment does.
 - A finding in a file you do not own goes under **Checks run**, not fixed.
 - If the application does not answer (refused, timeout, DNS, TLS, a page that never loads), stop and
   report it (`.claude/rules/reachability.md`). A `401`, a `404`, a `500` or an error on the screen is

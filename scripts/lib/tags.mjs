@@ -24,6 +24,7 @@ export const DIMENSION_TAGS = Object.values(DIMENSIONS);
 /** How a case is run or where it applies. */
 export const HANDLING_TAGS = [
   '@visual',
+  '@a11y-sweep',
   '@i18n',
   '@mocked',
   '@known-gap',
@@ -37,7 +38,10 @@ export const HANDLING_TAGS = [
 export const TAGS = [...LAYER_TAGS, ...DIMENSION_TAGS, ...HANDLING_TAGS];
 
 export const VISUAL_TAG = '@visual';
+/** A test of the accessibility sweep over the app maps; not a designed case. */
+export const A11Y_SWEEP_TAG = '@a11y-sweep';
 export const MOCKED_TAG = '@mocked';
+export const KNOWN_GAP_TAG = '@known-gap';
 export const QUARANTINE_TAG = '@quarantine';
 export const DESTRUCTIVE_TAG = '@destructive';
 export const DESKTOP_ONLY_TAG = '@desktop-only';
@@ -54,6 +58,9 @@ export const FLAKE_LANE_ENV = 'QA_INCLUDE_QUARANTINE';
 /** Set to `1` by the visual lane only, inside the pinned container: the run selects `@visual`. */
 export const VISUAL_LANE_ENV = 'QA_VISUAL';
 
+/** Set to `1` by the a11y lane only: the run selects the `@a11y-sweep` tests. */
+export const A11Y_SWEEP_LANE_ENV = 'QA_A11Y_SWEEP';
+
 // A tag in Playwright's grep text (title path plus tags), not the start of a longer word.
 const anyTag = (tags) => new RegExp(`(?:${tags.join('|')})(?![\\w-])`);
 
@@ -65,18 +72,20 @@ const anyTag = (tags) => new RegExp(`(?:${tags.join('|')})(?![\\w-])`);
  *   destructive lane selects only them instead;
  * - `@quarantine` cases, confirmed flaky; the flake lane keeps them;
  * - `@visual` cases, whose baselines exist only for the pinned container; the visual lane selects
- *   only them.
+ *   only them;
+ * - `@a11y-sweep` tests, one per route of the app maps; the a11y lane selects only them.
  * A lane selects one kind at a time. A command-line `--grep` narrows this further, never widens it.
  */
 export function projectTagFilter(formFactor, env = process.env) {
   const lane = [
     [DESTRUCTIVE_LANE_ENV, DESTRUCTIVE_TAG],
     [VISUAL_LANE_ENV, VISUAL_TAG],
+    [A11Y_SWEEP_LANE_ENV, A11Y_SWEEP_TAG],
   ].find(([name]) => env[name] === '1');
   const keepQuarantine = env[FLAKE_LANE_ENV] === '1';
   const leftOut = [
     formFactor === 'desktop' ? MOBILE_ONLY_TAG : DESKTOP_ONLY_TAG,
-    ...[DESTRUCTIVE_TAG, VISUAL_TAG].filter((tag) => tag !== lane?.[1]),
+    ...[DESTRUCTIVE_TAG, VISUAL_TAG, A11Y_SWEEP_TAG].filter((tag) => tag !== lane?.[1]),
     ...(keepQuarantine ? [] : [QUARANTINE_TAG]),
   ];
   return { ...(lane ? { grep: anyTag([lane[1]]) } : {}), grepInvert: anyTag(leftOut) };

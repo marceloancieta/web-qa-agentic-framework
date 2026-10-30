@@ -17,9 +17,19 @@ description: >-
 
 1. **Pick the selection**: a pack (`--project='<pack>-*'`), a device of every pack
    (`--project='*-<device>'`), a tag (`--grep @smoke`, `--grep @e2e` for the journeys), named cases (`--grep "TC-LOGIN-0[1-3]"`), or
-   the visual lane (`npm run lanes:visual`, in the pinned container). If `--list` shows no test, say
-   so and stop; never widen the selection on your own. `@visual`, `@destructive` and `@quarantine`
-   cases are excluded from the device projects (`projectTagFilter` in `scripts/lib/tags.mjs`);
+   a lane, which takes the same options after `--` (a `--grep` narrows the lane's tag):
+   - `npm run lanes:visual`: the `@visual` cases, in the pinned container;
+   - `npm run lanes:mocked`: the `@mocked` cases;
+   - `npm run lanes:known-gap`: the `@known-gap` cases, then which gaps still fail as armed and
+     which now pass;
+   - `npm run lanes:destructive`: the `@destructive` cases on one worker, then the `recovery` of
+     every pack it selected, whatever the run did. It writes: step 3 waits for "go";
+   - `npm run lanes:flake -- --repeat <n>`: the `@quarantine` cases `n` times each (10), without
+     retries, then the failed repetitions per case.
+
+   The lanes other than the visual one are `scripts/lanes.mjs`; a lane with no case says so and
+   runs nothing. If `--list` shows no test, say so and stop; never widen the selection on your own. `@visual`, `@destructive`, `@quarantine`
+   and `@a11y-sweep` tests are excluded from the device projects (`projectTagFilter` in `scripts/lib/tags.mjs`);
    report them as left out, never as missing.
 2. **Check the environment**: `QA_ENV`, the pack's entry in it (`base_url`, `allow_writes`, the
    variables its `actors` name) and reachability (`.claude/rules/reachability.md`). Never run
@@ -27,7 +37,7 @@ description: >-
 3. **Data gate.** Say what data the selection needs and which cases will skip without it (the
    registry `test_data`, the skip reasons). For a selection that writes, show the environment and
    wait for "go".
-4. **Run**: `npx playwright test <selection>`. Never pass `--reporter`; add a JSON or JUnit report
+4. **Run**: `npx playwright test <selection>`, or the lane's script. Never pass `--reporter`; add a JSON or JUnit report
    with `QA_JSON_REPORT` or `QA_JUNIT_REPORT`. Each pack's `preflight-<pack>` project checks its
    configuration and its host first. Note the run id.
 5. **Report**: `npm run tm:report -- --pack <pack>`. It reuses the run id, lists the results it

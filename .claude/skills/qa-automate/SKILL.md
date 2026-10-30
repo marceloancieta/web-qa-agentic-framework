@@ -51,7 +51,7 @@ writes go to data they create, in an environment whose entry for the pack has `a
    npx playwright test apps/<pack>/specs/<file> --list
    ```
    Every approved case of the file appears once per device project, except the `@visual`,
-   `@destructive` and `@quarantine` ones, which only their lanes select.
+   `@destructive`, `@quarantine` and `@a11y-sweep` ones, which only their lanes select.
 5. **Run** the new specs on every device project of the environment, twice:
    `npx playwright test apps/<pack>/specs/<file> --repeat-each=2`. Each case passes, or fails as an
    armed known gap; a precondition the environment does not meet skips with its reason. Anything

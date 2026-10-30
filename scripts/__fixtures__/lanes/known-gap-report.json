@@ -1,0 +1,102 @@
+{
+  "config": {},
+  "suites": [
+    {
+      "title": "preflight.setup.ts",
+      "file": "preflight.setup.ts",
+      "specs": [
+        {
+          "title": "the application answers",
+          "tags": [],
+          "tests": [
+            {
+              "projectName": "preflight-shop",
+              "expectedStatus": "passed",
+              "status": "expected",
+              "results": [{ "status": "passed" }]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "specs/cart.spec.ts",
+      "file": "specs/cart.spec.ts",
+      "specs": [
+        {
+          "title": "TC-CART-03 a removed item leaves the cart @regression @known-gap",
+          "tags": ["regression", "known-gap"],
+          "tests": [
+            {
+              "projectName": "shop-desktop-chromium",
+              "expectedStatus": "failed",
+              "status": "expected",
+              "results": [{ "status": "failed" }]
+            },
+            {
+              "projectName": "shop-mobile-chrome",
+              "expectedStatus": "failed",
+              "status": "expected",
+              "results": [{ "status": "failed" }]
+            }
+          ]
+        },
+        {
+          "title": "TC-CART-07 the total counts every item @regression @known-gap",
+          "tags": ["regression", "known-gap"],
+          "tests": [
+            {
+              "projectName": "shop-desktop-chromium",
+              "expectedStatus": "failed",
+              "status": "unexpected",
+              "results": [
+                {
+                  "status": "passed",
+                  "errors": [{ "message": "Expected to fail, but passed." }]
+                }
+              ]
+            },
+            {
+              "projectName": "shop-mobile-chrome",
+              "expectedStatus": "failed",
+              "status": "expected",
+              "results": [{ "status": "failed" }]
+            }
+          ]
+        }
+      ],
+      "suites": [
+        {
+          "title": "a slow cart",
+          "file": "specs/cart.spec.ts",
+          "specs": [
+            {
+              "title": "TC-CART-09 the empty state never shows first @regression @perf @known-gap",
+              "tags": ["regression", "perf", "known-gap"],
+              "tests": [
+                {
+                  "projectName": "shop-desktop-chromium",
+                  "expectedStatus": "passed",
+                  "status": "unexpected",
+                  "results": [{ "status": "timedOut" }]
+                }
+              ]
+            },
+            {
+              "title": "TC-CART-10 a mobile-only gap @regression @mobile-only @known-gap",
+              "tags": ["regression", "mobile-only", "known-gap"],
+              "tests": [
+                {
+                  "projectName": "shop-desktop-chromium",
+                  "expectedStatus": "skipped",
+                  "status": "skipped",
+                  "results": []
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

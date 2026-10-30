@@ -24,10 +24,10 @@ test('desktop projects leave out @mobile-only, tablet and mobile ones leave out 
   }
 });
 
-test('a plain run leaves out destructive, quarantined and visual cases, and keeps the rest', () => {
+test('a plain run leaves out destructive, quarantined, visual and sweep tests, and keeps the rest', () => {
   const filter = projectTagFilter('desktop', {});
   assert.equal(filter.grep, undefined);
-  for (const tag of ['@destructive', '@quarantine', '@visual']) {
+  for (const tag of ['@destructive', '@quarantine', '@visual', '@a11y-sweep']) {
     assert.equal(runs(filter, `case ${tag}`), false, tag);
   }
   for (const title of [
@@ -52,6 +52,15 @@ test('the visual lane selects only visual cases', () => {
   assert.equal(runs(filter, 'product card @visual'), true);
   assert.equal(runs(filter, 'product card @visual @destructive'), false);
   assert.equal(runs(filter, 'opens the cart'), false);
+});
+
+test('the a11y lane selects only the sweep, not the @a11y cases', () => {
+  const filter = projectTagFilter('mobile', { QA_A11Y_SWEEP: '1' });
+  assert.equal(runs(filter, 'a11y sweep customer /#/basket @regression @a11y-sweep'), true);
+  assert.equal(runs(filter, 'TC-LOGIN-09 axe on the form @regression @a11y'), false);
+  assert.equal(runs(filter, 'a11y sweep @a11y-sweep @quarantine'), false);
+  assert.equal(runs(filter, 'a11y sweep @a11y-sweep @desktop-only'), false);
+  assert.equal(runs(projectTagFilter('desktop', {}), 'axe on the form @a11y'), true);
 });
 
 test('the flake lane keeps quarantined cases', () => {

@@ -4,6 +4,7 @@ import { spawnSync } from 'node:child_process';
 import { existsSync, mkdirSync, mkdtempSync, readFileSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { dirname, join } from 'node:path';
+import { lintFile as lintHarness } from '../lint-harness.mjs';
 import { lintFile } from '../lint-layers.mjs';
 import {
   configEntry,
@@ -51,6 +52,20 @@ test('the skeleton keeps to the layers and its manifest carries the options', ()
   assert.equal(manifest.login_path, '/login');
   assert.deepEqual(JSON.parse(files['apps/book-store/a11y-known.json']), []);
   assert.match(files['apps/book-store/fixtures.ts'], /cannot sign "\$\{role\}" in yet/);
+});
+
+test('the skeleton sweeps its own app maps, as thin as the worked pack', () => {
+  const files = Object.fromEntries(scaffoldFiles(plan));
+  const sweep = files['apps/book-store/specs/a11y/sweep.spec.ts'];
+  assert.match(sweep, /sweepPlan\('book-store'\)/);
+  assert.match(sweep, /tag: \['@regression', '@a11y-sweep'\]/);
+  assert.match(sweep, /await a11y\.expectNoNewViolations\(page\)/);
+  assert.deepEqual(lintHarness(sweep, 'apps/book-store/specs/a11y/sweep.spec.ts'), []);
+  const worked = readFileSync(
+    join(import.meta.dirname, '..', '..', 'apps', 'juice-shop', 'specs', 'a11y', 'sweep.spec.ts'),
+    'utf8',
+  );
+  assert.equal(sweep.replace("'book-store'", "'juice-shop'"), worked.replace(/\r\n/g, '\n'));
 });
 
 test('the pack skill is the template example with the pack filled in', () => {

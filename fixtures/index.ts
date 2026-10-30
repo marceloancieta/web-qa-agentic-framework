@@ -30,7 +30,9 @@ import {
 import {
   compareWithBaseline,
   loadBaseline,
+  routeOf,
   scan,
+  selectorsFor,
   violationReport,
   type BaselineComparison,
 } from '../helpers/accessibility';
@@ -331,10 +333,11 @@ export function createTest(provider: ActorProvider) {
       const baseline = loadBaseline(baselineFile);
       await use({
         async expectNoNewViolations(page, options = {}) {
-          const { route, violations, results } = await scan(page, {
-            tags: qa.accessibilityTags,
-            ...options,
-          });
+          const { route, violations, results } = await scan(
+            page,
+            { tags: qa.accessibilityTags, ...options },
+            selectorsFor(baseline, routeOf(page.url())),
+          );
           const comparison = compareWithBaseline(violations, baseline, route);
           await attachJson(testInfo, `axe ${route}`, { comparison, results }, redaction);
           const report = violationReport(comparison, baselineFile);

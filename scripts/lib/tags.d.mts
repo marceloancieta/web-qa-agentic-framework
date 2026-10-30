@@ -9,7 +9,9 @@ export const DIMENSION_TAGS: string[];
 export const HANDLING_TAGS: string[];
 export const TAGS: string[];
 export const VISUAL_TAG: string;
+export const A11Y_SWEEP_TAG: string;
 export const MOCKED_TAG: string;
+export const KNOWN_GAP_TAG: string;
 export const QUARANTINE_TAG: string;
 export const DESTRUCTIVE_TAG: string;
 export const DESKTOP_ONLY_TAG: string;
@@ -17,6 +19,7 @@ export const MOBILE_ONLY_TAG: string;
 export const DESTRUCTIVE_LANE_ENV: string;
 export const FLAKE_LANE_ENV: string;
 export const VISUAL_LANE_ENV: string;
+export const A11Y_SWEEP_LANE_ENV: string;
 export function projectTagFilter(
   formFactor: 'desktop' | 'tablet' | 'mobile',
   env?: Record<string, string | undefined>,

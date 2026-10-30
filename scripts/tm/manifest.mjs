@@ -25,6 +25,7 @@ import { REPO_ROOT } from '../lib/cli.mjs';
 import { specCases } from '../lib/corpus.mjs';
 import { createLogger } from '../lib/log.mjs';
 import { loadRegistries } from '../lib/registry.mjs';
+import { A11Y_SWEEP_TAG, KNOWN_GAP_TAG } from '../lib/tags.mjs';
 import { groupRuns, lastAttempts, readResultFiles } from '../lib/results.mjs';
 
 export const MANIFEST_VERSION = 1;
@@ -41,7 +42,7 @@ const label = (result, name) => (result.labels ?? []).find((l) => l.name === nam
  * is removed. Null for a case without the @known-gap tag.
  */
 export function knownGapOutcome(testCase, status) {
-  if (!testCase?.tags?.includes('@known-gap')) return null;
+  if (!testCase?.tags?.includes(KNOWN_GAP_TAG)) return null;
   if (status === 'passed') return { status: 'failed', state: 'open' };
   if (status === 'failed') return { status: 'passed', state: 'closed' };
   return null;
@@ -154,10 +155,16 @@ export function collectResults(resultsDir, cases, packs) {
       ? `${result.testCaseId}@${label(result, 'device') ?? ''}`
       : null,
   );
+  const sweep = (result) =>
+    (result.labels ?? []).some(
+      (l) => l.name === 'tag' && `@${String(l.value).replace(/^@/, '')}` === A11Y_SWEEP_TAG,
+    );
   const excluded = unkeyed.map((result) => ({
     file: result.file,
     name: result.name ?? '(unnamed)',
-    reason: 'no case identity: the title carries no TC id, or the test never started',
+    reason: sweep(result)
+      ? `a test of the accessibility sweep (${A11Y_SWEEP_TAG}), one per route and role, not a designed case`
+      : 'no case identity: the title carries no TC id, or the test never started',
   }));
   const byIdentity = new Map();
   for (const [key, attempt] of byKey) {

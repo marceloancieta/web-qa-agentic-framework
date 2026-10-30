@@ -1,0 +1,79 @@
+[
+  {
+    "rule": "label",
+    "target": "#searchQuery input",
+    "route": "*",
+    "key": "LOCAL-6",
+    "expires": "2027-01-27"
+  },
+  {
+    "rule": "label",
+    "target": "mat-radio-button input",
+    "route": "/#/delivery-method",
+    "key": "LOCAL-9",
+    "expires": "2027-01-27"
+  },
+  {
+    "rule": "label",
+    "target": "#rating input",
+    "route": "/#/contact",
+    "key": "LOCAL-20",
+    "expires": "2027-01-27"
+  },
+  {
+    "rule": "image-alt",
+    "target": "#feedback-gallery img",
+    "route": "/#/about",
+    "key": "LOCAL-21",
+    "expires": "2027-01-27"
+  },
+  {
+    "rule": "scrollable-region-focusable",
+    "target": "#feedback-gallery .g-slider",
+    "route": "/#/about",
+    "key": "LOCAL-21",
+    "expires": "2027-01-27"
+  },
+  {
+    "rule": "link-in-text-block",
+    "target": ".about-us p a",
+    "route": "/#/about",
+    "key": "LOCAL-22",
+    "expires": "2027-01-27"
+  },
+  {
+    "rule": "aria-required-children",
+    "target": "app-purchase-basket mat-header-row",
+    "route": "/#/basket",
+    "key": "LOCAL-23",
+    "expires": "2027-01-27"
+  },
+  {
+    "rule": "aria-required-children",
+    "target": "app-purchase-basket mat-header-row",
+    "route": "/#/order-summary",
+    "key": "LOCAL-23",
+    "expires": "2027-01-27"
+  },
+  {
+    "rule": "color-contrast",
+    "target": "app-purchase-basket h1 small",
+    "route": "/#/basket",
+    "key": "LOCAL-24",
+    "expires": "2027-01-27"
+  },
+  {
+    "rule": "color-contrast",
+    "target": "app-purchase-basket h1 small",
+    "route": "/#/order-summary",
+    "key": "LOCAL-24",
+    "expires": "2027-01-27"
+  },
+  {
+    "rule": "color-contrast",
+    "target": "aside.ribbon span",
+    "route": "*",
+    "key": "LOCAL-25",
+    "expires": "2027-01-27"
+  }
+]

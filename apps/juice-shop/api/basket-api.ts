@@ -36,7 +36,7 @@ export class BasketApi {
       const { error } = (await response.json().catch(() => ({}))) as { error?: string };
       // Every order a run places uses up stock, and nothing gives it back but a restart.
       const hint = /out of stock/i.test(error ?? '')
-        ? ' The shared stock is used up: restore it with the pack recovery (npm run juice-shop:down, then juice-shop:up).'
+        ? ' The shared stock is used up: restore it with the pack recovery (docker compose -f docker/compose.yml restart juice-shop).'
         : '';
       throw new Error(
         `Juice Shop refused product ${productId} for the basket: ${response.status()} ${error ?? ''}.${hint}`,

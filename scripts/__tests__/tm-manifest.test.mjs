@@ -67,6 +67,11 @@ test('results of the latest run attach to cases; retries collapse; the rest is e
       labels: [{ name: 'run', value: 'abc123' }],
     }),
     result({ testCaseId: '5f2b1c0d9e8a7f6b5c4d3e2f1a0b9c8d', name: 'a test without a case id' }),
+    result({
+      testCaseId: '0a1b2c3d4e5f60718293a4b5c6d7e8f9',
+      name: 'customer /#/search',
+      labels: [{ name: 'tag', value: '@a11y-sweep' }],
+    }),
     result({ testCaseId: 'other-v2-TC-ZZZ-01', name: 'TC-ZZZ-01 from another pack' }),
     // A unit test of the core, run later: not a case, and it must not become the latest run.
     result({
@@ -76,7 +81,7 @@ test('results of the latest run attach to cases; retries collapse; the rest is e
     }),
   ]);
   const manifest = buildManifest({ root: ROOT, resultsDir: dir });
-  assert.deepEqual([manifest.runSize, manifest.outside], [5, 1]);
+  assert.deepEqual([manifest.runSize, manifest.outside], [6, 1]);
   assert.deepEqual(
     manifest.results.map((r) => [r.identity, r.status, r.attempts, r.issues, r.run]),
     [
@@ -88,6 +93,10 @@ test('results of the latest run attach to cases; retries collapse; the rest is e
     manifest.excluded.map((e) => [e.name, e.reason.split(':')[0]]),
     [
       ['a test without a case id', 'no case identity'],
+      [
+        'customer /#/search',
+        'a test of the accessibility sweep (@a11y-sweep), one per route and role, not a designed case',
+      ],
       [
         'TC-ZZZ-01 from another pack',
         'identity other-v2-TC-ZZZ-01 matches no case of the selected packs',

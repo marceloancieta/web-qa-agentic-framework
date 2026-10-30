@@ -7,6 +7,7 @@ import {
   loadBaseline,
   routeOf,
   scan,
+  selectorsFor,
   violationReport,
   type FoundViolation,
   type KnownViolation,
@@ -63,6 +64,38 @@ test('the same element on another route is a different violation', () => {
   expect(comparison.new).toHaveLength(1);
 });
 
+test('an entry covers the elements its selector matches, and `*` every route without going', () => {
+  const box = { ...found('label', '.ng-valid', '/#/search'), matches: ['app-search input'] };
+  const image = (n: number) => ({
+    ...found('image-alt', `img:nth-child(${n})`),
+    matches: ['.g-image'],
+  });
+  const comparison = compareWithBaseline(
+    [box, image(1), image(2), found('label', '#other')],
+    [
+      known('label', 'app-search input', '2099-01-01', '*'),
+      known('image-alt', '.g-image'),
+      known('label', 'app-search input', '2026-01-01', '/#/search'),
+    ],
+    '/#/login',
+    '2026-10-24',
+  );
+  expect(comparison.known.map((v) => v.target)).toEqual([
+    '.ng-valid',
+    'img:nth-child(1)',
+    'img:nth-child(2)',
+  ]);
+  expect(comparison.known[0]?.entry.route).toBe('*');
+  expect(comparison.new.map((v) => v.target)).toEqual(['#other']);
+  expect(comparison.gone).toEqual([]);
+  expect(
+    selectorsFor(
+      [known('a', 'x', '2099-01-01', '*'), known('b', 'y'), known('c', 'x')],
+      '/#/login',
+    ),
+  ).toEqual(['x', 'y']);
+});
+
 test('the baseline file: missing is empty, every entry needs every field and a date', () => {
   const dir = mkdtempSync(join(tmpdir(), 'a11y-'));
   expect(loadBaseline(join(dir, 'missing.json'))).toEqual([]);
@@ -86,4 +119,15 @@ test('a scan finds seeded violations and include narrows it', async ({ page }) =
   expect(rules).toEqual(['button-name .icon', 'image-alt img']);
   const good = await scan(page, { tags: ['wcag2a'], include: ['#good'] });
   expect(good.violations).toEqual([]);
+});
+
+test('a scan says which baseline selectors each element matches, and refuses an invalid one', async ({
+  page,
+}) => {
+  await page.setContent(`<!doctype html><html lang="en"><head><title>Seeded</title></head><body><main>
+    <h1>Seeded</h1><section id="bad"><button class="icon"></button></section></main></body></html>`);
+  const { violations } = await scan(page, { tags: ['wcag2a'] }, ['#bad button', 'a', 'main .icon']);
+  expect(violations.map((v) => v.matches)).toEqual([['#bad button', 'main .icon']]);
+  const invalid = scan(page, { tags: ['wcag2a'] }, ['button[']);
+  await expect(invalid).rejects.toThrow('invalid selectors: button[');
 });

@@ -17,6 +17,7 @@ test_data:
   <LONG_EMAIL>: a valid address of 120 characters from the account builder
   <PRODUCT>: Apple Juice (1000ml), price 1.99, limit 5 per customer
   <SOLD_OUT>: the product whose stock is 0 in GET /api/Quantitys/ (today OWASP Juice Shop "King of the Hill" Facemask)
+  <LOW_STOCK_PRODUCT>: the product without a limit per customer that has the least stock above 0 in GET /api/Quantitys/ (changes with each start)
 ---
 
 # Basket cases
@@ -51,6 +52,7 @@ broken by the application today, so their cases run as known gaps (LOCAL-1, LOCA
 | TC-BASKET-21 | the basket table names its columns, its quantity controls are reached and used with the keyboard, and the page has no axe violation beyond the baseline | REQ-BASKET-03 | use-case | medium | @regression @a11y | all | approved | | |
 | TC-BASKET-22 | the title with <LONG_EMAIL> stays inside the page | REQ-BASKET-01 | boundary-value | low | @regression @content | all | approved | | |
 | TC-BASKET-23 | the longest product name of the catalogue stays inside its row | REQ-BASKET-03 | boundary-value | low | @regression @content | all | approved | | |
+| TC-BASKET-24 | once the whole stock of <LOW_STOCK_PRODUCT> is ordered, adding it from the search page says "We are out of stock! Sorry for the inconvenience." and the basket stays empty | REQ-BASKET-05 | state-transition | medium | @regression @destructive | all | automated | specs/basket/sold-out.spec.ts | |
 
 ## Notes
 
@@ -63,7 +65,14 @@ broken by the application today, so their cases run as known gaps (LOCAL-1, LOCA
 - **Data and writes.** Every case that changes a basket uses a customer of its own, so no case sees
   another's items; the basket client in `api/` (to be written in automate) puts products in for
   every case except TC-BASKET-03 and -04, which add through the page. TC-BASKET-11 creates two
-  accounts. Accounts stay until the next container restart. No case is destructive.
+  accounts. Accounts stay until the next container restart.
+- **Destructive.** TC-BASKET-24 orders the whole stock of <LOW_STOCK_PRODUCT> through `api/` with
+  an account of its own, then a second account of its own tries to add it from the search page; the
+  basket is read back through `api/` and the stock of 0 through `GET /api/Quantitys/`. Until a
+  restart the product is sold out for every other case and person, so it is `@destructive`: its own
+  spec file, only the destructive lane selects it, and the pack's `recovery` (a container restart,
+  which gives the stock back) runs after the lane. TC-BASKET-07 covers a product that starts at 0;
+  this case covers the change from in stock to sold out.
 - **Results checked through the API.** TC-BASKET-03, -06 and -09 read the basket back through
   `api/` (`GET /rest/basket/<bid>`), not only the notification.
 - **Known gaps.** TC-BASKET-11 (LOCAL-1, S1) and TC-BASKET-12 (LOCAL-3, S3) arm `knownGap` right

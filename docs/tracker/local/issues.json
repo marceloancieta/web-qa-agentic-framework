@@ -1,5 +1,5 @@
 {
-  "next": 20,
+  "next": 26,
   "issues": {
     "LOCAL-1": {
       "title": "Basket: a customer can read another customer's basket by its id",
@@ -210,6 +210,72 @@
       "labels": [
         "ui",
         "type:unconfirmed-finding"
+      ],
+      "status": "open",
+      "category": "open",
+      "comments": []
+    },
+    "LOCAL-20": {
+      "title": "Contact: the feedback form's rating slider has no accessible name",
+      "body": "**What happens:** the star rating of the feedback form on `<base_url>/#/contact` is a slider whose input has no accessible name (axe `label`), so a screen reader announces an unnamed slider.\n\n**What should happen:** the slider is named after what it rates, such as \"Rating\" (WCAG 2.1 SC 4.1.2 and 1.3.1, level A).\n\n**Seen:** 2026-10-29, the a11y sweep (`npm run lanes:a11y`, axe with wcag2a, wcag2aa, wcag21aa) on desktop Chromium and mobile Chrome, Juice Shop 20.3.0 (local container); the same in two consecutive runs. The axe result is attached to each sweep test of the route.\n\n**Severity proposal:** S3: the form can still be sent, but screen reader users do not know what the slider sets.\n\n**Cases:** the a11y sweep's baseline (`apps/juice-shop/a11y-known.json`) cites this key.\n",
+      "labels": [
+        "ui",
+        "severity:S3"
+      ],
+      "status": "open",
+      "category": "open",
+      "comments": []
+    },
+    "LOCAL-21": {
+      "title": "About Us: the feedback carousel's images have no alternative text and the carousel cannot be reached with the keyboard",
+      "body": "**What happens:** on `<base_url>/#/about` the customer feedback carousel shows images with no alternative text (axe `image-alt`, every slide: 4 on desktop, 8 on mobile), and its scrolling region cannot be reached with the keyboard (axe `scrollable-region-focusable`).\n\n**What should happen:** each image has an alternative text with what it shows, or is marked decorative when the slide's text says it all, and the carousel can be reached and moved with the keyboard (WCAG 2.1 SC 1.1.1 and 2.1.1, level A).\n\n**Seen:** 2026-10-29, the a11y sweep (`npm run lanes:a11y`, axe with wcag2a, wcag2aa, wcag21aa) on desktop Chromium and mobile Chrome, Juice Shop 20.3.0 (local container); the same in two consecutive runs. The axe result is attached to each sweep test of the route.\n\n**Severity proposal:** S2: the carousel's content is lost to screen reader users and out of reach for keyboard users.\n\n**Cases:** the a11y sweep's baseline (`apps/juice-shop/a11y-known.json`) cites this key for both rules.\n",
+      "labels": [
+        "ui",
+        "severity:S2"
+      ],
+      "status": "open",
+      "category": "open",
+      "comments": []
+    },
+    "LOCAL-22": {
+      "title": "About Us: a link in the text is told apart by colour alone",
+      "body": "**What happens:** on `<base_url>/#/about` a link inside the paragraph text (the one to `legal.md`) is told apart from the text around it by colour alone (axe `link-in-text-block`, desktop).\n\n**What should happen:** the link has a mark besides colour, such as an underline, or enough contrast with the text around it (WCAG 2.1 SC 1.4.1, level A).\n\n**Seen:** 2026-10-29, the a11y sweep (`npm run lanes:a11y`, axe with wcag2a, wcag2aa, wcag21aa) on desktop Chromium and mobile Chrome, Juice Shop 20.3.0 (local container); the same in two consecutive runs. The axe result is attached to each sweep test of the route.\n\n**Severity proposal:** S3: users who do not see the colour difference can miss the link; it is still reachable with the keyboard.\n\n**Cases:** the a11y sweep's baseline (`apps/juice-shop/a11y-known.json`) cites this key.\n",
+      "labels": [
+        "ui",
+        "severity:S3"
+      ],
+      "status": "open",
+      "category": "open",
+      "comments": []
+    },
+    "LOCAL-23": {
+      "title": "Basket and order summary: the products table's header row has no column headers",
+      "body": "**What happens:** the products table of `<base_url>/#/basket` and `<base_url>/#/order-summary` has a header row whose children are not the column headers the row role requires (axe `aria-required-children` on `mat-header-row`), so a screen reader cannot pair the cells with their columns reliably.\n\n**What should happen:** the header row holds column headers, as a table's header row must (WCAG 2.1 SC 1.3.1 and 4.1.2, level A).\n\n**Seen:** 2026-10-29, the a11y sweep (`npm run lanes:a11y`, axe with wcag2a, wcag2aa, wcag21aa) on desktop Chromium and mobile Chrome, Juice Shop 20.3.0 (local container); the same in two consecutive runs. The axe result is attached to each sweep test of the route.\n\n**Severity proposal:** S3: the rows still read in order; only the column relation is lost.\n\n**Cases:** the a11y sweep's baseline (`apps/juice-shop/a11y-known.json`) cites this key; TC-BASKET-21 compares against the same baseline.\n",
+      "labels": [
+        "ui",
+        "severity:S3"
+      ],
+      "status": "open",
+      "category": "open",
+      "comments": []
+    },
+    "LOCAL-24": {
+      "title": "Basket and order summary: the email in the title has too little contrast",
+      "body": "**What happens:** the email in the basket's title, \"Your Basket (`<EMAIL>`)\", on `<base_url>/#/basket` and `<base_url>/#/order-summary`, has a contrast ratio below 4.5:1 against its background (axe `color-contrast`).\n\n**What should happen:** text of that size has a contrast of at least 4.5:1 (WCAG 2.1 SC 1.4.3, level AA).\n\n**Seen:** 2026-10-29, the a11y sweep (`npm run lanes:a11y`, axe with wcag2a, wcag2aa, wcag21aa) on desktop Chromium and mobile Chrome, Juice Shop 20.3.0 (local container); the same in two consecutive runs. The axe result is attached to each sweep test of the route.\n\n**Severity proposal:** S3: the email is hard to read for users with low vision; it is also in the account menu.\n\n**Cases:** the a11y sweep's baseline (`apps/juice-shop/a11y-known.json`) cites this key.\n",
+      "labels": [
+        "ui",
+        "severity:S3"
+      ],
+      "status": "open",
+      "category": "open",
+      "comments": []
+    },
+    "LOCAL-25": {
+      "title": "Search: the stock ribbon of a product card has too little contrast",
+      "body": "**What happens:** the stock ribbon of a product card (\"Only `<n>` left\"), on `<base_url>/#/` and `<base_url>/#/search`, has a contrast ratio below 4.5:1 (axe `color-contrast`, desktop). The ribbon shows only for products with little stock, which changes with each start of the shop.\n\n**What should happen:** the ribbon's text has a contrast of at least 4.5:1 (WCAG 2.1 SC 1.4.3, level AA).\n\n**Seen:** 2026-10-29, the a11y sweep (`npm run lanes:a11y`, axe with wcag2a, wcag2aa, wcag21aa) on desktop Chromium and mobile Chrome, Juice Shop 20.3.0 (local container); the same in two consecutive runs. The axe result is attached to each sweep test of the route.\n\n**Severity proposal:** S3: the stock warning is hard to read for users with low vision; adding to the basket still works.\n\n**Cases:** the a11y sweep's baseline (`apps/juice-shop/a11y-known.json`) cites this key for every route.\n",
+      "labels": [
+        "ui",
+        "severity:S3"
       ],
       "status": "open",
       "category": "open",

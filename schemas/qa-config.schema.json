@@ -394,7 +394,7 @@
           "default": false
         },
         "recovery": {
-          "description": "How the destructive lane brings the application back after each @destructive case: a shell command (for a local container, a restart) and how long to wait for it to answer again.",
+          "description": "How the destructive lane brings the application back after its run of the @destructive cases, whether the run passed or not: a shell command, run from the repository root (for a local container, a restart), and how long to wait for the base URL to answer again (scripts/lanes.mjs).",
           "type": "object",
           "additionalProperties": false,
           "required": ["command"],

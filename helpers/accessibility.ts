@@ -1,10 +1,15 @@
 // Accessibility checks on axe, against a per-pack baseline of known violations
-// (`apps/<pack>/a11y-known.json`). A violation is identified by its rule, the element's target
-// selector and the route it was seen on. Each one is:
+// (`apps/<pack>/a11y-known.json`). A violation is identified by its rule, the element and the
+// route it was seen on. An entry names the element with a CSS selector the element matches, chosen
+// to stay stable: axe's own target is the shortest unique selector of the moment, and on a
+// framework's page it changes with the route, the form's state or the build (`.ng-valid`,
+// `#mat-radio-43-input`). One entry can cover several elements, and route `*` covers a part of the
+// page every route shows. Each violation is:
 //   new      not in the baseline, or in it with an expiry that has passed: the check fails
 //   known    in the baseline and not expired: reported, does not fail
 // and a baseline entry for the scanned route that the scan no longer finds is reported as gone,
-// so it can leave the baseline.
+// so it can leave the baseline. An entry for every route (`*`) is never reported gone: a route
+// without that part of the page says nothing about the others.
 
 import { readFileSync } from 'node:fs';
 import AxeBuilder from '@axe-core/playwright';
@@ -12,9 +17,12 @@ import type { Page } from '@playwright/test';
 
 export interface KnownViolation {
   rule: string;
-  /** The element, as axe reports its target (selectors joined with " > " across frames). */
+  /**
+   * A CSS selector the element matches, or axe's target exactly as it reported it (selectors
+   * joined with " > " across frames).
+   */
   target: string;
-  /** The route the violation is on, a path such as `/#/login`. */
+  /** The route the violation is on, a path such as `/#/login`, or `*` for every route. */
   route: string;
   /** The tracker issue that follows it. */
   key: string;
@@ -28,6 +36,8 @@ export interface FoundViolation {
   target: string;
   route: string;
   help: string;
+  /** The baseline selectors the element matches, as `scan` measured them on the page. */
+  matches?: string[];
 }
 
 export interface BaselineComparison {
@@ -81,23 +91,36 @@ export function compareWithBaseline(
   route: string,
   today = new Date().toISOString().slice(0, 10),
 ): BaselineComparison {
-  const key = (v: { rule: string; target: string; route: string }) =>
-    `${v.rule}|${v.target}|${v.route}`;
-  const entries = new Map(baseline.map((entry) => [key(entry), entry]));
+  const covers = (entry: KnownViolation, violation: FoundViolation) =>
+    entry.rule === violation.rule &&
+    (entry.route === '*' || entry.route === violation.route) &&
+    (entry.target === violation.target || (violation.matches ?? []).includes(entry.target));
   const result: BaselineComparison = { new: [], known: [], gone: [] };
+  const used = new Set<KnownViolation>();
   for (const violation of found) {
-    const entry = entries.get(key(violation));
-    if (!entry) result.new.push(violation);
-    else if (entry.expires < today) result.new.push({ ...violation, expired: entry });
-    else result.known.push({ ...violation, entry });
+    const entries = baseline.filter((entry) => covers(entry, violation));
+    entries.forEach((entry) => used.add(entry));
+    const entry = entries.find((e) => e.expires >= today);
+    if (entry) result.known.push({ ...violation, entry });
+    else if (entries[0]) result.new.push({ ...violation, expired: entries[0] });
+    else result.new.push(violation);
   }
-  const seen = new Set(found.map(key));
-  result.gone = baseline.filter((entry) => entry.route === route && !seen.has(key(entry)));
+  result.gone = baseline.filter((entry) => entry.route === route && !used.has(entry));
   return result;
 }
 
-/** Run axe on the page and return its violations, one per element, plus the raw results. */
-export async function scan(page: Page, options: ScanOptions) {
+/** The selectors of the baseline entries that can apply on a route. */
+export function selectorsFor(baseline: readonly KnownViolation[], route: string): string[] {
+  return [
+    ...new Set(baseline.filter((e) => e.route === '*' || e.route === route).map((e) => e.target)),
+  ];
+}
+
+/**
+ * Run axe on the page and return its violations, one per element, plus the raw results. Each
+ * violation lists which of `selectors` (the baseline's, `selectorsFor`) its element matches.
+ */
+export async function scan(page: Page, options: ScanOptions, selectors: readonly string[] = []) {
   let builder = new AxeBuilder({ page }).withTags([...options.tags]);
   for (const selector of options.include ?? []) builder = builder.include(selector);
   for (const selector of options.exclude ?? []) builder = builder.exclude(selector);
@@ -114,6 +137,37 @@ export async function scan(page: Page, options: ScanOptions) {
       help: violation.help,
     })),
   );
+  if (selectors.length > 0) {
+    // Only an element of the page itself can be matched; one inside a frame keeps its axe target.
+    const targets = results.violations.flatMap((v) =>
+      v.nodes.map((node) => (node.target.length === 1 ? String(node.target[0]) : null)),
+    );
+    const matched = await page.evaluate(
+      ({ targets, selectors }) => {
+        const invalid = selectors.filter((selector) => {
+          try {
+            document.querySelector(selector);
+            return false;
+          } catch {
+            return true;
+          }
+        });
+        if (invalid.length > 0) return { invalid, matches: [] };
+        const matches = targets.map((target) => {
+          const element = target === null ? null : document.querySelector(target);
+          return element ? selectors.filter((selector) => element.matches(selector)) : [];
+        });
+        return { invalid, matches };
+      },
+      { targets, selectors: [...selectors] },
+    );
+    if (matched.invalid.length > 0) {
+      throw new Error(`The a11y baseline has invalid selectors: ${matched.invalid.join(', ')}.`);
+    }
+    violations.forEach((violation, index) => {
+      violation.matches = matched.matches[index] ?? [];
+    });
+  }
   return { route, violations, results };
 }
 
