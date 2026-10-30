@@ -31,28 +31,28 @@ broken by the application today, so their cases run as known gaps (LOCAL-1, LOCA
 |---|---|---|---|---|---|---|---|---|---|
 | TC-BASKET-01 | a customer's basket page is titled "Your Basket (<EMAIL>)" and shows the basket the session names | REQ-BASKET-01 | use-case | high | @sanity | all | approved | | |
 | TC-BASKET-02 | an empty basket shows no rows, "Total Price: 0¤", a disabled Checkout and 0 bonus points | REQ-BASKET-02 | state-transition | medium | @regression @navigation | all | approved | | |
-| TC-BASKET-03 | adding <PRODUCT> from the search page says "Placed <PRODUCT> into basket.", the basket button shows 1 and the basket lists it with quantity 1 | REQ-BASKET-03 | use-case | high | @smoke | all | automated | specs/basket/basket.spec.ts | |
+| TC-BASKET-03 | adding <PRODUCT> from the search page says "Placed <PRODUCT> into basket.", the basket button shows 1 and the basket lists it with quantity 1 | REQ-BASKET-03 | use-case | high | @smoke | all | published | specs/basket/basket.spec.ts | |
 | TC-BASKET-04 | adding <PRODUCT> a second time says "Added another <PRODUCT> to basket." and its quantity becomes 2 | REQ-BASKET-03 | state-transition | medium | @regression | all | approved | | |
-| TC-BASKET-05 | with two products in different quantities, the total is the sum of each price times its quantity | REQ-BASKET-04 | equivalence-partition | high | @regression | all | automated | specs/basket/basket.spec.ts | |
-| TC-BASKET-06 | <PRODUCT> goes up to 5 in the basket; a sixth says "You can order only up to 5 items of this product." and the quantity stays 5 | REQ-BASKET-05 | boundary-value | medium | @regression | all | automated | specs/basket/basket.spec.ts | |
+| TC-BASKET-05 | with two products in different quantities, the total is the sum of each price times its quantity | REQ-BASKET-04 | equivalence-partition | high | @regression | all | published | specs/basket/basket.spec.ts | |
+| TC-BASKET-06 | <PRODUCT> goes up to 5 in the basket; a sixth says "You can order only up to 5 items of this product." and the quantity stays 5 | REQ-BASKET-05 | boundary-value | medium | @regression | all | published | specs/basket/basket.spec.ts | |
 | TC-BASKET-07 | adding <SOLD_OUT> says "We are out of stock! Sorry for the inconvenience." and the basket stays as it was | REQ-BASKET-05 | equivalence-partition | medium | @regression | all | approved | | |
 | TC-BASKET-08 | the basket button's count follows the basket: 0 when empty, then the number of items | REQ-BASKET-06 | state-transition | medium | @regression @responsive | all | approved | | |
-| TC-BASKET-09 | removing the last product returns the basket to its empty state | REQ-BASKET-07 | state-transition | medium | @regression | all | automated | specs/basket/basket.spec.ts | |
+| TC-BASKET-09 | removing the last product returns the basket to its empty state | REQ-BASKET-07 | state-transition | medium | @regression | all | published | specs/basket/basket.spec.ts | |
 | TC-BASKET-10 | Checkout is enabled once the basket holds a product | REQ-BASKET-08 | state-transition | medium | @regression @navigation | all | approved | | |
-| TC-BASKET-11 | a second customer who asks for the first one's basket id is refused by the API, and the page shows none of the first one's products | REQ-BASKET-09 | error-guessing | high | @regression @security @known-gap | all | automated | specs/basket/basket.spec.ts | LOCAL-1 |
-| TC-BASKET-12 | without a session, /#/basket opens the login and shows no basket | REQ-BASKET-10 | state-transition | high | @regression @security @known-gap | all | automated | specs/basket/basket.spec.ts | LOCAL-3 |
+| TC-BASKET-11 | a second customer who asks for the first one's basket id is refused by the API, and the page shows none of the first one's products | REQ-BASKET-09 | error-guessing | high | @regression @security @known-gap | all | published | specs/basket/basket.spec.ts | LOCAL-1 |
+| TC-BASKET-12 | without a session, /#/basket opens the login and shows no basket | REQ-BASKET-10 | state-transition | high | @regression @security @known-gap | all | published | specs/basket/basket.spec.ts | LOCAL-3 |
 | TC-BASKET-13 | a basket with a product keeps it after a reload, and after leaving the page and going Back | REQ-BASKET-11 | state-transition | medium | @regression @navigation | all | approved | | |
 | TC-BASKET-14 | the basket button opens /#/basket from the search page and from the about page | REQ-BASKET-11 | use-case | low | @regression @navigation | all | approved | | |
 | TC-BASKET-15 | neither the basket id nor the email appears in the URL of the basket page | REQ-BASKET-01 | error-guessing | medium | @regression @security | all | approved | | |
 | TC-BASKET-16 | a basket with products has no horizontal scroll, and every row shows its name, quantity and price | REQ-BASKET-04 | boundary-value | medium | @regression @responsive | all | approved | | |
-| TC-BASKET-17 | a slow basket answer never shows the empty state before the products arrive | REQ-BASKET-01 | error-guessing | medium | @regression @perf @known-gap | all | automated | specs/basket/basket.spec.ts | LOCAL-13 |
-| TC-BASKET-18 | a failed basket answer is not shown as an empty basket | REQ-BASKET-02 | error-guessing | low | @regression @mocked @known-gap | all | automated | specs/basket/basket.spec.ts | LOCAL-17 |
+| TC-BASKET-17 | a slow basket answer never shows the empty state before the products arrive | REQ-BASKET-01 | error-guessing | medium | @regression @perf @known-gap | all | published | specs/basket/basket.spec.ts | LOCAL-13 |
+| TC-BASKET-18 | a failed basket answer is not shown as an empty basket | REQ-BASKET-02 | error-guessing | low | @regression @mocked @known-gap | all | published | specs/basket/basket.spec.ts | LOCAL-17 |
 | TC-BASKET-19 | every product image of the basket loads | REQ-BASKET-03 | use-case | low | @regression @layout | all | approved | | |
-| TC-BASKET-20 | a basket with products looks as designed | REQ-BASKET-03 | use-case | low | @regression @visual @layout | all | automated | specs/visual/basket.spec.ts | |
+| TC-BASKET-20 | a basket with products looks as designed | REQ-BASKET-03 | use-case | low | @regression @visual @layout | all | published | specs/visual/basket.spec.ts | |
 | TC-BASKET-21 | the basket table names its columns, its quantity controls are reached and used with the keyboard, and the page has no axe violation beyond the baseline | REQ-BASKET-03 | use-case | medium | @regression @a11y | all | approved | | |
 | TC-BASKET-22 | the title with <LONG_EMAIL> stays inside the page | REQ-BASKET-01 | boundary-value | low | @regression @content | all | approved | | |
 | TC-BASKET-23 | the longest product name of the catalogue stays inside its row | REQ-BASKET-03 | boundary-value | low | @regression @content | all | approved | | |
-| TC-BASKET-24 | once the whole stock of <LOW_STOCK_PRODUCT> is ordered, adding it from the search page says "We are out of stock! Sorry for the inconvenience." and the basket stays empty | REQ-BASKET-05 | state-transition | medium | @regression @destructive | all | automated | specs/basket/sold-out.spec.ts | |
+| TC-BASKET-24 | once the whole stock of <LOW_STOCK_PRODUCT> is ordered, adding it from the search page says "We are out of stock! Sorry for the inconvenience." and the basket stays empty | REQ-BASKET-05 | state-transition | medium | @regression @destructive | all | published | specs/basket/sold-out.spec.ts | |
 
 ## Notes
 

@@ -29,7 +29,6 @@ regression in a container, network mocking and state injection, proven on Juice 
 | JS-06 | W8 | Juice Shop phases 2 to 4 for a representative sample. | plan | in-progress |
 | JS-07 | W8 | Juice Shop checkout: intake (address, delivery, payment, summary, completion, history), design, and the purchase journey from the login form to the order in the history. | plan | in-progress |
 | PROC-05 | W8 | End-to-end journeys as a capability of their own: a journey registry per pack whose rules chain the rules of several features, the `@e2e` tag the lanes and CI select, and the generation rules for a journey (every step through the UI, flows, the end checked through `api/`, few journeys). | plan | in-progress |
-| GATE-08 | W8 | Lanes: visual, a11y sweep over the app map, mocked, known-gap, destructive, flake. | plan | todo |
 | CI-01 | W8 | Project matrix with `--shard` and the `blob` reporter, `merge-reports`, quality gate, report to test management. | plan | todo |
 | CI-02 | W8 | GitHub Actions workflow and a Jenkinsfile that only call the npm scripts. | plan | todo |
 | SD-01 | W9 | SauceDemo pack, read-only: cookie and `localStorage` injection, `visual_user` proves the visual lane fails, `performance_glitch_user` for anti-flake, `locked_out_user`. | plan | todo |
@@ -117,3 +116,4 @@ regression in a container, network mocking and state injection, proven on Juice 
 | AGT-03 | `behaviour-investigator`: one requirement against the observed UI, read-only. | `f6b9e06` |
 | CORE-17 | `actor(role, { fresh: true })`: an account created for one test, for a case that changes what its account holds, never written over the worker's shared state; `helpers/storage.ts` reads what a page keeps in the browser; `helpers/watch.ts` catches what shows and closes by itself. | `31fbfed` |
 | CORE-18 | The run's secrets removed from Playwright's own artifacts (the failure context, traces, the HTML report and the Allure results): workers remember what they learn, and the last reporter redacts every artifact, archives included; each run keeps and forgets its own secrets. | `3775015`, `7af7642` |
+| GATE-08 | Lanes: visual, a11y sweep over the app maps per role, mocked, known-gap (with its summary), destructive (one worker, then each pack's recovery) and flake (repetitions without retries), through `scripts/lanes.mjs`. | `d34c717`, `4448890` |

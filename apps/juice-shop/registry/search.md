@@ -30,20 +30,20 @@ catalogue the application ships with.
 | ID | Title | Requirement | Technique | Priority | Tags | Devices | Status | Spec | Defect |
 |---|---|---|---|---|---|---|---|---|---|
 | TC-SEARCH-01 | without a term, the page lists "All Products", 15 cards and "1 – 15 of <total>" | REQ-SEARCH-01 | use-case | high | @sanity | all | approved | | |
-| TC-SEARCH-02 | <TERM> keeps exactly the products whose name contains it, under "Search Results - <TERM>" | REQ-SEARCH-02 | equivalence-partition | high | @smoke | all | automated | specs/search/search.spec.ts | |
+| TC-SEARCH-02 | <TERM> keeps exactly the products whose name contains it, under "Search Results - <TERM>" | REQ-SEARCH-02 | equivalence-partition | high | @smoke | all | published | specs/search/search.spec.ts | |
 | TC-SEARCH-03 | the term matches whatever its case: apple and APPLE give the same products | REQ-SEARCH-02 | equivalence-partition | medium | @regression | all | approved | | |
-| TC-SEARCH-04 | <NO_MATCH> shows "No results found", the hint to adjust the search and "0 of 0" | REQ-SEARCH-03 | equivalence-partition | medium | @regression | all | automated | specs/search/search.spec.ts | |
-| TC-SEARCH-05 | <MARKUP> shows in the title as the characters typed, and the page creates no element from it | REQ-SEARCH-04 | error-guessing | high | @regression @security @known-gap | all | automated | specs/search/search.spec.ts | LOCAL-2 |
+| TC-SEARCH-04 | <NO_MATCH> shows "No results found", the hint to adjust the search and "0 of 0" | REQ-SEARCH-03 | equivalence-partition | medium | @regression | all | published | specs/search/search.spec.ts | |
+| TC-SEARCH-05 | <MARKUP> shows in the title as the characters typed, and the page creates no element from it | REQ-SEARCH-04 | error-guessing | high | @regression @security @known-gap | all | published | specs/search/search.spec.ts | LOCAL-2 |
 | TC-SEARCH-06 | each page size, 15, 30, 45 and 60, shows that many cards and the matching range | REQ-SEARCH-05 | equivalence-partition | medium | @regression | all | approved | | |
-| TC-SEARCH-07 | Previous is disabled on the first page and Next on the last; each moves one page and its range | REQ-SEARCH-05 | boundary-value | medium | @regression @navigation | all | automated | specs/search/search.spec.ts | |
+| TC-SEARCH-07 | Previous is disabled on the first page and Next on the last; each moves one page and its range | REQ-SEARCH-05 | boundary-value | medium | @regression @navigation | all | published | specs/search/search.spec.ts | |
 | TC-SEARCH-08 | the deep link /#/search?q=<TERM> shows its results, and a reload keeps them | REQ-SEARCH-06 | state-transition | medium | @regression @navigation | all | approved | | |
 | TC-SEARCH-09 | Back and Forward between two searches show each term's results again | REQ-SEARCH-06 | state-transition | low | @regression @navigation | all | approved | | |
-| TC-SEARCH-10 | "Open search" shows the box, and <TERM> sent from it opens /#/search?q=<TERM> with its results | REQ-SEARCH-07 | use-case | high | @regression | all | automated | specs/search/search.spec.ts | |
+| TC-SEARCH-10 | "Open search" shows the box, and <TERM> sent from it opens /#/search?q=<TERM> with its results | REQ-SEARCH-07 | use-case | high | @regression | all | published | specs/search/search.spec.ts | |
 | TC-SEARCH-11 | each card shows the product's image named after the product, its name, its price and "Add to Basket" | REQ-SEARCH-08 | use-case | medium | @regression | all | approved | | |
 | TC-SEARCH-12 | every product image of the first page loads | REQ-SEARCH-08 | use-case | low | @regression @layout | all | approved | | |
-| TC-SEARCH-13 | the first page of all products looks as designed | REQ-SEARCH-01 | use-case | low | @regression @visual @layout | all | automated | specs/visual/search.spec.ts | |
-| TC-SEARCH-14 | while a slow answer is pending the page says "Searching for products", and "No results found" never shows before the products | REQ-SEARCH-09 | error-guessing | medium | @regression @perf @known-gap | all | automated | specs/search/search.spec.ts | LOCAL-18 |
-| TC-SEARCH-15 | a failed product answer is not shown as "No results found" | REQ-SEARCH-03 | error-guessing | low | @regression @mocked | all | automated | specs/search/search.spec.ts | |
+| TC-SEARCH-13 | the first page of all products looks as designed | REQ-SEARCH-01 | use-case | low | @regression @visual @layout | all | published | specs/visual/search.spec.ts | |
+| TC-SEARCH-14 | while a slow answer is pending the page says "Searching for products", and "No results found" never shows before the products | REQ-SEARCH-09 | error-guessing | medium | @regression @perf @known-gap | all | published | specs/search/search.spec.ts | LOCAL-18 |
+| TC-SEARCH-15 | a failed product answer is not shown as "No results found" | REQ-SEARCH-03 | error-guessing | low | @regression @mocked | all | published | specs/search/search.spec.ts | |
 | TC-SEARCH-16 | an empty catalogue shows "No results found" and "0 of 0" | REQ-SEARCH-03 | error-guessing | low | @regression @mocked | all | approved | | |
 | TC-SEARCH-17 | the search page has no horizontal scroll, and the cards fit the width | REQ-SEARCH-10 | boundary-value | medium | @regression @responsive | all | approved | | |
 | TC-SEARCH-18 | <LONG_TERM> stays inside the title | REQ-SEARCH-10 | boundary-value | low | @regression @content | all | approved | | |
@@ -51,7 +51,7 @@ catalogue the application ships with.
 | TC-SEARCH-20 | the page has no axe violation beyond the baseline, its images are named, and the paginator works with the keyboard | REQ-SEARCH-05 | use-case | medium | @regression @a11y | all | approved | | |
 | TC-SEARCH-21 | nothing beyond the term appears in the URL of a search | REQ-SEARCH-06 | error-guessing | low | @regression @security | all | approved | | |
 | TC-SEARCH-22 | the title of the list, "All Products" or "Search Results - <TERM>", is a heading a screen reader can reach | REQ-SEARCH-01 | use-case | medium | @regression @a11y @known-gap | all | approved | | LOCAL-5 |
-| TC-SEARCH-23 | the toolbar's search box, once open, has an accessible name | REQ-SEARCH-07 | use-case | medium | @regression @a11y @known-gap | all | automated | specs/search/search.spec.ts | LOCAL-6 |
+| TC-SEARCH-23 | the toolbar's search box, once open, has an accessible name | REQ-SEARCH-07 | use-case | medium | @regression @a11y @known-gap | all | published | specs/search/search.spec.ts | LOCAL-6 |
 | TC-SEARCH-24 | a signed-in customer gets the same products for <TERM> as a visitor | REQ-SEARCH-02 | equivalence-partition | low | @regression | all | approved | | |
 
 ## Notes
