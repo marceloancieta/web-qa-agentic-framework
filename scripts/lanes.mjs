@@ -16,8 +16,9 @@
  * options pass through (`--project=juice-shop-*`, a spec file, a `--grep` that narrows the lane's
  * tag). Refused: `--reporter`, which replaces the configured reporters (add a report through
  * QA_JSON_REPORT); `--update-snapshots`, since baselines are design; an option the lane sets itself.
- * The known-gap and flake lanes read Playwright's JSON report, $QA_JSON_REPORT or
- * reports/lanes/<lane>.json.
+ * Each lane writes Playwright's JSON report to $QA_JSON_REPORT or reports/lanes/<lane>.json, never
+ * over the suite's reports/playwright.json; the quality gate takes it as one more `--report`, and
+ * the known-gap and flake lanes read it for their summary.
  *
  * The destructive lane refuses a selected pack whose entry in the active environment has no
  * `recovery`. After the run, passed or not, it runs the recovery of every selected pack and waits
@@ -369,10 +370,10 @@ export async function runLane(plan, io) {
     io.root ?? REPO_ROOT,
     env.QA_JSON_REPORT || join('reports', 'lanes', `${plan.name}.json`),
   );
-  if (plan.summary) {
-    env.QA_JSON_REPORT = report;
-    io.remove(report);
-  }
+  // Every lane writes its own JSON report, so it never replaces the suite's, and the quality gate
+  // can read the lanes of one run beside it.
+  env.QA_JSON_REPORT = report;
+  io.remove(report);
   io.out.log(`lanes: ${plan.name}: ${listed.length} test(s) selected.`);
   let code = 1;
   try {

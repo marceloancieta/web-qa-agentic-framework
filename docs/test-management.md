@@ -6,7 +6,8 @@ The decisions behind it are in [ADR 0010](adr/0010-test-management-and-trackers.
 ## The flow
 
 ```sh
-QA_JSON_REPORT=reports/playwright.json npx playwright test --project='juice-shop-*'
+export QA_RUN_ID=<run id>        # one id for the run, its lanes, its report and its gate
+npx playwright test --project='juice-shop-*'
 npm run tm:publish               # definitions of automated and published cases, read back
 npm run tm:report                # the latest run, attributed to cases, read back
 npm run tm:publish -- --case TC-LOGIN-03   # repair one case without touching the rest

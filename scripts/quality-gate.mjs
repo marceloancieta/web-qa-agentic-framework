@@ -10,10 +10,14 @@
  *                  `axe <route>` attachments the a11y fixture writes.
  *   visual         failed @visual cases.
  *
- *   node scripts/quality-gate.mjs [--report <playwright.json>] [--summary <file.md>] [--root <dir>]
+ *   node scripts/quality-gate.mjs [--report <playwright.json>]... [--results <allure-results>]
+ *                                 [--summary <file.md>] [--root <dir>]
  *
- * The report defaults to $QA_JSON_REPORT, then reports/playwright.json. Exit codes: 0 PASS or
- * REVIEW; 1 FAIL or no report; 2 usage error.
+ * The report defaults to $QA_JSON_REPORT, then reports/playwright.json, which every suite run
+ * writes. Several `--report`s are read as one run: in CI, the sharded matrix merged by
+ * `npm run ci:merge` and the reports of the lanes, all with one QA_RUN_ID. A report is refused when
+ * it is not of the latest run (`staleReasons`). Exit codes: 0 PASS or REVIEW; 1 FAIL, no report or
+ * a refused report; 2 usage error.
  */
 
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
@@ -22,6 +26,7 @@ import { pathToFileURL } from 'node:url';
 import { parseArgs } from 'node:util';
 import { REPO_ROOT } from './lib/cli.mjs';
 import { readConfig } from './lib/qa-config.mjs';
+import { readResultFiles } from './lib/results.mjs';
 import { VISUAL_TAG } from './lib/tags.mjs';
 
 const IMPACTS = ['critical', 'serious', 'moderate', 'minor'];
@@ -87,6 +92,49 @@ function bandAbove(counts, { fail_above: fail = {}, review_above: review = {} })
     Object.entries(limits).some(([key, limit]) => (counts[key] ?? 0) > limit);
   if (over(fail)) return 'FAIL';
   return over(review) ? 'REVIEW' : 'PASS';
+}
+
+/** The run a report describes: the run id the configuration recorded, and when the run ended. */
+export function reportRun(report) {
+  const start = Date.parse(report.stats?.startTime ?? '');
+  return {
+    runId: report.config?.metadata?.runId ?? null,
+    end: Number.isNaN(start) ? null : start + (report.stats?.duration ?? 0),
+  };
+}
+
+/**
+ * Why the reports do not describe the latest run, or [] when they do: they come from different
+ * runs, from a run other than `expectedRunId`, or a pack result started after every report ended,
+ * so a later run exists whose report was not passed.
+ */
+export function staleReasons(reports, { expectedRunId, newestResultStart } = {}) {
+  const runs = reports.map(reportRun);
+  const ids = [...new Set(runs.map((r) => r.runId).filter(Boolean))];
+  const reasons = [];
+  if (ids.length > 1) reasons.push(`the reports come from different runs: ${ids.join(', ')}`);
+  if (expectedRunId && ids.some((id) => id !== expectedRunId))
+    reasons.push(`QA_RUN_ID is ${expectedRunId}, the report is of run ${ids.join(', ')}`);
+  const ends = runs.map((r) => r.end).filter((end) => end !== null);
+  const lastEnd = ends.length ? Math.max(...ends) : null;
+  if (newestResultStart && lastEnd !== null && newestResultStart > lastEnd)
+    reasons.push(
+      `a run started at ${new Date(newestResultStart).toISOString()}, after the report's run ended at ${new Date(lastEnd).toISOString()}: pass that run's report`,
+    );
+  return reasons;
+}
+
+/** The start of the newest result of a pack's spec in the Allure results, or null. */
+export function newestPackResultStart(resultsDir) {
+  const starts = readResultFiles(resultsDir)
+    .filter((r) =>
+      String(r.fullName ?? '')
+        .replace(/\\/g, '/')
+        .startsWith('apps/'),
+    )
+    .map((r) => r.start)
+    .filter(Number.isFinite);
+  return starts.length ? Math.max(...starts) : null;
 }
 
 /** The checks of the gate for a parsed report: `[{ name, verdict, detail }]` and the overall. */
@@ -163,7 +211,8 @@ function main() {
   try {
     ({ values } = parseArgs({
       options: {
-        report: { type: 'string' },
+        report: { type: 'string', multiple: true },
+        results: { type: 'string' },
         summary: { type: 'string' },
         root: { type: 'string' },
       },
@@ -173,17 +222,29 @@ function main() {
     process.exit(2);
   }
   const root = resolve(values.root ?? REPO_ROOT);
-  const reportFile = resolve(
-    values.report ?? process.env.QA_JSON_REPORT ?? join(root, 'reports', 'playwright.json'),
-  );
-  if (!existsSync(reportFile)) {
-    console.error(
-      `quality-gate: no report at ${reportFile}; run the suite with QA_JSON_REPORT=<file> first.`,
-    );
+  const reportFiles = (
+    values.report ?? [process.env.QA_JSON_REPORT || join(root, 'reports', 'playwright.json')]
+  ).map((file) => resolve(file));
+  const missing = reportFiles.filter((file) => !existsSync(file));
+  if (missing.length) {
+    console.error(`quality-gate: no report at ${missing.join(', ')}; run the suite first.`);
+    process.exit(1);
+  }
+  const reports = reportFiles.map((file) => JSON.parse(readFileSync(file, 'utf8')));
+  const stale = staleReasons(reports, {
+    expectedRunId: process.env.QA_RUN_ID,
+    newestResultStart: newestPackResultStart(
+      resolve(values.results ?? join(root, 'allure-results')),
+    ),
+  });
+  if (stale.length) {
+    for (const reason of stale) console.error(`quality-gate: report refused: ${reason}`);
     process.exit(1);
   }
   const gate = readConfig(root).config.quality_gate ?? {};
-  const result = evaluate(JSON.parse(readFileSync(reportFile, 'utf8')), gate, dirname(reportFile));
+  // Attachments are recorded with absolute paths, so the reports' suites can be read as one.
+  const combined = { suites: reports.flatMap((report) => report.suites ?? []) };
+  const result = evaluate(combined, gate, dirname(reportFiles[0]));
   for (const check of result.checks)
     console.log(
       `quality-gate: ${check.name.padEnd(13)} ${check.verdict.padEnd(7)} ${check.detail}`,

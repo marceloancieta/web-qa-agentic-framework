@@ -6,6 +6,7 @@
 import { dirname, resolve } from 'node:path';
 import type { FullConfig, Reporter } from '@playwright/test/reporter';
 import { redactArtifacts } from './redact-artifacts';
+import { jsonReportFile } from './run-options';
 import { forgetRunSecrets, runSecrets } from './run-secrets';
 
 export default class RedactReporter implements Reporter {
@@ -13,8 +14,8 @@ export default class RedactReporter implements Reporter {
 
   onBegin(config: FullConfig): void {
     const base = config.configFile ? dirname(config.configFile) : config.rootDir;
-    const extra = [process.env.QA_JSON_REPORT, process.env.QA_JUNIT_REPORT].filter(
-      (file): file is string => Boolean(file),
+    const extra = [jsonReportFile(), process.env.QA_JUNIT_REPORT].filter((file): file is string =>
+      Boolean(file),
     );
     this.roots = [
       ...config.projects.map((project) => project.outputDir),

@@ -7,10 +7,16 @@ import {
 import { appPacks, loadAppPack } from './helpers/app-pack';
 import { configuredPacks, loadLocalEnvFile, loadRuntime, loadSettings } from './helpers/config';
 import { DEVICE_PROJECTS, deviceUse, type DeviceName } from './helpers/devices';
-import { slowMoMs, testTimeoutMs } from './helpers/run-options';
+import { jsonReportFile, slowMoMs, testTimeoutMs } from './helpers/run-options';
+import { runId } from './scripts/lib/log.mjs';
 import { projectTagFilter } from './scripts/lib/tags.mjs';
 
 loadLocalEnvFile();
+
+// Every run has an id: the one CI or the caller set in QA_RUN_ID, which shards of one run share,
+// or a new one. Workers inherit it, so each result carries it as its `run` label, and the JSON
+// report records it for the quality gate.
+const run = runId();
 
 const settings = loadSettings();
 const configured = new Set(configuredPacks());
@@ -23,11 +29,17 @@ const slowMo = slowMoMs();
 // file every listed case as skipped.
 const isListing = process.argv.includes('--list');
 
+// The unit tests of the core are not a run of the suite, so they leave the suite's report alone.
+const unitOnly = process.argv.includes('--project=unit');
+
 // Machine-readable reports are added through variables, never `--reporter`, which would replace the
-// configured reporters and drop the evidence.
+// configured reporters and drop the evidence. The JSON report the quality gate reads is always
+// written, to reports/playwright.json unless QA_JSON_REPORT names another file; QA_BLOB_REPORT=1
+// adds the blob report each shard of a CI run writes and `npm run ci:merge` joins.
 const extraReporters: ReporterDescription[] = [
-  ...(process.env.QA_JSON_REPORT
-    ? [['json', { outputFile: process.env.QA_JSON_REPORT }] as ReporterDescription]
+  ...(unitOnly ? [] : [['json', { outputFile: jsonReportFile() }] as ReporterDescription]),
+  ...(process.env.QA_BLOB_REPORT === '1'
+    ? [['blob', { outputDir: 'blob-report' }] as ReporterDescription]
     : []),
   ...(process.env.QA_JUNIT_REPORT
     ? [['junit', { outputFile: process.env.QA_JUNIT_REPORT }] as ReporterDescription]
@@ -97,6 +109,7 @@ export default defineConfig({
   // and a failure does not stop the cases after it.
   fullyParallel: false,
   forbidOnly: !!process.env.CI,
+  metadata: { runId: run },
   retries: retries(),
   timeout: testTimeoutMs(30_000, slowMo),
   expect: { timeout: 5_000 },

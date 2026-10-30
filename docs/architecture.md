@@ -216,7 +216,8 @@ web-qa-agentic-framework/
   (`visual`, `a11y`, `known-gap`, `destructive`, `flake`), `npm run tm:report`. CI files only call
   these scripts. Examples: GitHub Actions (primary) and a Jenkinsfile.
 - Jobs: gates → local packs in compose (pinned by digest) → project matrix with `--shard=i/n` and the
-  `blob` reporter → `merge-reports` → quality gate → report to test management.
+  `blob` reporter (`QA_BLOB_REPORT=1`) → `npm run ci:merge` → quality gate over the merged report and
+  the lanes' reports, one `QA_RUN_ID` for all of them → report to test management.
 - `workers` per pack in `app.json`: some systems under test do not tolerate parallel runs.
 - The visual lane runs in the container both locally and in CI.
 

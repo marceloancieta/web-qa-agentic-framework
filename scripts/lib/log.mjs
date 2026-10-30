@@ -1,7 +1,8 @@
 // Traceable tool output. Every line carries a UTC timestamp and the run id it belongs to, so
 // the output of a test run, the upload of its results and the issues filed from them can be lined up
-// afterwards. The run id comes from QA_RUN_ID (set by the test run's global setup and inherited by
-// whatever runs after it in the same job), or is created here and exported for child processes.
+// afterwards. The run id comes from QA_RUN_ID (set by CI or the caller, and shared by every shard
+// and step of one run), or is created here and exported for child processes; playwright.config.ts
+// does so for a test run, so its results and its JSON report carry it.
 //
 //   2026-10-09T15:04:05.123Z run=7f3a9c1e tm-publish info  uploaded 12 results launch=184
 //

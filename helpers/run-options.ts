@@ -17,6 +17,14 @@ export function slowMoMs(env: NodeJS.ProcessEnv = process.env): number {
   return value;
 }
 
+/**
+ * The JSON report of a run, which the quality gate reads: QA_JSON_REPORT, or reports/playwright.json
+ * relative to the repository.
+ */
+export function jsonReportFile(env: NodeJS.ProcessEnv = process.env): string {
+  return env.QA_JSON_REPORT || 'reports/playwright.json';
+}
+
 /** The test timeout for a run: the base, plus the time slowed actions take. */
 export function testTimeoutMs(baseMs: number, slowMo: number): number {
   return baseMs + slowMo * SLOWED_ACTIONS;

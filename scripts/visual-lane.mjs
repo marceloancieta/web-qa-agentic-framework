@@ -52,9 +52,17 @@ export function planLane(args) {
   return { phase, update, forwarded };
 }
 
-/** The environment of the Playwright run: the lane variable and host addresses for the container. */
+/**
+ * The environment of the Playwright run: the lane variable, host addresses for the container, and
+ * the lane's own JSON report (reports/lanes/visual.json unless QA_JSON_REPORT names one), which
+ * the quality gate reads beside the suite's.
+ */
 export function laneEnvironment(root, env = process.env) {
-  const lane = { ...env, [VISUAL_LANE_ENV]: '1' };
+  const lane = {
+    ...env,
+    [VISUAL_LANE_ENV]: '1',
+    QA_JSON_REPORT: env.QA_JSON_REPORT || 'reports/lanes/visual.json',
+  };
   for (const [pack, entry] of Object.entries(activeEnvironment(root, env).packs)) {
     const variable = packVariable(pack, 'BASE_URL');
     lane[variable] = containerUrl(env[variable] || entry.base_url);

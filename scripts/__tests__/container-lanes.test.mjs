@@ -1,10 +1,13 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { spawnSync } from 'node:child_process';
+import { mkdtempSync, writeFileSync } from 'node:fs';
+import { tmpdir } from 'node:os';
 import { join } from 'node:path';
+import { mergePlan } from '../ci-merge.mjs';
 import { REPO_ROOT } from '../lib/cli.mjs';
 import { containerUrl, imageProblem, pinnedImage } from '../lib/container.mjs';
-import { evaluate, reportTests } from '../quality-gate.mjs';
+import { evaluate, newestPackResultStart, reportTests, staleReasons } from '../quality-gate.mjs';
 import { laneEnvironment, planLane } from '../visual-lane.mjs';
 
 const DIGEST = 'a'.repeat(64);
@@ -36,6 +39,7 @@ test('host addresses become host.docker.internal; other hosts stay', () => {
   const env = laneEnvironment(REPO_ROOT, { QA_ENV: 'local' });
   assert.equal(env.QA_VISUAL, '1');
   assert.equal(env.QA_JUICE_SHOP_BASE_URL, 'http://host.docker.internal:3000');
+  assert.equal(env.QA_JSON_REPORT, 'reports/lanes/visual.json');
 });
 
 test('the lane: updates only in the automate phase, Playwright options passed through', () => {
@@ -120,4 +124,54 @@ test('the gate bands each check and the worst verdict wins', () => {
     evaluate({ suites: [] }, gate).checks.every((c) => c.verdict === 'SKIPPED'),
     true,
   );
+});
+
+const ranAt = (runId, startTime, duration) => ({
+  config: { metadata: runId ? { runId } : {} },
+  stats: { startTime, duration },
+});
+
+test('the gate refuses reports that are not of the latest run, and takes those that are', () => {
+  const matrix = ranAt('ci-7', '2026-10-30T10:00:00.000Z', 60_000);
+  const sweep = ranAt('ci-7', '2026-10-30T10:00:30.000Z', 60_000);
+  const inside = Date.parse('2026-10-30T10:01:00.000Z');
+  assert.deepEqual(
+    staleReasons([matrix, sweep], { expectedRunId: 'ci-7', newestResultStart: inside }),
+    [],
+  );
+  // A report written before the run whose results are in allure-results: the false FAIL of W8c.
+  const old = ranAt(null, '2026-10-24T23:00:00.000Z', 60_000);
+  assert.match(
+    staleReasons([old], { newestResultStart: inside })[0],
+    /a run started at 2026-10-30T10:01:00\.000Z, after the report's run ended at 2026-10-24T23:01:00\.000Z/,
+  );
+  assert.match(
+    staleReasons([matrix, ranAt('local-1', '2026-10-30T10:00:00.000Z', 1)])[0],
+    /different runs: ci-7, local-1/,
+  );
+  assert.match(
+    staleReasons([matrix], { expectedRunId: 'ci-8' })[0],
+    /QA_RUN_ID is ci-8, the report is of run ci-7/,
+  );
+  // Without results or a run id to compare, nothing is refused.
+  assert.deepEqual(staleReasons([old]), []);
+});
+
+test("the newest result start counts only the packs' specs", () => {
+  const dir = mkdtempSync(join(tmpdir(), 'gate-results-'));
+  const write = (name, fullName, start) =>
+    writeFileSync(join(dir, `${name}-result.json`), JSON.stringify({ fullName, start }));
+  write('a', 'apps/juice-shop/specs/login/login.spec.ts#TC-LOGIN-01', 100);
+  write('b', 'apps\\juice-shop\\specs\\search\\search.spec.ts#TC-SEARCH-02', 200);
+  write('c', 'helpers/__tests__/visual.spec.ts#fits the viewport', 900);
+  assert.equal(newestPackResultStart(dir), 200);
+  assert.equal(newestPackResultStart(join(dir, 'missing')), null);
+});
+
+test('the merge joins the blobs into the HTML report and the JSON report the gate reads', () => {
+  const plan = mergePlan({ blobs: 'all-blobs', json: 'reports/playwright.json', env: { CI: '1' } });
+  assert.deepEqual(plan.args, ['merge-reports', '--reporter', 'html,json', 'all-blobs']);
+  assert.equal(plan.env.PLAYWRIGHT_JSON_OUTPUT_FILE, 'reports/playwright.json');
+  assert.equal(plan.env.PLAYWRIGHT_HTML_OPEN, 'never');
+  assert.equal(plan.env.CI, '1');
 });

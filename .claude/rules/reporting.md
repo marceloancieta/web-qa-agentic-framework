@@ -43,8 +43,13 @@ the state the page was in are what make it reviewable.
   closes it even when reporting failed.
 - `npm run tm:publish` sends only `automated` and `published` cases; `--case <id>` repairs one case
   without touching the others.
-- Do not pass `--reporter` to Playwright; it replaces the configured reporters. Add a JSON or JUnit report
-  through `QA_JSON_REPORT` or `QA_JUNIT_REPORT`.
+- Do not pass `--reporter` to Playwright; it replaces the configured reporters. Every run writes
+  its JSON report (`reports/playwright.json`, a lane's to `reports/lanes/<lane>.json`; another
+  file through `QA_JSON_REPORT`), and its id goes into the report's metadata. Add JUnit through
+  `QA_JUNIT_REPORT`, and the blob report of a CI shard through `QA_BLOB_REPORT=1`
+  (`npm run ci:merge` joins the shards).
+- One run, one `QA_RUN_ID`: the shards, the lanes, `tm:report` and the quality gate of a run share
+  it, and the gate refuses a report of another run.
 - Every write to the tool or the tracker is read back by the adapter. A publish or report that says
   it worked without a read-back is not trusted.
 - A known gap shows as `failed` with its issue link while the issue is open, and as `passed` with

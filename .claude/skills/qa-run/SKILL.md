@@ -37,16 +37,20 @@ description: >-
 3. **Data gate.** Say what data the selection needs and which cases will skip without it (the
    registry `test_data`, the skip reasons). For a selection that writes, show the environment and
    wait for "go".
-4. **Run**: `npx playwright test <selection>`, or the lane's script. Never pass `--reporter`; add a JSON or JUnit report
-   with `QA_JSON_REPORT` or `QA_JUNIT_REPORT`. Each pack's `preflight-<pack>` project checks its
-   configuration and its host first. Note the run id.
-5. **Report**: `npm run tm:report -- --pack <pack>`. It reuses the run id, lists the results it
-   could not attribute, and closes the run even when reporting failed.
+4. **Run**: set `QA_RUN_ID` once, then `npx playwright test <selection>`, or the lane's script,
+   with it; every step of the run (lanes, `tm:report`, the gate) uses the same id. Never pass
+   `--reporter`. The JSON report the gate reads is written to `reports/playwright.json`, each
+   lane's to `reports/lanes/<lane>.json`; `QA_JSON_REPORT` names another file, `QA_JUNIT_REPORT`
+   adds JUnit. Each pack's `preflight-<pack>` project checks its configuration and its host first.
+5. **Report**: `npm run tm:report -- --pack <pack>` with the same `QA_RUN_ID`. It lists the results
+   it could not attribute, and closes the run even when reporting failed.
 6. **Sum up**, in the language of the conversation:
    - each case once, with the worst status of its devices and each device beside it: passed, failed
      (with the assertion and the trace), failed as an armed known gap, or skipped with its reason;
    - the visual diffs and the new accessibility violations, against the quality gate
-     (`npm run quality:gate`);
+     (`npm run quality:gate`, with one `--report` per report of the run: the suite's and each
+     lane's). The gate refuses a report of another run, or one older than the latest results;
+     run the selection again rather than judge a report the run did not write;
    - the run link from `reports/tm/report-<provider>.json`;
    - definitions with no spec, and specs with no definition;
    - data the run created and did not remove.
