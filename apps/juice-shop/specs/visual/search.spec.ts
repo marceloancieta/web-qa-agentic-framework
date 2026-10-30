@@ -11,7 +11,8 @@ test('TC-SEARCH-13 the first page of all products looks as designed @regression 
 }) => {
   const search = new SearchPage(page);
   await search.open();
-  await expect(search.range()).toHaveText(/1 – 15 of \d+/);
+  // WebKit in the pinned image can take longer than 5 s to draw the catalogue once it has arrived.
+  await expect(search.range()).toHaveText(/1 – 15 of \d+/, { timeout: 15_000 });
   await expect(search.products()).toHaveCount(15);
   await visual.expectToMatch(page, 'all-products.png', [], { wholePage: true });
 });

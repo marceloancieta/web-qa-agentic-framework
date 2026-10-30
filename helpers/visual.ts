@@ -10,6 +10,9 @@ import type { AppPack } from './app-pack';
 
 export const DEFAULT_MAX_DIFF_PIXEL_RATIO = 0.01;
 
+/** How long a whole-page comparison may take: tall pages on WebKit outlast the 5 s default. */
+export const WHOLE_PAGE_SCREENSHOT_TIMEOUT_MS = 20_000;
+
 /** The `toHaveScreenshot` options for a pack, with the regions to mask for this comparison. */
 export function screenshotOptions(
   app: Pick<AppPack, 'dir' | 'visual'>,

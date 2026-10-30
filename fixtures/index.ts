@@ -64,7 +64,11 @@ import type { RedactionPolicy } from '../helpers/redact';
 import { newApiContext } from '../helpers/api-context';
 import { applyCaseMeta } from '../helpers/case-meta';
 import { rememberSecret } from '../helpers/run-secrets';
-import { fitViewportToContent, screenshotOptions } from '../helpers/visual';
+import {
+  fitViewportToContent,
+  screenshotOptions,
+  WHOLE_PAGE_SCREENSHOT_TIMEOUT_MS,
+} from '../helpers/visual';
 
 export { expect };
 
@@ -354,7 +358,12 @@ export function createTest(provider: ActorProvider) {
           const page = 'page' in target ? target.page() : target;
           const restore = wholePage ? await fitViewportToContent(page) : undefined;
           try {
-            await expect(target as Page).toHaveScreenshot(name, screenshotOptions(app, mask));
+            await expect(target as Page).toHaveScreenshot(name, {
+              ...screenshotOptions(app, mask),
+              // A whole page is many screens tall on a phone, and WebKit takes longer than the
+              // default 5 s to render two equal shots of it.
+              ...(wholePage ? { timeout: WHOLE_PAGE_SCREENSHOT_TIMEOUT_MS } : {}),
+            });
           } finally {
             await restore?.();
           }
