@@ -112,10 +112,9 @@ contract rule. Every finding uses one of these ids:
   arranges through `api/` a step it claims to take, skips the pack's flows, or ends on the last
   screen without reading its result back through `api/`.
 - `data-safety`: a real email, name or credential; a password typed outside the login case and the
-  journeys; a
-  write to an account or record that belongs to someone else; a write that does not skip when
-  `allow_writes` is false; a screenshot or trace of a sensitive field the page object does not
-  mask.
+  journeys; a write to an account or record that belongs to someone else; a write that does not
+  skip when `allow_writes` is false; a screenshot or trace of a sensitive field the page object does
+  not mask.
 
 One defect, one finding, under the most specific id. `title-claim` when the title names the unproven
 behaviour, otherwise `missing-oracle`. `vacuous-assertion`, `coincidental-pass`, `timing` and

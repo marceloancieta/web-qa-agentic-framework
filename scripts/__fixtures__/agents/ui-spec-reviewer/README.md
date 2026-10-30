@@ -60,6 +60,7 @@ Unmarked code is meant to be clean: a finding on it is a false positive.
 | TC-BREV-08 | `missing-oracle` | major | `basket-edges.spec.ts` | Only the page is checked after the removal; a page that hides the row while the API keeps the item passes. The registry asks for the read-back through `BasketReviewApi.items()`. |
 | TC-BREV-09 | `registry-fidelity` | major | `basket-edges.spec.ts` | The case is `draft`; only approved cases are automated. |
 | TC-BREV-10 | `layering` | major | `basket-edges.spec.ts` | The overflow is measured in the spec through `page.evaluate`, beside the `horizontalOverflow` helper every pack uses; the two drift apart, and a fix to the helper never reaches this case. |
+| TC-BREV-11 | `title-claim` | major | `basket-edges.spec.ts` | The title claims no character is clipped, but `clippedText` counts an ellipsis as handled; a title cut to "Your Basket (customer-ab…" passes both assertions, since `toHaveText` reads the whole text content. |
 
 ## Expected verdicts
 
@@ -79,12 +80,15 @@ Unmarked code is meant to be clean: a finding on it is a false positive.
   `toHaveCount(0)` there can fail.
 - TC-BREV-07 arms the known gap right before the refused read, with `@known-gap` and the
   registry's key.
-- TC-BREV-11 is a use-case with the customer's own email, as the registry designs it, and measures
-  the clipping with `clippedText` once the title shows its full text. A very long email would be a
-  boundary case of its own, which this registry does not have.
+- TC-BREV-11 is a use-case with the customer's own email, as the registry designs it. A very long
+  email would be a boundary case of its own, which this registry does not have.
+- Every case that writes skips when `allow_writes` is false: a `beforeEach` in
+  `basket-core.spec.ts`, the first line of each writing case in `basket-edges.spec.ts`. TC-BREV-06
+  writes nothing and has no skip.
 - `SearchReviewPage.notification()` uses a regular expression for a text that ends with the
   product; `basketButton()` and `BasketReviewPage.row()` use the role and the name the app map
-  shows.
+  shows. `remove()` finds the button by its place in the row, with the reason: the row's buttons
+  have no accessible name, as the pack's `BasketPage` records.
 - `emptyBasketOf` deletes only the items of the case's own basket, found by the id its login
   returned.
 

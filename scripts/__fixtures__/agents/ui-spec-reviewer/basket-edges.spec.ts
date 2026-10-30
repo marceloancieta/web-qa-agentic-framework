@@ -18,7 +18,11 @@ test('TC-BREV-06 without a session, /#/basket opens the login and shows no baske
 });
 
 // expect-review: missing-oracle
-test('TC-BREV-08 removing the last product empties the basket @regression', async ({ customer }) => {
+test('TC-BREV-08 removing the last product empties the basket @regression', async ({
+  customer,
+  qa,
+}) => {
+  test.skip(!qa.allowWrites, "the case fills a customer's basket; allow_writes is false");
   const { bid, basket: api } = await emptyBasketOf(customer);
   await api.add(bid, APPLE_JUICE.id);
   const basket = new BasketReviewPage(customer.page);
@@ -32,7 +36,9 @@ test('TC-BREV-08 removing the last product empties the basket @regression', asyn
 // expect-review: registry-fidelity
 test('TC-BREV-09 a basket with a product keeps it after a reload @regression @navigation', async ({
   customer,
+  qa,
 }) => {
+  test.skip(!qa.allowWrites, "the case fills a customer's basket; allow_writes is false");
   const { bid, basket: api } = await emptyBasketOf(customer);
   await api.add(bid, APPLE_JUICE.id);
   const basket = new BasketReviewPage(customer.page);
@@ -45,7 +51,9 @@ test('TC-BREV-09 a basket with a product keeps it after a reload @regression @na
 
 test('TC-BREV-10 a basket with products has no horizontal scroll @regression @responsive', async ({
   customer,
+  qa,
 }) => {
+  test.skip(!qa.allowWrites, "the case fills a customer's basket; allow_writes is false");
   const { bid, basket: api } = await emptyBasketOf(customer);
   await api.add(bid, APPLE_JUICE.id);
   await api.add(bid, ORANGE_JUICE.id);
@@ -58,9 +66,12 @@ test('TC-BREV-10 a basket with products has no horizontal scroll @regression @re
   expect(overflow).toBe(0);
 });
 
+// expect-review: title-claim
 test('TC-BREV-11 the title shows "Your Basket (<EMAIL>)" whole, with no character clipped @regression @content', async ({
   customer,
+  qa,
 }) => {
+  test.skip(!qa.allowWrites, "the case empties a customer's basket; allow_writes is false");
   await emptyBasketOf(customer);
   const basket = new BasketReviewPage(customer.page);
   await basket.open();

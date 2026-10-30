@@ -35,7 +35,8 @@ export class BasketReviewPage {
   }
 
   remove(product: string): Promise<void> {
-    return this.row(product).getByRole('button', { name: 'Remove from basket' }).click();
+    // the row's buttons have no accessible name; the last cell holds the remove button
+    return this.row(product).getByRole('cell').last().getByRole('button').click();
   }
 
   total(): Locator {

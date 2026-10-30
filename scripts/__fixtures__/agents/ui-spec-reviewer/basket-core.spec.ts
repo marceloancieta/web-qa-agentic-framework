@@ -10,6 +10,10 @@ import {
   SearchReviewPage,
 } from './review-blocks';
 
+test.beforeEach(({ qa }) => {
+  test.skip(!qa.allowWrites, "the cases empty and fill a customer's basket; allow_writes is false");
+});
+
 test('TC-BREV-01 an empty basket shows "Your Basket (<EMAIL>)", "Total Price: 0¤" and a disabled Checkout @sanity @navigation', async ({
   customer,
 }) => {
