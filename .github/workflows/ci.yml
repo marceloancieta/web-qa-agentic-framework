@@ -1,0 +1,158 @@
+# The CI pipeline (CI-01, CI-02). Every step calls an npm script of package.json; the only other
+# commands install the toolchain (gitleaks for the secret scan). scripts/__tests__/ci-files.test.mjs
+# checks both. One QA_RUN_ID covers the shards, the lanes, the quality gate and the report.
+#
+#   gates → suite (sharded) ┐
+#         → a11y lane       ├→ report: ci:merge → quality:gate over every report → tm:report
+#         → visual lane     │
+#         → destructive lane┘
+#   flake lane: weekly and on demand only
+name: ci
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+  schedule:
+    - cron: '0 6 * * 1' # Mondays 06:00 UTC: the flake lane
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  CI: '1'
+  QA_ENV: ci
+  QA_RUN_ID: gh-${{ github.run_id }}-${{ github.run_attempt }}
+  GITLEAKS_VERSION: 8.30.1
+
+jobs:
+  gates:
+    if: github.event_name != 'schedule'
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # the secret and denylist scans read the whole history
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - name: Install gitleaks
+        run: |
+          curl -sSfL "https://github.com/gitleaks/gitleaks/releases/download/v${GITLEAKS_VERSION}/gitleaks_${GITLEAKS_VERSION}_linux_x64.tar.gz" | tar -xz -C /usr/local/bin gitleaks
+      - run: npm ci
+      - run: npm run ci:browsers
+      - run: npm run gates
+
+  suite:
+    needs: gates
+    runs-on: ubuntu-24.04
+    strategy:
+      fail-fast: false
+      matrix:
+        # The number of shards is the length of this list and `total`; change both together.
+        shard: [1, 2, 3, 4]
+        total: [4]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm run ci:browsers
+      - run: npm run juice-shop:up
+      - name: Run shard ${{ matrix.shard }} of ${{ matrix.total }}
+        run: npm test -- --project='juice-shop-*' --shard=${{ matrix.shard }}/${{ matrix.total }}
+        env:
+          QA_BLOB_REPORT: '1'
+      - if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: suite-${{ matrix.shard }}
+          path: |
+            blob-report/
+            allure-results/
+          retention-days: 14
+
+  lane:
+    needs: gates
+    runs-on: ubuntu-24.04
+    strategy:
+      fail-fast: false
+      matrix:
+        lane: [a11y, visual, destructive]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm run ci:browsers
+      - run: npm run juice-shop:up
+      - name: Run the ${{ matrix.lane }} lane
+        run: npm run lanes:${{ matrix.lane }} -- --project='juice-shop-*'
+      - if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: lane-${{ matrix.lane }}
+          path: |
+            reports/lanes/
+            allure-results/
+            test-results/
+          retention-days: 14
+
+  report:
+    needs: [gates, suite, lane]
+    if: always() && needs.gates.result == 'success'
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: '{suite,lane}-*'
+          merge-multiple: true
+      - run: npm run ci:merge
+      - name: Quality gate over the suite and the lanes
+        run: npm run quality:gate -- --report reports/playwright.json --report reports/lanes/a11y.json --report reports/lanes/visual.json --report reports/lanes/destructive.json
+      - if: always()
+        run: npm run tm:report
+      - if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: reports
+          path: |
+            playwright-report/
+            reports/
+          retention-days: 30
+
+  flake:
+    if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm run ci:browsers
+      - run: npm run juice-shop:up
+      - run: npm run lanes:flake -- --project='juice-shop-*'
+      - if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: lane-flake
+          path: reports/lanes/
+          retention-days: 30

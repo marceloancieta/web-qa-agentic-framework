@@ -214,7 +214,9 @@ web-qa-agentic-framework/
 
 - **The contract is npm plus Docker:** `npm run gates`, `npm test -- --project=...`, the lanes
   (`visual`, `a11y`, `known-gap`, `destructive`, `flake`), `npm run tm:report`. CI files only call
-  these scripts. Examples: GitHub Actions (primary) and a Jenkinsfile.
+  these scripts: [`.github/workflows/ci.yml`](../.github/workflows/ci.yml) (primary) and the
+  [`Jenkinsfile`](../Jenkinsfile), checked by `scripts/__tests__/ci-files.test.mjs`. The flake lane runs
+  weekly and on demand, outside the pipeline of each change.
 - Jobs: gates → local packs in compose (pinned by digest) → project matrix with `--shard=i/n` and the
   `blob` reporter (`QA_BLOB_REPORT=1`) → `npm run ci:merge` → quality gate over the merged report and
   the lanes' reports, one `QA_RUN_ID` for all of them → report to test management.

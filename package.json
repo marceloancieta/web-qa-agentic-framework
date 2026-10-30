@@ -41,6 +41,7 @@
     "traceability": "node scripts/traceability.mjs",
     "quality:gate": "node scripts/quality-gate.mjs --summary reports/quality-gate.md",
     "ci:merge": "node scripts/ci-merge.mjs",
+    "ci:browsers": "playwright install --with-deps chromium firefox webkit",
     "tm:manifest": "node scripts/tm/manifest.mjs",
     "tm:publish": "node scripts/tm/run.mjs publish",
     "tm:report": "node scripts/tm/run.mjs report",
