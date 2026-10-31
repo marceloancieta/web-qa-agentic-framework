@@ -1,0 +1,46 @@
+{
+  "pack": "saucedemo",
+  "app_version": "live",
+  "routes": [
+    {
+      "route": "/",
+      "title": "Swag Labs",
+      "landmarks": [
+        "form \"Login\"",
+        "main"
+      ],
+      "headings": [
+        "h4 Accepted usernames are:",
+        "h4 Password for all users:"
+      ],
+      "interactive": [
+        "button \"Login\"",
+        "textbox \"Password\"",
+        "textbox \"Username\""
+      ],
+      "fields": [
+        {
+          "tag": "input",
+          "type": "text",
+          "label": "Username",
+          "constraints": {}
+        },
+        {
+          "tag": "input",
+          "type": "password",
+          "label": "Password",
+          "constraints": {}
+        },
+        {
+          "tag": "input",
+          "type": "submit",
+          "label": "",
+          "constraints": {}
+        }
+      ],
+      "api_calls": [],
+      "links": []
+    }
+  ],
+  "blocked_writes": []
+}

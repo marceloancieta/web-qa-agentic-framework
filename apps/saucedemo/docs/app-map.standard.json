@@ -1,0 +1,277 @@
+{
+  "pack": "saucedemo",
+  "app_version": "live",
+  "actor": "standard",
+  "routes": [
+    {
+      "route": "/",
+      "title": "Swag Labs",
+      "landmarks": [
+        "form \"Login\"",
+        "main"
+      ],
+      "headings": [
+        "h4 Accepted usernames are:",
+        "h4 Password for all users:"
+      ],
+      "interactive": [
+        "button \"Login\"",
+        "textbox \"Password\"",
+        "textbox \"Username\""
+      ],
+      "fields": [
+        {
+          "tag": "input",
+          "type": "text",
+          "label": "Username",
+          "constraints": {}
+        },
+        {
+          "tag": "input",
+          "type": "password",
+          "label": "Password",
+          "constraints": {}
+        },
+        {
+          "tag": "input",
+          "type": "submit",
+          "label": "",
+          "constraints": {}
+        }
+      ],
+      "api_calls": [],
+      "links": []
+    },
+    {
+      "route": "/cart.html",
+      "title": "Swag Labs",
+      "landmarks": [
+        "banner",
+        "contentinfo",
+        "main"
+      ],
+      "headings": [],
+      "interactive": [
+        "button \"Cart, empty\"",
+        "button \"Checkout\"",
+        "button \"Continue Shopping\"",
+        "button \"Open Menu\"",
+        "link \"Facebook\"",
+        "link \"LinkedIn\"",
+        "link \"X\""
+      ],
+      "fields": [],
+      "api_calls": [],
+      "links": [
+        "/cart.html"
+      ]
+    },
+    {
+      "route": "/dynamic-catalog-lazy-load.html",
+      "title": "Swag Labs",
+      "landmarks": [
+        "banner",
+        "contentinfo"
+      ],
+      "headings": [],
+      "interactive": [
+        "button \"Cart, empty\"",
+        "button \"Open Menu\"",
+        "link \"Facebook\"",
+        "link \"LinkedIn\"",
+        "link \"X\""
+      ],
+      "fields": [],
+      "api_calls": [],
+      "links": [
+        "/dynamic-catalog-lazy-load.html"
+      ]
+    },
+    {
+      "route": "/dynamic-catalog-slider.html",
+      "title": "Swag Labs",
+      "landmarks": [
+        "banner",
+        "contentinfo"
+      ],
+      "headings": [],
+      "interactive": [
+        "button \"Cart, empty\"",
+        "button \"Open Menu\"",
+        "button \"Show Sauce Labs Backpack\"",
+        "button \"Show Sauce Labs Bike Light\"",
+        "button \"Show Sauce Labs Bolt T-Shirt\"",
+        "button \"Show Sauce Labs Fleece Jacket\"",
+        "button \"Show Sauce Labs Onesie\"",
+        "button \"Show Test.allTheThings() T-Shirt (Red)\"",
+        "link \"Facebook\"",
+        "link \"LinkedIn\"",
+        "link \"X\""
+      ],
+      "fields": [],
+      "api_calls": [],
+      "links": [
+        "/dynamic-catalog-slider.html"
+      ]
+    },
+    {
+      "route": "/dynamic-catalog-spinner.html",
+      "title": "Swag Labs",
+      "landmarks": [
+        "banner",
+        "contentinfo"
+      ],
+      "headings": [],
+      "interactive": [
+        "button \"Cart, empty\"",
+        "button \"Open Menu\"",
+        "link \"Facebook\"",
+        "link \"LinkedIn\"",
+        "link \"X\""
+      ],
+      "fields": [],
+      "api_calls": [],
+      "links": [
+        "/dynamic-catalog-spinner.html"
+      ]
+    },
+    {
+      "route": "/inventory-item.html",
+      "title": "Swag Labs",
+      "landmarks": [
+        "banner",
+        "contentinfo",
+        "main"
+      ],
+      "headings": [],
+      "interactive": [
+        "button \"Add to cart\"",
+        "button \"Back to products\"",
+        "button \"Cart, empty\"",
+        "button \"Open Menu\"",
+        "link \"Facebook\"",
+        "link \"LinkedIn\"",
+        "link \"X\""
+      ],
+      "fields": [],
+      "api_calls": [],
+      "links": [
+        "/inventory-item.html"
+      ]
+    },
+    {
+      "route": "/inventory-item.html?id=4",
+      "title": "Swag Labs",
+      "landmarks": [
+        "banner",
+        "contentinfo",
+        "main"
+      ],
+      "headings": [],
+      "interactive": [
+        "button \"Add to cart\"",
+        "button \"Back to products\"",
+        "button \"Cart, empty\"",
+        "button \"Open Menu\"",
+        "link \"Facebook\"",
+        "link \"LinkedIn\"",
+        "link \"X\""
+      ],
+      "fields": [],
+      "api_calls": [],
+      "links": [
+        "/inventory-item.html"
+      ]
+    },
+    {
+      "route": "/inventory-long.html",
+      "title": "Swag Labs",
+      "landmarks": [
+        "banner",
+        "contentinfo",
+        "main"
+      ],
+      "headings": [],
+      "interactive": [
+        "button \"Add to cart\" x22",
+        "button \"Cart, empty\"",
+        "button \"Open Menu\"",
+        "button \"View details for Sauce Labs Backpack\" x2",
+        "button \"View details for Sauce Labs Bike Light\" x2",
+        "button \"View details for Sauce Labs Bolt T-Shirt (L)\" x2",
+        "button \"View details for Sauce Labs Bolt T-Shirt (M)\" x2",
+        "button \"View details for Sauce Labs Bolt T-Shirt (S)\" x2",
+        "button \"View details for Sauce Labs Bolt T-Shirt (XL)\" x2",
+        "button \"View details for Sauce Labs Bolt T-Shirt (XS)\" x2",
+        "button \"View details for Sauce Labs Bolt T-Shirt (XXL)\" x2",
+        "button \"View details for Sauce Labs Fleece Jacket (L)\" x2",
+        "button \"View details for Sauce Labs Fleece Jacket (M)\" x2",
+        "button \"View details for Sauce Labs Fleece Jacket (S)\" x2",
+        "button \"View details for Sauce Labs Fleece Jacket (XL)\" x2",
+        "button \"View details for Sauce Labs Fleece Jacket (XS)\" x2",
+        "button \"View details for Sauce Labs Fleece Jacket (XXL)\" x2",
+        "button \"View details for Sauce Labs Onesie\" x2",
+        "button \"View details for Test.allTheThings() T-Shirt (Red) (L)\" x4",
+        "button \"View details for Test.allTheThings() T-Shirt (Red) (M)\" x2",
+        "button \"View details for Test.allTheThings() T-Shirt (Red) (S)\" x2",
+        "button \"View details for Test.allTheThings() T-Shirt (Red) (XL)\" x2",
+        "button \"View details for Test.allTheThings() T-Shirt (Red) (XS)\" x2",
+        "button \"View details for Test.allTheThings() T-Shirt (Red) (XXL)\" x2",
+        "combobox \"Sort products\"",
+        "link \"Facebook\"",
+        "link \"LinkedIn\"",
+        "link \"X\""
+      ],
+      "fields": [
+        {
+          "tag": "select",
+          "type": "",
+          "label": "Sort products",
+          "constraints": {}
+        }
+      ],
+      "api_calls": [],
+      "links": [
+        "/inventory-long.html"
+      ]
+    },
+    {
+      "route": "/inventory.html",
+      "title": "Swag Labs",
+      "landmarks": [
+        "banner",
+        "contentinfo",
+        "main"
+      ],
+      "headings": [],
+      "interactive": [
+        "button \"Add to cart\" x6",
+        "button \"Cart, empty\"",
+        "button \"Open Menu\"",
+        "button \"View details for Sauce Labs Backpack\" x2",
+        "button \"View details for Sauce Labs Bike Light\" x2",
+        "button \"View details for Sauce Labs Bolt T-Shirt\" x2",
+        "button \"View details for Sauce Labs Fleece Jacket\" x2",
+        "button \"View details for Sauce Labs Onesie\" x2",
+        "button \"View details for Test.allTheThings() T-Shirt (Red)\" x2",
+        "combobox \"Sort products\"",
+        "link \"Facebook\"",
+        "link \"LinkedIn\"",
+        "link \"X\""
+      ],
+      "fields": [
+        {
+          "tag": "select",
+          "type": "",
+          "label": "Sort products",
+          "constraints": {}
+        }
+      ],
+      "api_calls": [],
+      "links": [
+        "/inventory.html"
+      ]
+    }
+  ],
+  "blocked_writes": []
+}

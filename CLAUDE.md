@@ -64,6 +64,7 @@ In `.claude/skills/`. One per phase, each ending at its review gate, plus one pe
 | [`qa-run`](.claude/skills/qa-run/SKILL.md) | 4 run | execution | a reported run |
 | [`qa-report-bug`](.claude/skills/qa-report-bug/SKILL.md) | defects | either | a triaged issue in the tracker, cases mapped to it |
 | [`juice-shop-ui`](.claude/skills/juice-shop-ui/SKILL.md) | every phase | either | what the Juice Shop app map does not show |
+| [`saucedemo-ui`](.claude/skills/saucedemo-ui/SKILL.md) | every phase | either | what the Swag Labs app map does not show |
 
 A new pack gets its skill from `npm run scaffold:app`, written from
 [the pack skill template](docs/templates/pack-skill.md).
