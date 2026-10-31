@@ -149,6 +149,8 @@ test('the contract fails an adapter that is not idempotent', () => {
     process.execPath,
     [
       '--test',
+      // The default reporter depends on the Node version and the terminal; the assertions read TAP.
+      '--test-reporter=tap',
       join(import.meta.dirname, '..', '__fixtures__', 'tm-contract', 'broken-adapter.test.mjs'),
     ],
     // Without the parent runner's context the child reports normally and exits with its own status.
