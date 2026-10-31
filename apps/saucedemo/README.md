@@ -37,6 +37,6 @@ or the local `.env`; `.env.example` says where their values come from.
 
 | Feature | Contract | Registry |
 |---|---|---|
-| `LOGIN` | [sign-in](docs/features/login.md) | design (SD-01b) |
-| `INVENTORY` | [product list](docs/features/inventory.md) | design (SD-01b) |
-| `CART` | [cart](docs/features/cart.md) | design (SD-01b) |
+| `LOGIN` | [sign-in](docs/features/login.md) | [sign-in cases](registry/login.md) |
+| `INVENTORY` | [product list](docs/features/inventory.md) | [product list cases](registry/inventory.md) |
+| `CART` | [cart](docs/features/cart.md) | [cart cases](registry/cart.md) |
