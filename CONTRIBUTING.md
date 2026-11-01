@@ -42,13 +42,25 @@ npm run gates
 The `pre-push` hook runs the same command, so a push never carries a red gate. Show the evidence
 when you say something works: the command and its result.
 
-## Proposing it
+## Proposing it: GitHub Flow
 
-Open a pull request against `main`:
+`main` is always green and changes only through pull requests
+([ADR 0006](docs/adr/0006-branching-and-traceability.md)):
 
-- its title is the commit title the squash merge will use, in the convention above;
-- its description links the backlog item and says what changed, why, and how it was checked;
-- CI must pass, and a reviewer approves it before it is merged.
+1. Branch from an up-to-date `main`, one backlog item per branch, and keep the branch short-lived.
+2. Push it and open a pull request against `main`:
+   - its **title** is the commit title the squash merge will use, in the convention above; the
+     `title` check fails until it is;
+   - its **description** links the backlog item and says what changed, why, and how it was checked.
+3. Two checks must pass: `required`, which stands for every job of CI (the gates, each shard of the
+   suite, each lane and the report), and `title`. A red check is fixed in the branch with a new
+   commit; it is never skipped, and a test is never disabled to get green.
+4. Bring the branch up to date with `main` when it falls behind, by merging `main` into it.
+5. The pull request is **squash-merged**, so `main` keeps one commit per change and a linear
+   history, and the branch is deleted.
+
+Never push to `main` directly, and never force-push a branch someone else works on. The repository
+enforces this with a ruleset; its settings are in [repository settings](docs/repository-settings.md).
 
 ## Conduct
 

@@ -148,3 +148,72 @@ test('Dependabot: every ecosystem waits 14 days, and its titles pass the commit 
     }
   }
 });
+
+// Script injection (DOC-05): text an outsider controls (a pull request's title or body, a branch
+// name, a commit message) written into `run:` with ${{ }} is executed as shell code. It reaches a
+// script only through `env:`.
+const UNTRUSTED =
+  /\$\{\{\s*github\.(?:event\.(?:pull_request\.(?:title|body|head\.ref|head\.label)|issue\.(?:title|body)|comment\.body|review\.body|head_commit\.message|commits)|head_ref)\b/;
+
+/** The `run:` scripts of a workflow that write untrusted event text into the shell. */
+export function injectedRuns(workflowText) {
+  const { jobs = {} } = parse(workflowText) ?? {};
+  return Object.entries(jobs).flatMap(([job, { steps = [] }]) =>
+    steps
+      .filter((step) => typeof step.run === 'string' && UNTRUSTED.test(step.run))
+      .map((step) => `${job}: ${step.run.trim()}`),
+  );
+}
+
+test('untrusted event text in a run script is a finding; through env it is not', () => {
+  const step = (run, env) => ({ jobs: { t: { steps: [{ run, env }] } } });
+  const yaml = (doc) => JSON.stringify(doc); // JSON is YAML
+  assert.equal(
+    injectedRuns(yaml(step('npm run commit:title -- "${{ github.event.pull_request.title }}"')))
+      .length,
+    1,
+  );
+  assert.equal(injectedRuns(yaml(step('echo ${{ github.head_ref }}'))).length, 1);
+  assert.deepEqual(
+    injectedRuns(
+      yaml(
+        step('npm run commit:title -- "$PR_TITLE"', {
+          PR_TITLE: '${{ github.event.pull_request.title }}',
+        }),
+      ),
+    ),
+    [],
+  );
+  assert.deepEqual(injectedRuns(yaml(step('echo ${{ github.run_id }}'))), []);
+});
+
+test('no workflow writes untrusted event text into a run script', () => {
+  for (const name of workflowFiles()) {
+    assert.deepEqual(injectedRuns(readFileSync(join(WORKFLOWS, name), 'utf8')), [], name);
+  }
+});
+
+// The checks docs/repository-settings.md tells the owner to require (DOC-05) exist, run on pull
+// requests, and are named as GitHub names them: a required check that never reports blocks every
+// merge, and one renamed in a workflow silently stops being required.
+test('every required check of the repository settings is a job that runs on pull requests', () => {
+  const settings = readFileSync(join(REPO_ROOT, 'docs', 'repository-settings.md'), 'utf8');
+  const rows = [...settings.matchAll(/^\s*\| `([\w-]+)` \| \[`([\w.-]+\.ya?ml)`\]/gm)];
+  assert.deepEqual(rows.map(([, check]) => check).sort(), ['required', 'title']);
+  for (const [, check, file] of rows) {
+    const flow = parse(readFileSync(join(WORKFLOWS, file), 'utf8'));
+    const events = Array.isArray(flow.on) ? flow.on : Object.keys(flow.on ?? {});
+    assert.ok(events.includes('pull_request'), `${file} runs on pull requests`);
+    const job = flow.jobs?.[check];
+    assert.ok(job, `${file} has a job ${check}`);
+    assert.equal(job.name ?? check, check, `${check} keeps its id as its check name`);
+    assert.equal(job.strategy, undefined, `${check} is not a matrix, so its name has no suffix`);
+  }
+});
+
+test('the required job depends on every other job of the change', () => {
+  const { jobs } = workflow;
+  const others = Object.keys(jobs).filter((name) => !['required', 'flake'].includes(name));
+  assert.deepEqual([...jobs.required.needs].sort(), others.sort());
+  assert.match(jobs.required.if, /always\(\)/, 'it reports even when a job it needs failed');
+});

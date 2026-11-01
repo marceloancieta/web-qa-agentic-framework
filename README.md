@@ -98,6 +98,7 @@ skills are in [`AGENTS.md`](AGENTS.md); the design and the reasons behind it are
 | test management and trackers | [Test management and trackers](docs/test-management.md) |
 | what is built and what is next | [Backlog](docs/backlog.md) |
 | proposing a change | [Contributing](CONTRIBUTING.md) |
+| the GitHub settings the workflows rely on | [Repository settings](docs/repository-settings.md) |
 | reporting a vulnerability, privately | [Security policy](SECURITY.md) |
 | how everyone taking part behaves | [Code of conduct](CODE_OF_CONDUCT.md) |
 

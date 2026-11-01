@@ -1,12 +1,18 @@
 # CodeQL code scanning of the JavaScript and TypeScript sources (CI-03). It runs no npm script: the
 # analysis is GitHub's own and needs no build (`build-mode: none`).
 #
-# Code scanning needs a public repository, or GitHub Code Security on a private one. While the
-# repository is private the workflow runs on demand only; when it becomes public (DOC-05), add
-# `push: branches: [main]`, `pull_request:` and a weekly `schedule:` to `on:`.
+# Code scanning needs a public repository, or GitHub Code Security on a private one. The job runs
+# only when the event says the repository is public; while it is private every trigger skips it, so
+# making the repository public (DOC-05) starts the scans without a change here. An event that does
+# not carry the repository's visibility skips it too, rather than fail.
 name: codeql
 
 on:
+  push:
+    branches: [main]
+  pull_request:
+  schedule:
+    - cron: '0 5 * * 1' # Mondays 05:00 UTC
   workflow_dispatch:
 
 permissions:
@@ -18,6 +24,7 @@ concurrency:
 
 jobs:
   analyze:
+    if: ${{ github.event.repository.visibility == 'public' }}
     runs-on: ubuntu-24.04
     permissions:
       contents: read

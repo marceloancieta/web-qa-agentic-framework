@@ -1,0 +1,31 @@
+# The pull-request title check (DOC-05). `main` takes squash merges, so the title becomes the subject
+# of the commit on `main`, and it must follow the convention of ADR 0006: npm run commit:title, the
+# same parser the changelog uses. Branch protection requires its `title` check.
+#
+# The title reaches the shell only through an environment variable, never inside the script: a title
+# written into `run:` with ${{ }} would be executed as shell code.
+name: pr-title
+
+on:
+  pull_request:
+    types: [opened, edited, reopened, synchronize]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: pr-title-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  title:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 22
+      # The parser has no dependencies, so no npm ci.
+      - run: npm run commit:title -- "$PR_TITLE"
+        env:
+          PR_TITLE: ${{ github.event.pull_request.title }}
