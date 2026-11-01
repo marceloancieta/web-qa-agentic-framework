@@ -5,6 +5,7 @@ import {
   focused,
   hasVisibleFocus,
   tabOrder,
+  tabUntil,
 } from '../keyboard';
 import { clippedText, horizontalOverflow } from '../layout';
 
@@ -27,6 +28,41 @@ test('the tab order names each stop, then leaves the page', async ({ page }) => 
   ]);
   expect(await findFocusTrap(page)).toBeNull();
   expect(await focused(page)).toEqual({ role: 'body', name: '' });
+});
+
+test('an input drawn as a button is named by its value or alt text, a typed value never names a field', async ({
+  page,
+}) => {
+  await page.setContent(`<!doctype html><html lang="en"><head><title>Inputs</title></head><body>
+    <form>
+      <input placeholder="Search" value="typed by someone">
+      <input type="submit" value="Log in">
+      <input type="image" alt="Go" src="data:,">
+    </form></body></html>`);
+  expect(await tabOrder(page, 3)).toEqual([
+    { role: 'input', name: 'Search' },
+    { role: 'input', name: 'Log in' },
+    { role: 'input', name: 'Go' },
+  ]);
+});
+
+test('Tab is pressed until the target has focus, at most the given times, and the stops are returned', async ({
+  page,
+}) => {
+  await page.setContent(FORM);
+  const signIn = page.getByRole('button', { name: 'Sign in' });
+  expect(await tabUntil(page, signIn, 10)).toEqual([
+    { role: 'input', name: 'Email' },
+    { role: 'button', name: 'Show password' },
+    { role: 'input', name: 'Remember me' },
+    { role: 'button', name: 'Sign in' },
+  ]);
+  await expect(signIn).toBeFocused();
+  expect(await tabUntil(page, signIn, 10)).toEqual([]);
+
+  await page.setContent(FORM);
+  expect(await tabUntil(page, signIn, 2)).toHaveLength(2);
+  await expect(signIn).not.toBeFocused();
 });
 
 test('a focus trap is found and returns its cycle', async ({ page }) => {

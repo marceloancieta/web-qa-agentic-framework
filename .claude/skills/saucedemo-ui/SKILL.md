@@ -53,8 +53,14 @@ every other page keeps its elements and order at every width.
 
 | Key | What | Cases armed with it |
 |---|---|---|
+| LOCAL-26 | no control shows a visible keyboard focus | TC-LOGIN-09 |
+| LOCAL-27 | every page but the login is answered `404` when opened directly | TC-INVENTORY-15 |
+| LOCAL-28 | "Reset App State" leaves the open page showing the old cart until a reload | TC-CART-10 |
+| LOCAL-29 | Logout leaves the cart for the next sign-in on the same browser | TC-CART-12 |
+| LOCAL-30 | the cart button is named "Cart, 1 items" with one product | TC-CART-15 |
 
-None filed yet. The gaps of the login, product list and cart contracts wait for `qa-report-bug`.
+The other gaps of the login, product list and cart contracts are recorded in the contracts and not
+filed.
 
 ## Accessibility baseline
 

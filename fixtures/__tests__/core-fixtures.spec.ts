@@ -2,9 +2,9 @@
 // login screen, the browser state is kept per worker, the API client shares the session, and the
 // page health guard and the accessibility check fail the test they run in.
 
-import { existsSync, mkdtempSync, readdirSync, readFileSync } from 'node:fs';
+import { existsSync, mkdirSync, mkdtempSync, readdirSync, readFileSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
-import { join } from 'node:path';
+import { dirname, join } from 'node:path';
 import { generatedPassword, uniqueSuffix, type ActorProvider } from '../../helpers/actors';
 import type { AppPack } from '../../helpers/app-pack';
 import type { QaRuntime } from '../../helpers/config';
@@ -85,7 +85,15 @@ const test = createTest(provider).extend<object, { fakeApp: FakeApp & { close():
     app: [
       async ({}, use) => {
         const dir = mkdtempSync(join(tmpdir(), 'fake-pack-'));
-        const app: AppPack = { name: 'fake-app', version: '1.0.0', title: 'Fake app', dir };
+        // The fake app answers on 127.0.0.1; `localhost` reaches the same server under another
+        // host, which stands in for a third party that would answer if it were not blocked.
+        const app: AppPack = {
+          name: 'fake-app',
+          version: '1.0.0',
+          title: 'Fake app',
+          dir,
+          third_party_hosts: ['localhost'],
+        };
         await use(app);
       },
       { scope: 'worker' },
@@ -167,6 +175,58 @@ test('every context is prepared, and actors get their session storage', async ({
   expect(await customer.page.evaluate(() => sessionStorage.getItem('basket'))).toBe(
     `basket-of-${customer.account?.username}`,
   );
+});
+
+test("the pack's third-party hosts are blocked in every context, its own host is not", async ({
+  actor,
+  page,
+  fakeApp,
+}) => {
+  const thirdParty = fakeApp.url.replace('127.0.0.1', 'localhost');
+  const reach = (target: string) =>
+    fetch(target, { mode: 'no-cors' }).then(
+      () => 'answered',
+      () => 'blocked',
+    );
+  await page.goto(`${fakeApp.url}/`);
+  expect(await page.evaluate(reach, `${fakeApp.url}/`)).toBe('answered');
+  expect(await page.evaluate(reach, `${thirdParty}/`)).toBe('blocked');
+  const customer = await actor();
+  await customer.page.goto('/');
+  expect(await customer.page.evaluate(reach, `${fakeApp.url}/`)).toBe('answered');
+  expect(await customer.page.evaluate(reach, `${thirdParty}/`)).toBe('blocked');
+});
+
+test('a view that must differ from a baseline: missing and matching fail, a difference passes, nothing is written', async ({
+  page,
+  visual,
+}, testInfo) => {
+  const name = 'must-differ.png';
+  const baseline = testInfo.snapshotPath(name, { kind: 'screenshot' });
+  const root = join(testInfo.project.testDir, 'visual', testInfo.project.name);
+  expect(baseline.startsWith(root)).toBe(true);
+  const rootExisted = existsSync(root);
+  const box = (color: string) =>
+    page.setContent(
+      `<!doctype html><html lang="en"><head><title>Box</title></head><body style="margin:0">` +
+        `<div style="width:120px;height:80px;background:${color}"></div></body></html>`,
+    );
+  try {
+    await box('red');
+    await expect(visual.expectNotToMatch(page, name)).rejects.toThrow(/doesn't exist/);
+    expect(existsSync(baseline)).toBe(false);
+
+    mkdirSync(dirname(baseline), { recursive: true });
+    await page.screenshot({ path: baseline, animations: 'disabled', caret: 'hide', scale: 'css' });
+    const written = readFileSync(baseline);
+    await expect(visual.expectNotToMatch(page, name)).rejects.toThrow(/should be different/);
+
+    await box('blue');
+    await visual.expectNotToMatch(page, name);
+    expect(readFileSync(baseline).equals(written)).toBe(true);
+  } finally {
+    rmSync(rootExisted ? baseline : root, { recursive: true, force: true });
+  }
 });
 
 test('an unknown role names the roles there are', async ({ actor }) => {

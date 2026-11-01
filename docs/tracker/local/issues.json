@@ -1,5 +1,5 @@
 {
-  "next": 26,
+  "next": 31,
   "issues": {
     "LOCAL-1": {
       "title": "Basket: a customer can read another customer's basket by its id",
@@ -276,6 +276,61 @@
       "labels": [
         "ui",
         "severity:S3"
+      ],
+      "status": "open",
+      "category": "open",
+      "comments": []
+    },
+    "LOCAL-26": {
+      "title": "Every page: keyboard focus is not visible on any control",
+      "body": "**What happens:** no control shows where the keyboard focus is. On the login form (Username,\nPassword, Login), the product list (\"Add to cart\", the sort) and the cart (\"Remove\", \"Checkout\"),\na control reached with Tab is drawn exactly as before: same computed style (`outline-style: none`,\nno `box-shadow`, same border and background) and the same pixels, while `:focus-visible` is true.\n\n**What should happen:** a keyboard user sees which control has focus (login contract rule\nREQ-LOGIN-09, `apps/saucedemo/docs/features/login.md`, gap G2; WCAG 2.1 SC 2.4.7, level AA).\n\n**Steps:**\n1. Open `<base_url>/` and press Tab: focus moves to Username, but nothing on the page changes.\n2. Press Tab twice more to reach Login: still nothing marks it.\n3. Signed in, open `<base_url>/inventory.html` and `<base_url>/cart.html` and Tab through: same.\n\n**Devices:** desktop Chromium and mobile Chrome (Pixel 7 emulation).\n\n**Evidence:** TC-LOGIN-09 fails on both projects, 4 of 4 runs, 2026-10-31 (trace and screenshot in\nthe local run's `test-results/`); a read-only probe compared the element screenshots and computed\nstyles before and after focus on the list and the cart, 2026-10-31.\n",
+      "labels": [
+        "ui",
+        "severity:S2"
+      ],
+      "status": "open",
+      "category": "open",
+      "comments": []
+    },
+    "LOCAL-27": {
+      "title": "Every page but the login: a page opened directly is answered 404",
+      "body": "**What happens:** every page but the login answers `404` to a direct request for its document.\n`/inventory.html`, `/inventory-item.html?id=4`, `/cart.html` and `/checkout-step-one.html` all\nreturn `404 Not Found`, and the browser then draws the page from the script, so the user sees it.\nOnly `/` answers `200`.\n\n**What should happen:** a page that exists is answered `200` (product list contract,\n`apps/saucedemo/docs/features/inventory.md`, gap G1). A monitor, a crawler or a link checker now\nreports these pages as missing.\n\n**Steps:**\n1. Request `<base_url>/inventory.html` (a reload, a bookmark or a plain GET): the status is `404`.\n2. Repeat for `/inventory-item.html?id=4`, `/cart.html`, `/checkout-step-one.html`: `404` each.\n3. Request `<base_url>/`: `200`.\n\n**Devices:** any; seen on desktop Chromium and mobile Chrome (Pixel 7 emulation), and on a plain\nHTTP GET.\n\n**Evidence:** TC-INVENTORY-15 fails on both projects, 4 of 4 runs, 2026-10-31 (the document's\nstatus is 404); a read-only probe requested the five routes, 2026-10-31.\n",
+      "labels": [
+        "ui",
+        "severity:S3"
+      ],
+      "status": "open",
+      "category": "open",
+      "comments": []
+    },
+    "LOCAL-28": {
+      "title": "Reset App State: the open cart and product list keep showing the products until a reload",
+      "body": "**What happens:** \"Reset App State\" empties the cart in the browser's storage and removes the cart\nbadge, but the page that is open keeps showing the old cart. On the cart page both products are\nstill listed with their \"Remove\" buttons; on the product list their buttons still read \"Remove\".\nA reload shows the empty cart.\n\n**What should happen:** the reset empties the cart, so the badge disappears and the cart lists\nnothing (cart contract rule REQ-CART-08, `apps/saucedemo/docs/features/cart.md`).\n\n**Steps:**\n1. Signed in, with Sauce Labs Backpack and Sauce Labs Bike Light in the cart, open\n   `<base_url>/cart.html`: 2 rows, badge 2.\n2. Open the menu and choose \"Reset App State\": the badge disappears, the 2 rows stay.\n3. Reload: the cart lists nothing.\n4. Same on `<base_url>/inventory.html`: after the reset both products still show \"Remove\" until a\n   reload.\n\n**Devices:** desktop Chromium and mobile Chrome (Pixel 7 emulation).\n\n**Evidence:** TC-CART-10 fails on both projects, 4 of 4 runs, 2026-10-31 (2 rows after the reset);\na read-only probe recorded badge, rows, \"Remove\" buttons and storage before the reset, after it and\nafter a reload, on both pages and both devices, 2026-10-31.\n",
+      "labels": [
+        "ui",
+        "severity:S3"
+      ],
+      "status": "open",
+      "category": "open",
+      "comments": []
+    },
+    "LOCAL-29": {
+      "title": "Logout leaves the cart for whoever signs in next on the same browser",
+      "body": "**What happens:** Logout ends the session but leaves the cart in the browser. Whoever signs in\nnext on the same browser, with any account, finds the previous user's products in the cart. The\ncart lives in local storage (`cart-contents`), and Logout removes only the session cookie.\n\n**What should happen:** after Logout and a new sign-in the cart is empty, so a shared browser does\nnot show one user's cart to the next (cart contract gap G3 and login gap G5,\n`apps/saucedemo/docs/features/cart.md` and `login.md`; registry case TC-CART-12).\n\n**Steps:**\n1. Signed in as `<USER_A>`, add Sauce Labs Backpack to the cart: badge 1.\n2. Open the menu and choose Logout: the login page shows.\n3. Sign in again on the same browser (as `<USER_A>` or another account): the badge shows 1 and the\n   cart lists Sauce Labs Backpack.\n\n**Devices:** desktop Chromium and mobile Chrome (Pixel 7 emulation).\n\n**Severity:** S2. The data is another user's cart, exposed only on the same browser; it holds no\npersonal data.\n\n**Evidence:** TC-CART-12 fails on both projects, 4 of 4 runs, 2026-10-31, at the empty-cart check\nafter the new sign-in (trace in the local run's `test-results/`).\n",
+      "labels": [
+        "ui",
+        "severity:S2"
+      ],
+      "status": "open",
+      "category": "open",
+      "comments": []
+    },
+    "LOCAL-30": {
+      "title": "Cart: the cart button is named \"Cart, 1 items\" with one product",
+      "body": "**What happens:** with one product in the cart, the cart button's accessible name is\n\"Cart, 1 items\", so a screen reader announces \"1 items\".\n\n**What should happen:** \"Cart, 1 item\" for one product, \"Cart, `<n>` items\" for more and\n\"Cart, empty\" for none (cart contract gap G1, `apps/saucedemo/docs/features/cart.md`; registry case\nTC-CART-15).\n\n**Steps:**\n1. Signed in, add one product to the cart on `<base_url>/inventory.html`.\n2. Read the accessible name of the cart button in the header (the accessibility tree, or a screen\n   reader): \"Cart, 1 items\".\n\n**Devices:** desktop Chromium and mobile Chrome (Pixel 7 emulation).\n\n**Evidence:** TC-CART-15 fails on both projects, 4 of 4 runs, 2026-10-31, at the one-product name;\nthe empty and two-product names are as expected.\n",
+      "labels": [
+        "ui",
+        "severity:S4"
       ],
       "status": "open",
       "category": "open",

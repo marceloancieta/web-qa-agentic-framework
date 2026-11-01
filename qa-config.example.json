@@ -25,8 +25,24 @@
                 "account": "existing",
                 "username_env": "SAUCEDEMO_STANDARD_USER",
                 "password_env": "SAUCEDEMO_PASSWORD"
+              },
+              "locked-out": {
+                "account": "existing",
+                "username_env": "SAUCEDEMO_LOCKED_OUT_USER",
+                "password_env": "SAUCEDEMO_PASSWORD"
+              },
+              "performance-glitch": {
+                "account": "existing",
+                "username_env": "SAUCEDEMO_PERFORMANCE_GLITCH_USER",
+                "password_env": "SAUCEDEMO_PASSWORD"
+              },
+              "visual": {
+                "account": "existing",
+                "username_env": "SAUCEDEMO_VISUAL_USER",
+                "password_env": "SAUCEDEMO_PASSWORD"
               }
-            }
+            },
+            "default_actor": "standard"
           }
         }
       },

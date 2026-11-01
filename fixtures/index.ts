@@ -10,10 +10,13 @@
 //                        client with the same session; `anonymous` gives a fresh context.
 //                        actor(role, { fresh: true }) signs in an account created for this test
 //                        alone, for a case that changes what the account holds
+//   context     test     Playwright's context, with the pack's cookies and its third_party_hosts
+//                        blocked; every actor's context gets the same
 //   page        test     Playwright's page, watched by the page health guard
 //   pageHealth  option   test.use({ pageHealth: { off: '<why>' } }) switches the guard off
 //   a11y        test     a11y.expectNoNewViolations(page) against the pack's baseline
-//   visual      test     visual.expectToMatch(target, name, mask, { wholePage }) with the pack's settings
+//   visual      test     visual.expectToMatch(target, name, mask, { wholePage }) with the pack's settings,
+//                        and expectNotToMatch for a view that must differ from a baseline
 
 import { mkdirSync, writeFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
@@ -53,6 +56,7 @@ import {
   type QaRuntime,
 } from '../helpers/config';
 import { attachJson } from '../helpers/evidence';
+import { blockThirdParties } from '../helpers/network';
 import {
   checkOptions,
   healthReport,
@@ -99,6 +103,17 @@ export interface CoreTestFixtures {
      * the screenshot holds what lies below the fold too (`fitViewportToContent`).
      */
     expectToMatch(
+      target: Page | Locator,
+      name: string,
+      mask?: Locator[],
+      options?: { wholePage?: boolean },
+    ): Promise<void>;
+    /**
+     * Assert that the target differs from an existing baseline, such as another account's view of
+     * a designed page. Fails when it matches and when there is no baseline, and never writes one,
+     * even when baselines are being updated.
+     */
+    expectNotToMatch(
       target: Page | Locator,
       name: string,
       mask?: Locator[],
@@ -277,6 +292,7 @@ export function createTest(provider: ActorProvider) {
     pageHealth: [{}, { option: true }],
     context: async ({ context, qa, app }, use) => {
       await context.addCookies(contextCookies(app, qa.baseUrl));
+      await blockThirdParties(context, app.third_party_hosts ?? []);
       await provider.prepareContext?.(context, qa);
       await use(context);
     },
@@ -304,6 +320,7 @@ export function createTest(provider: ActorProvider) {
           storageState: session?.signedIn.storageState,
         });
         await context.addCookies(contextCookies(app, qa.baseUrl));
+        await blockThirdParties(context, app.third_party_hosts ?? []);
         await provider.prepareContext?.(context, qa);
         for (const { origin, items } of session?.signedIn.sessionStorage ?? []) {
           await context.addInitScript(
@@ -353,21 +370,34 @@ export function createTest(provider: ActorProvider) {
     },
 
     visual: async ({ app }, use) => {
+      const compare = async (
+        target: Page | Locator,
+        name: string,
+        mask: Locator[],
+        wholePage: boolean,
+        negated: boolean,
+      ) => {
+        const page = 'page' in target ? target.page() : target;
+        const restore = wholePage ? await fitViewportToContent(page) : undefined;
+        const options = {
+          ...screenshotOptions(app, mask),
+          // A whole page is many screens tall on a phone, and WebKit takes longer than the
+          // default 5 s to render two equal shots of it.
+          ...(wholePage ? { timeout: WHOLE_PAGE_SCREENSHOT_TIMEOUT_MS } : {}),
+        };
+        try {
+          // The negated form fails on a missing baseline and never writes one, in any update mode.
+          if (negated) await expect(target as Page).not.toHaveScreenshot(name, options);
+          else await expect(target as Page).toHaveScreenshot(name, options);
+        } finally {
+          await restore?.();
+        }
+      };
       await use({
-        async expectToMatch(target, name, mask = [], { wholePage = false } = {}) {
-          const page = 'page' in target ? target.page() : target;
-          const restore = wholePage ? await fitViewportToContent(page) : undefined;
-          try {
-            await expect(target as Page).toHaveScreenshot(name, {
-              ...screenshotOptions(app, mask),
-              // A whole page is many screens tall on a phone, and WebKit takes longer than the
-              // default 5 s to render two equal shots of it.
-              ...(wholePage ? { timeout: WHOLE_PAGE_SCREENSHOT_TIMEOUT_MS } : {}),
-            });
-          } finally {
-            await restore?.();
-          }
-        },
+        expectToMatch: (target, name, mask = [], { wholePage = false } = {}) =>
+          compare(target, name, mask, wholePage, false),
+        expectNotToMatch: (target, name, mask = [], { wholePage = false } = {}) =>
+          compare(target, name, mask, wholePage, true),
       });
     },
   });

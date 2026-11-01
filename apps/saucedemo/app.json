@@ -5,7 +5,7 @@
   "testIdAttribute": "data-test",
   "login_path": "/",
   "breakpoints": {},
-  "third_party_hosts": [],
+  "third_party_hosts": ["backtrace.io"],
   "secret_keys": [],
   "identity_fields": [],
   "app_map": {

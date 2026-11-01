@@ -1,6 +1,7 @@
 // Keyboard access: the order Tab moves through, whether focus is visible, and whether focus can get
 // stuck. Names are read the way assistive technology starts (aria-label, aria-labelledby, the
-// label of a field, the visible text, title, placeholder); they identify elements in reports and
+// label of a field, the visible text, the value of an input drawn as a button, title,
+// placeholder); they identify elements in reports and
 // are not a full accessible-name computation.
 
 import type { Locator, Page } from '@playwright/test';
@@ -23,11 +24,19 @@ export async function focused(page: Page): Promise<FocusStop> {
       .map((id) => document.getElementById(id)?.textContent ?? '')
       .join(' ');
     const label = (element as HTMLInputElement).labels?.[0]?.textContent ?? '';
+    // An input drawn as a button is named by its value, or by its alt text when it is an image; the
+    // value of a field someone types into is never its name.
+    const input = element instanceof HTMLInputElement ? element : null;
+    const buttonValue =
+      input && ['submit', 'button', 'reset'].includes(input.type) ? input.value.trim() : '';
+    const imageAlt = input?.type === 'image' ? input.alt.trim() : '';
     const name =
       element.getAttribute('aria-label') ||
       byIds.trim() ||
       label.trim() ||
       element.textContent?.trim() ||
+      buttonValue ||
+      imageAlt ||
       element.getAttribute('title') ||
       element.getAttribute('placeholder') ||
       '';
@@ -45,6 +54,21 @@ export async function focused(page: Page): Promise<FocusStop> {
 export async function tabOrder(page: Page, count: number): Promise<FocusStop[]> {
   const stops: FocusStop[] = [];
   for (let i = 0; i < count; i += 1) {
+    await page.keyboard.press('Tab');
+    stops.push(await focused(page));
+  }
+  return stops;
+}
+
+/**
+ * Press Tab until `target` has focus, at most `most` times, and return the stops passed on the
+ * way, so a failure can say where Tab went instead. Assert on the target afterwards
+ * (`toBeFocused`); this returns whether or not it got there.
+ */
+export async function tabUntil(page: Page, target: Locator, most: number): Promise<FocusStop[]> {
+  const stops: FocusStop[] = [];
+  const hasFocus = () => target.evaluate((element) => element === document.activeElement);
+  for (let press = 0; press < most && !(await hasFocus()); press += 1) {
     await page.keyboard.press('Tab');
     stops.push(await focused(page));
   }

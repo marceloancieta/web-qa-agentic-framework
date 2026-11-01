@@ -9,29 +9,14 @@
 
 import type { ActorProvider } from '../../helpers/actors';
 import { createTest, expect, type Actor } from '../../fixtures';
+import { sessionCookie } from './api/session';
 
-/** The cookie the application reads to decide whether someone is signed in. */
-export const SESSION_COOKIE = 'session-username';
+export { SESSION_COOKIE } from './api/session';
 
 export const provider: ActorProvider = {
   async signIn({ qa, account }) {
-    const { hostname } = new URL(qa.baseUrl);
     return {
-      storageState: {
-        cookies: [
-          {
-            name: SESSION_COOKIE,
-            value: account.username,
-            domain: hostname,
-            path: '/',
-            expires: -1,
-            httpOnly: false,
-            secure: false,
-            sameSite: 'Lax',
-          },
-        ],
-        origins: [],
-      },
+      storageState: { cookies: [sessionCookie(qa.baseUrl, account.username)], origins: [] },
     };
   },
 };
