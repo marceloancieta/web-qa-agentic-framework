@@ -65,3 +65,4 @@ A request that needs both is split, and each half stops at its own gate.
 | the intake request, feature contract, registry and pack skill formats | [`docs/templates/`](docs/templates/feature-contract.md): [intake](docs/templates/intake.md), [feature contract](docs/templates/feature-contract.md), [registry](docs/templates/registry.md), [pack skill](docs/templates/pack-skill.md) |
 | the agents that write specs, review them and investigate a requirement, each with its limits | [`.claude/agents/`](.claude/agents/spec-author.md), listed in [`CLAUDE.md`](CLAUDE.md) |
 | the Claude Code hooks | [`.claude/hooks/README.md`](.claude/hooks/README.md) |
+| how a change is proposed, how a vulnerability is reported, and the code of conduct | [`CONTRIBUTING.md`](CONTRIBUTING.md), [`SECURITY.md`](SECURITY.md), [`CODE_OF_CONDUCT.md`](CODE_OF_CONDUCT.md) |
