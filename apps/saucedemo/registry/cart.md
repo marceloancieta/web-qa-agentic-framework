@@ -50,7 +50,7 @@ TC-CART-12); G2 and G6 wait for `qa-report-bug`; G4 and G5 stay recorded with no
   and removing are transitions between "Add to cart" and "Remove" from the list, a product page and
   the cart.
 - **Data.** Only TC-CART-01 and -02 press "Add to cart"; every other case writes its products to local
-  storage before the page opens (`cart-contents`), through a fixture SD-01c builds. The cart lives in
+  storage before the page opens (`cart-contents`), through a fixture SD-01c built. The cart lives in
   the case's own context, so nothing is left behind; no case is destructive.
 - **TC-CART-12** states the owner's choice for G3 (contract A1): Logout should empty the cart. It
   fails today and runs as a known gap once `qa-report-bug` files G3, with that key in the Defect

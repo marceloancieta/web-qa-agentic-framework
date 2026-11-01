@@ -50,7 +50,7 @@ G3, G4 and G5 have none and wait for `qa-report-bug`.
 - **Data.** Every case uses the `standard` actor with an empty cart, except TC-INVENTORY-08
   (anonymous), -11 (`performance-glitch`) and the second half of -14 (`visual`). Nothing is written;
   no case is destructive.
-- **Actors.** `performance-glitch` and `visual` are new: SD-01c adds them to qa-config with
+- **Actors.** `performance-glitch` and `visual` are new: SD-01c added them to qa-config with
   `SAUCEDEMO_PERFORMANCE_GLITCH_USER` (contract A2) and, the same way, `SAUCEDEMO_VISUAL_USER`.
 - **TC-INVENTORY-14** proves the visual lane twice: the standard list matches its baseline, and the
   visual actor's list fails against the same baseline (SD-01 in the backlog). The spec checks that the

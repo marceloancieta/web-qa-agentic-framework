@@ -55,7 +55,7 @@ case of their own: they wait for `qa-report-bug`, and G2 is checked by TC-LOGIN-
 - **Data.** The pack writes nothing anywhere: the session is a cookie in the case's own context, and
   the accounts are the demo's own. `<UNKNOWN_USER>` and `<WRONG_PASSWORD>` come from builders.
   No case is destructive.
-- **Actors.** `locked-out` is new: SD-01c adds it to qa-config with `SAUCEDEMO_LOCKED_OUT_USER`
+- **Actors.** `locked-out` is new: SD-01c added it to qa-config with `SAUCEDEMO_LOCKED_OUT_USER`
   (contract A2). TC-LOGIN-05 types its user name through the form, so it needs only the variables.
 - **Script sources.** REQ-LOGIN-01, -03, -04, -05 and -10 came from the application's script
   (contract A3); their cases are the first look at them in a running page.

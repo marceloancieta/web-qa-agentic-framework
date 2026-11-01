@@ -45,7 +45,7 @@ exactly what I want.
 
 - `standard`: signed in through the `session-username` cookie. A case that starts with products in
   the cart writes them to local storage (`cart-contents`, a JSON array of product ids) before the
-  page opens, so only the cases about adding go through "Add to cart" (SD-01c builds the fixture).
+  page opens, so only the cases about adding go through "Add to cart" (SD-01c built the fixture).
 - `anonymous`: only for REQ-CART-09.
 
 ## Elements
