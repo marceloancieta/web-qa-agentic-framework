@@ -1,0 +1,36 @@
+# Dependency updates (CI-03). A version is proposed only after a cooldown of 14 days, so a release
+# that is pulled or compromised soon after publishing never reaches a pull request. Minor and patch
+# updates come grouped, one pull request per ecosystem; a major update comes alone. The commit
+# titles `build(deps)`, `build(deps-dev)` and `ci(deps)` are the dependency-update exception of
+# ADR 0006 (`DEPENDENCY_UPDATES` in scripts/changelog.mjs).
+version: 2
+updates:
+  - package-ecosystem: npm
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+    cooldown:
+      default-days: 14
+    commit-message:
+      prefix: build
+      include: scope
+    groups:
+      npm-minor-and-patch:
+        update-types: [minor, patch]
+    open-pull-requests-limit: 5
+
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+    cooldown:
+      default-days: 14
+    commit-message:
+      prefix: ci
+      include: scope
+    groups:
+      actions-minor-and-patch:
+        update-types: [minor, patch]
+    open-pull-requests-limit: 5

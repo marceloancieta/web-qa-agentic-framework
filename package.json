@@ -34,6 +34,7 @@
     "lint:layers": "node scripts/lint-layers.mjs",
     "lint:harness": "node scripts/lint-harness.mjs",
     "lint:docs": "node scripts/lint-docs.mjs",
+    "lint:docs:history": "node scripts/lint-docs.mjs --history",
     "lint:suite": "node scripts/lint-suite.mjs",
     "lint:self-test": "node scripts/lint-layers.mjs --self-test && node scripts/lint-harness.mjs --self-test && node scripts/lint-docs.mjs --self-test && node scripts/lint-suite.mjs --self-test",
     "lint:qa": "npm run lint:layers && npm run lint:harness && npm run lint:docs && npm run lint:suite && npm run lint:self-test",
@@ -51,11 +52,12 @@
     "scan:denylist:history": "node scripts/scan-denylist.mjs --history",
     "scan:denylist:self-test": "node scripts/scan-denylist.mjs --self-test",
     "scan:secrets": "node scripts/secret-scan.mjs --history",
+    "audit:deps": "node scripts/audit-deps.mjs",
     "hooks:install": "git config core.hooksPath .githooks",
     "commit:title": "node scripts/commit-title.mjs",
     "changelog": "node scripts/changelog.mjs --next",
     "changelog:write": "node scripts/changelog.mjs --next --write",
-    "gates": "npm run lint && npm run format:check && npm run types:check && npm run config:check && npm run test:hooks && npm run test:scripts && npm run lint:qa && npm run coverage:status && npm run traceability && npm run test:unit && npm run scan:denylist:self-test && npm run scan:denylist && npm run scan:secrets"
+    "gates": "npm run lint && npm run format:check && npm run types:check && npm run config:check && npm run test:hooks && npm run test:scripts && npm run lint:qa && npm run coverage:status && npm run traceability && npm run test:unit && npm run scan:denylist:self-test && npm run scan:denylist && npm run scan:denylist:history && npm run lint:docs:history && npm run scan:secrets"
   },
   "devDependencies": {
     "@axe-core/playwright": "^4.14.0",

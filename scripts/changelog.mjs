@@ -64,6 +64,15 @@ export const COMMIT_TYPES = [
 /** A backlog id such as `CI-01`, or a range written as `PROC-01..05`. */
 export const BACKLOG_ID = /^[A-Z][A-Z0-9]*-\d+(?:\.\.\d+)?$/;
 
+/**
+ * Dependency updates that a bot proposes (Dependabot) cannot name a backlog item, so these
+ * type and scope pairs are the one exception to the id (ADR 0006): `build(deps)`,
+ * `build(deps-dev)` and `ci(deps)`.
+ */
+export const DEPENDENCY_UPDATES = ['build(deps)', 'build(deps-dev)', 'ci(deps)'];
+
+const isDependencyUpdate = (type, scope) => DEPENDENCY_UPDATES.includes(`${type}(${scope})`);
+
 const HEADER = /^(?<type>[a-z]+)(?:\((?<scope>[\w./-]+)\))?(?<bang>!)?: (?<rest>.*)$/;
 const BREAKING_FOOTER = /^BREAKING[ -]CHANGE: ?(.*)$/;
 const SEMVER = /^(\d+)\.(\d+)\.(\d+)$/;
@@ -120,7 +129,9 @@ export function parseCommit(message, idPattern = BACKLOG_ID) {
   const words = rest.trim().split(/\s+/);
   const ids = [];
   while (words.length > 0 && idPattern.test(words[0])) ids.push(words.shift());
-  if (ids.length === 0) return fail('no backlog id after the colon');
+  if (ids.length === 0 && !isDependencyUpdate(type, scope)) {
+    return fail('no backlog id after the colon');
+  }
   const summary = words.join(' ');
   if (summary === '') return fail('no summary after the backlog ids');
 
@@ -173,7 +184,8 @@ export function renderEntry(commit, group) {
   if (!commit.conforming) return `- ${commit.subject} ${hash} (${commit.reason})`;
   const label = labelOf(commit, group);
   const lead = label ? `**${label}:** ` : '';
-  const entry = `- ${lead}${commit.summary} (${commit.ids.join(', ')}) ${hash}`;
+  const ids = commit.ids.length > 0 ? ` (${commit.ids.join(', ')})` : '';
+  const entry = `- ${lead}${commit.summary}${ids} ${hash}`;
   return commit.note ? `${entry}\n  - BREAKING CHANGE: ${commit.note}` : entry;
 }
 

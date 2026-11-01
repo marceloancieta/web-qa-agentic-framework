@@ -1,0 +1,14 @@
+[
+  {
+    "advisory": "GHSA-g3hv-75wg-m249",
+    "package": "minimatch",
+    "reason": "Fixed only in minimatch 11.0.1 (2026-10-27), a new major that eslint 10.14.0, @eslint/config-array and typescript-eslint 8.72.1, the latest releases, do not accept yet (^10). Development tooling that matches the repository's own patterns, not input from others.",
+    "expires": "2026-12-01"
+  },
+  {
+    "advisory": "GHSA-3g3m-2fjr-6pw4",
+    "package": "glob",
+    "reason": "Fixed only in glob 14.0.2 (2026-10-27), a new major that allure 3.22.1, the latest release, does not accept yet (^13). Report generation over the run's own result files, not input from others.",
+    "expires": "2026-12-01"
+  }
+]

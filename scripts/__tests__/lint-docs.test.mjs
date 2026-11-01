@@ -13,6 +13,7 @@ import {
   DERIVATION_PHRASES,
   FIXTURES,
   headingIds,
+  historyWordingFindings,
   lintDocs,
   RULES,
   SELF_TEST_HISTORY,
@@ -137,6 +138,29 @@ test('closing commits: a shallow clone stops the linter instead of reporting', (
   const outcome = run('--root', shallow);
   assert.equal(outcome.status, 2);
   assert.match(outcome.stderr, /lint-docs: .*shallow/);
+});
+
+test('history: public-wording reads every commit message of HEAD, quoted mentions pass', () => {
+  const { dir, git, commit } = tempRepository();
+  commit('feat(core): CORE-01 helpers');
+  const bad = commit(
+    `feat(core): CORE-02 runner\n\nThe runner is ${DERIVATION_PHRASES[1]} a tool.`,
+  );
+  commit(`docs: DOC-01 the rule reports "${DERIVATION_PHRASES[1]}" as a phrase`);
+  git('checkout', '-q', '-b', 'side');
+  commit(`docs: DOC-02 ${DERIVATION_PHRASES[0]} on a branch that is not HEAD's history`);
+  git('checkout', '-q', 'main');
+
+  assert.deepEqual(historyWordingFindings(dir), [
+    { commit: bad.slice(0, 7), line: 3, phrase: DERIVATION_PHRASES[1] },
+  ]);
+  const outcome = run('--history', '--root', dir);
+  assert.equal(outcome.status, 1);
+  assert.match(outcome.stderr, new RegExp(`commit ${bad.slice(0, 7)}:3 {2}public-wording`));
+
+  const clean = tempRepository();
+  clean.commit('feat(core): CORE-01 reporting helpers');
+  assert.equal(run('--history', '--root', clean.dir).status, 0);
 });
 
 test('commit messages: exit 1 with the line, 0 when clean', () => {

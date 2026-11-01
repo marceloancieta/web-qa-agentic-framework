@@ -220,6 +220,13 @@ web-qa-agentic-framework/
 - Jobs: gates → local packs in compose (pinned by digest) → project matrix with `--shard=i/n` and the
   `blob` reporter (`QA_BLOB_REPORT=1`) → `npm run ci:merge` → quality gate over the merged report and
   the lanes' reports, one `QA_RUN_ID` for all of them → report to test management.
+- Supply chain: every action of a workflow is pinned to a commit SHA; Dependabot proposes npm and
+  action updates after a cooldown of 14 days ([`.github/dependabot.yml`](../.github/dependabot.yml));
+  `npm run audit:deps` keeps `npm audit` clean in the gates job, against a list of advisories with
+  no safe fix yet, each with a reason and an expiry ([`audit-known.json`](../audit-known.json));
+  CodeQL scans the sources ([`.github/workflows/codeql.yml`](../.github/workflows/codeql.yml)).
+  The gates scan the whole history for secrets, denylisted terms and the wording of every commit
+  message.
 - `workers` per pack in `app.json`: some systems under test do not tolerate parallel runs.
 - The visual lane runs in the container both locally and in CI.
 

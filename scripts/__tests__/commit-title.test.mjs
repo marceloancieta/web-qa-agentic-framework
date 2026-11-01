@@ -13,6 +13,8 @@ test('titles that follow the convention pass', () => {
     'docs: DOC-05 pull-request template',
     'fix(gates)!: GATE-03 GATE-04 stricter lesson guards',
     'build(mutation): PROC-01..05 bring Stryker back',
+    'build(deps): Bump eslint from 10.11.0 to 10.12.0',
+    'ci(deps): Bump actions/checkout from 7.0.1 to 7.1.0',
   ]) {
     assert.equal(titleProblem(title), null, title);
   }
@@ -21,7 +23,7 @@ test('titles that follow the convention pass', () => {
 test('titles that break the convention name the reason', () => {
   assert.match(titleProblem('Update README'), /subject is not/);
   assert.match(titleProblem('feature(tm): TM-08 x'), /unknown type "feature"/);
-  assert.match(titleProblem('build(deps): Bump eslint from 10.11.0 to 10.12.0'), /no backlog id/);
+  assert.match(titleProblem('build(lint): Bump eslint from 10.11.0 to 10.12.0'), /no backlog id/);
   assert.match(titleProblem('docs: DOC-05'), /no summary/);
   assert.match(titleProblem(''), /subject is not/);
 });

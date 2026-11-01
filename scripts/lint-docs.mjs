@@ -25,6 +25,9 @@
 // Usage:
 //   node scripts/lint-docs.mjs [--root <dir>]     every file of the repository, or another tree
 //   node scripts/lint-docs.mjs --message <file>   public-wording on a commit message (commit-msg)
+//   node scripts/lint-docs.mjs --history [--root <dir>]
+//                                                 public-wording on every commit message in the
+//                                                 history of HEAD; a shallow clone stops it (exit 2)
 //   node scripts/lint-docs.mjs --self-test        exact check against the fixture tree
 // Exit codes: 0 clean; 1 findings or an inexact self-test; 2 the linter could not run.
 
@@ -331,6 +334,24 @@ export function lintFile(root, file, hosts = configuredHosts(root), history = ()
 }
 
 /**
+ * public-wording over the message of every commit in the history of `HEAD` of the repository at
+ * `root`: a message is published with the history as much as a file is.
+ * @returns {{ commit: string, line: number, phrase: string }[]}
+ */
+export function historyWordingFindings(root = REPO_ROOT) {
+  headHistory(root); // stops on a shallow clone, whose history is incomplete
+  const log = git(['log', '--format=%h%x00%B%x1e', 'HEAD'], root);
+  return log
+    .split('\x1e')
+    .map((entry) => entry.replace(/^\n/, ''))
+    .filter(Boolean)
+    .flatMap((entry) => {
+      const [commit, message = ''] = entry.split('\x00');
+      return wordingFindings(message).map((hit) => ({ commit, ...hit }));
+    });
+}
+
+/**
  * Every text file under `root`. `history` gives the full hashes of the history of `HEAD`; by default
  * it is read from the repository at `root`, once and only when the backlog cites a closing commit.
  */
@@ -347,8 +368,20 @@ function main() {
       'self-test': { type: 'boolean', default: false },
       root: { type: 'string' },
       message: { type: 'string' },
+      history: { type: 'boolean', default: false },
     },
   });
+  if (values.history) {
+    const hits = historyWordingFindings(resolve(values.root ?? REPO_ROOT));
+    for (const { commit, line, phrase } of hits) {
+      console.error(
+        `commit ${commit}:${line}  public-wording  "${phrase}" presents the framework as taken from another codebase`,
+      );
+    }
+    console.log(`${TOOL} history: ${hits.length === 0 ? 'clean' : `${hits.length} finding(s)`}.`);
+    process.exitCode = hits.length > 0 ? 1 : 0;
+    return;
+  }
   if (values['self-test']) {
     process.exitCode = selfTest(TOOL, FIXTURES, lintDocs(FIXTURES, { history: SELF_TEST_HISTORY }));
     return;

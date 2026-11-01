@@ -1,6 +1,6 @@
 # 0006 - Branching model and change traceability
 
-**Status:** Accepted (2026-10-24)
+**Status:** Accepted (2026-10-24); amended (2026-11-01, CI-03) with the dependency-update exception
 
 ## Context
 
@@ -29,6 +29,10 @@ and squash-merged.
 | Pull request | Same title as the squash commit; the body links the backlog item; CI must pass |
 | Release | Tag `vX.Y.Z` on `main`; `CHANGELOG.md` built from the history by `npm run changelog` |
 | Backlog | A finished item moves to **Done** with the hash of the commit that closed it |
+
+**Dependency updates** proposed by Dependabot are the one exception to the backlog id: a bot cannot
+name a backlog item, so `build(deps): …`, `build(deps-dev): …` and `ci(deps): …` pass without one
+(`DEPENDENCY_UPDATES` in `scripts/changelog.mjs`), and the changelog lists them without ids.
 
 `npm run commit:title -- "<title>"` checks a subject with the same parser that builds the changelog.
 `git-policy` can enforce part of this from qa-config: `tracker.key_pattern` for the ids,

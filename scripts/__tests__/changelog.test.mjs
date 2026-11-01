@@ -8,6 +8,7 @@ import { join } from 'node:path';
 import {
   changelog,
   groupCommits,
+  groupOf,
   insertSection,
   latestVersionTag,
   nextVersion,
@@ -49,6 +50,40 @@ test('several ids and id ranges are read until the first word that is not an id'
   assert.equal(several.summary, 'supply chain and the CI-07 review');
   const ranges = parseCommit('feat(process): PROC-01..05 PROC-09..14 rules and skills');
   assert.deepEqual(ranges.ids, ['PROC-01..05', 'PROC-09..14']);
+});
+
+test('a dependency update by a bot needs no backlog id, and only with its type and scope', () => {
+  const npm = parseCommit('build(deps): bump the npm-minor group with 3 updates');
+  assert.equal(npm.conforming, true);
+  assert.deepEqual(npm.ids, []);
+  assert.equal(npm.summary, 'bump the npm-minor group with 3 updates');
+  assert.equal(
+    parseCommit('build(deps-dev): bump eslint from 10.14.0 to 10.15.0').conforming,
+    true,
+  );
+  assert.equal(parseCommit('ci(deps): bump actions/checkout from 7.0.1 to 7.1.0').conforming, true);
+  assert.deepEqual(
+    parseCommit('build(deps): CI-03 pin the audit').ids,
+    ['CI-03'],
+    'an id is still read when one is given',
+  );
+  for (const title of [
+    'feat(deps): bump eslint',
+    'build(core): bump eslint',
+    'build: bump eslint',
+    'ci(deps-dev): bump actions/checkout',
+  ]) {
+    assert.equal(parseCommit(title).reason, 'no backlog id after the colon', title);
+  }
+  assert.equal(parseCommit('build(deps): ').conforming, false, 'a summary is still required');
+});
+
+test('an entry without ids leaves out the parentheses', () => {
+  const update = commit('abc1234', 'ci(deps): bump actions/checkout from 7.0.1 to 7.1.0');
+  assert.equal(
+    renderEntry(update, groupOf(update)),
+    '- **ci(deps):** bump actions/checkout from 7.0.1 to 7.1.0 `abc1234`',
+  );
 });
 
 test('a breaking change is marked by `!` or by a BREAKING CHANGE footer', () => {
