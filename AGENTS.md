@@ -56,6 +56,7 @@ A request that needs both is split, and each half stops at its own gate.
 
 | For | Read |
 |---|---|
+| a first run, and how-to guides for running tests, adding a pack and the phases in Claude Code | [`docs/onboarding.md`](docs/onboarding.md), [`docs/guides/`](docs/guides/running-tests.md) |
 | the design and the reasons behind it | [`docs/architecture.md`](docs/architecture.md) |
 | recorded decisions | [`docs/adr/README.md`](docs/adr/README.md) |
 | open work, stages and acceptance criteria | [`docs/backlog.md`](docs/backlog.md) |
