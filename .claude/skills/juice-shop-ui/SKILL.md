@@ -62,7 +62,7 @@ API, so a spec never branches on the device.
 
 ## Known defects
 
-Filed in the local tracker at the intake gates of W6 (2026-10-25) and W8a, and the automate gate of W8b (2026-10-26). Juice
+Filed in the local tracker at the intake gates (2026-10-25, 2026-10-26) and the automate gate (2026-10-26). Juice
 Shop's training vulnerabilities are filed like any defect, so the cases that check them run as known
 gaps. The registries' Defect column says which cases cite each key.
 

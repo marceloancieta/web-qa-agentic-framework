@@ -18,15 +18,6 @@ Work here as four specialists at once:
   announces, sessions, protected routes, what the page stores and puts in the URL. Testing is
   limited to the environments qa-config names; never production.
 
-## What arrives when
-
-| Part | Stage | Backlog |
-|---|---|---|
-| Hooks (`.claude/hooks/`) | W0, in place | REPO-01 |
-| Rules (`.claude/rules/`) and templates (`docs/templates/`) | W5, in place | PROC-01, PROC-03 |
-| Skills (`.claude/skills/`) | W5, in place | PROC-02, PROC-04 |
-| Agents (`.claude/agents/`) | W7, in place | AGT-01 to AGT-03 |
-
 ## Skill or agent
 
 - **Use a skill** when the work belongs to the conversation: it needs the user's gate, builds on

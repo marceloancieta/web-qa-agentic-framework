@@ -10,8 +10,7 @@ execution across browsers and devices, test-management and tracker adapters, and
 connects them. Each application under test is an **app pack** in `apps/<pack>/`; the core never
 imports a pack. Read [`docs/architecture.md`](docs/architecture.md) for the design,
 [`docs/adr/`](docs/adr/README.md) for the decisions and [`docs/backlog.md`](docs/backlog.md) for
-what is built and what is next. The repository is being built stage by stage (W0 to W9 in the
-backlog); parts named below that do not exist yet arrive in the stage the backlog gives them.
+what is built and what is next.
 
 ## The process
 

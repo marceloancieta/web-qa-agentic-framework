@@ -5,7 +5,7 @@
 | Pack and version | `juice-shop` `20.3.0` |
 | Feature code | `CHECKOUT` (case ids `TC-CHECKOUT-NN`) |
 | Routes | `/#/address/select`, `/#/address/create`, `/#/delivery-method`, `/#/payment/shop`, `/#/order-summary`, `/#/order-completion/<ORDER_ID>`, `/#/order-history`, `/#/track-result/new?id=<ORDER_ID>` |
-| Sources | no story or issue: intake from the application itself (W8a). The app maps (`docs/app-map.customer.json`, 2026-10-26, with the checkout routes added to `app.json` `app_map.actors.customer`); a throwaway script approved by the owner that created its own accounts and walked the checkout through the UI (2026-10-26, Chromium 1280 and 412 px wide); read-only looks without a session (2026-10-26) |
+| Sources | no story or issue: intake from the application itself. The app maps (`docs/app-map.customer.json`, 2026-10-26, with the checkout routes added to `app.json` `app_map.actors.customer`); a throwaway script approved by the owner that created its own accounts and walked the checkout through the UI (2026-10-26, Chromium 1280 and 412 px wide); read-only looks without a session (2026-10-26) |
 | Intake date | 2026-10-26 |
 
 ## Purpose

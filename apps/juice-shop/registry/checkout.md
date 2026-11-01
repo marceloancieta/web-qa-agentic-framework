@@ -77,11 +77,11 @@ intake, so their cases run as known gaps (LOCAL-3, LOCAL-7 to LOCAL-13).
 | TC-CHECKOUT-29 | the checkout is completed with the keyboard alone, the focus visible at each control, and no step has an axe violation beyond the baseline | REQ-CHECKOUT-09 | use-case | medium | @regression @a11y | all | approved | | |
 | TC-CHECKOUT-30 | a slow order answer never shows raw template text or a 0.00¤ total on the completion page | REQ-CHECKOUT-09 | error-guessing | medium | @regression @perf @known-gap | all | published | specs/checkout/order.spec.ts | LOCAL-13 |
 
-Changed at the W8b gate (2026-10-26): TC-CHECKOUT-22 covered the summary and the completion page
+Changed at the automate gate (2026-10-26): TC-CHECKOUT-22 covered the summary and the completion page
 under one known-gap arm, so a failure on the way to the completion page read as the gap. The
 completion page moved to TC-CHECKOUT-30, approved by the owner, each case with its own arm.
 
-Changed at the W8c gate (2026-10-29): TC-CHECKOUT-25 said the order id and the date were masked,
+Changed at the automate gate (2026-10-29): TC-CHECKOUT-25 said the order id and the date were masked,
 but the completion page shows neither (the id is only in the Track Orders link's address), so the
 title no longer names a mask, approved by the owner.
 

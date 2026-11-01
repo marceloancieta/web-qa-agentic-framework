@@ -123,7 +123,7 @@ automate).
 | G1 | `/#/basket` opens without a session and shows an anonymous basket instead of sending the visitor to the login. The owner decided it should not open (2026-10-25). | live look, 2026-10-25 | LOCAL-3 (S3) |
 | G2 | A customer reads another customer's basket by its id, through the API and on the page. Juice Shop is insecure on purpose and this is one of its training vulnerabilities. | throwaway spec, 2026-10-25 | LOCAL-1 (S1) |
 | G3 | A failed basket answer is shown as an ordinary empty basket, with no message; the loading state shows the empty state too (LOCAL-13). | TC-BASKET-17 and -18 runs, 2026-10-26 | LOCAL-17 (S3) |
-| G4 | The decrease, increase and remove buttons of a basket row have no accessible name; page objects find them by their place in the row. | W8b2 locator capture, 2026-10-26 | not filed: the owner chose to note it here (2026-10-26) |
+| G4 | The decrease, increase and remove buttons of a basket row have no accessible name; page objects find them by their place in the row. | locator capture in automate, 2026-10-26 | not filed: the owner chose to note it here (2026-10-26) |
 
 ## Out of scope
 

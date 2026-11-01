@@ -23,15 +23,15 @@ same process and guardrails, applied to the browser:
 | Topic | Decision |
 |---|---|
 | Name | `web-qa-agentic-framework` (web, not native mobile) |
-| npm package | `create-web-qa` (name free at the time of writing), used as `npm create web-qa@<version> <dir>` |
-| Shared code | Start with this repository's own copy of the generic parts of the API framework (same author, Apache-2.0) and adapt them. A later backlog item extracts a shared core once both frameworks are stable (after web v0.2). The API framework is not changed for this |
+| npm package | `create-web-qa`, used as `npm create web-qa@<version> <dir>` (FUT-02) |
+| Shared code | The generic parts (adapters, hooks, linters, libraries) live in this repository; a core shared with the sibling API framework is FUT-09 |
 | App packs | v0.1: OWASP Juice Shop (local Docker, the fully worked pack) and SauceDemo (public, read-only). v0.2: Practice Software Testing "Toolshop" (local Docker) |
 | v0.1 scope | Complete foundation: five phases, adapters, desktop and mobile projects, accessibility, visual regression in a container, network mocking, state injection |
 | UI pattern | Page Object Model with components, role fixtures and optional flows. Screenplay is documented as a rejected alternative in the architecture ADR |
 | Quality dimensions | Seven UI quality dimensions (section 6b): the core in v0.1, the rest in v0.2. Each feature declares which apply and a linter checks it |
 | Exploratory sessions | A `qa-explore` skill comes in v0.2, after intake is stable and an ADR decides its mode. In v0.1 the intake template accepts notes from manual exploration as a source |
 | Runtime | Node and TypeScript only; Playwright Test |
-| License | Apache-2.0 with NOTICE from the first commit |
+| License | Apache-2.0, with a NOTICE file ([ADR 0004](adr/0004-apache-2-license.md)) |
 | Language | Everything in the repository is in English |
 | Publishing | Nothing is pushed, published or made public without the owner's explicit approval |
 
@@ -50,7 +50,6 @@ same process and guardrails, applied to the browser:
 | Auto-waiting and web-first assertions | yes | command retry | partial |
 | Trace viewer (DOM, network, console per step) | yes | runner time travel | no |
 | Visual and accessibility | built-in `toHaveScreenshot`; `@axe-core/playwright` | plugins | services |
-| Same stack as the API framework | yes: fixtures, lanes, adapters and linters reuse | no | no |
 
 Playwright with TypeScript. WebdriverIO would only win if native mobile apps were in scope; they
 are not, and the name says so.
@@ -78,7 +77,6 @@ are not, and the name says so.
 | Reuse across pages | poor without components | good | good |
 | Several roles | manual login per test | actor with abilities | role fixture with an injected session |
 | Checks that do not retry | low risk | high risk: one-shot questions such as `isVisible()` | low risk: web-first assertions stay in specs |
-| Same layers as the API framework | partial | partial | full |
 
 Screenplay is rejected for verbosity, one-shot questions that do not retry, the learning curve for
 adopters, and Serenity/JS reporting that would compete with the adapters.
@@ -120,19 +118,20 @@ web-qa-agentic-framework/
   helpers/  fixtures/        core
   scripts/  lib/ tm/ tracker/ lint-*.mjs app-map.mjs scaffold-app.mjs ...
   docker/                    pinned Playwright image, compose files for the local packs
-  docs/  adr/ references/ templates/ guides/ backlog.md lessons-learned.md
-  packages/create-web-qa/
-  qa-config.example.json  qa-config.schema.json  playwright.config.ts
+  docs/  adr/ guides/ templates/ tracker/ architecture.md backlog.md onboarding.md
+         test-management.md
+  schemas/qa-config.schema.json
+  qa-config.example.json  playwright.config.ts  audit-known.json
 ```
 
-`qa-config` follows the API framework's shape, with `api` renamed to `app` (decided in
-[ADR 0008](adr/0008-per-pack-configuration.md)):
+`qa-config` is organised by app pack ([ADR 0008](adr/0008-per-pack-configuration.md)):
 
 - `app.default_environment`, and `app.accessibility.tags` for axe
 - `app.environments.<env>.projects`: the device projects the environment runs
 - `app.environments.<env>.packs.<pack>`: `base_url`, `allow_writes`,
   `recovery{command, ready_timeout_s}`, `actors{<role>: {account, ...}}` and `default_actor`
-- `test_management`, `tracker`, `policies` as in the API framework
+- `test_management` and `tracker`: the adapter each one uses, with its options; `policies`: the
+  commit rules `git-policy` applies
 - `quality_gate`: `pass_rate`, new accessibility violations per impact, visual differences; web
   vitals in v0.2
 
@@ -141,7 +140,8 @@ web-qa-agentic-framework/
 - **Projects from qa-config:** `desktop-chromium`, `desktop-webkit`, `desktop-firefox`, `tablet`
   (iPad, WebKit), `mobile-chrome` (Pixel 7), `mobile-safari` (iPhone 14, WebKit), and `-landscape`
   variants for orientation. `playwright.config.ts` builds them; each environment picks which run
-  (local: Chromium and mobile Chrome; full CI: all of them, reduced with pairwise).
+  (`local`: desktop Chromium and mobile Chrome; `ci`: six device projects). Reducing the full
+  product with pairwise is FUT-10.
 - **Locator policy**, in the generation rule and in the linter: `getByRole` and `getByLabel`, then
   `getByTestId` (attribute set per pack in `app.json`; SauceDemo uses `data-test`), then `getByText`
   with a deliberate `exact`, then CSS only with a comment that says why. XPath and `nth-child` are
@@ -238,8 +238,9 @@ web-qa-agentic-framework/
 | `saucedemo` (v0.1) | public, `allow_writes: false` | yes, with variant users / no | cookie and `localStorage` | read-only pack, visual (`visual_user`), anti-flake (`performance_glitch_user`), `locked_out_user` |
 | `toolshop` (v0.2) | local Docker | yes / yes, admin and customer roles | REST API | authorization in the UI by role, `data-test` attributes, a third data model |
 
-Demo credentials, public or not, come from `.env` (variable names in `app.json` `secret_keys`; a
-missing one fails by name), never from specs or docs.
+Demo credentials, public or not, come from `.env`: each actor in qa-config names its variables
+(`username_env`, `password_env`), a missing one fails by name before the run, and the values never
+appear in specs or docs. `app.json` `secret_keys` names the fields redaction masks.
 
 ## 6b. UI quality dimensions
 
@@ -269,64 +270,33 @@ submits forms).
 
 ## 7. The five phases for a UI
 
-| Phase | Skill | Produces | Difference from the API framework |
+| Phase | Skill | Produces | What is specific to a UI |
 |---|---|---|---|
-| 0 intake | `qa-intake` | `apps/<pack>/docs/features/<feature>.md` | The structural source is the **app map** (not OpenAPI), plus a story or issue (jira, github, local) and an optional intake request |
+| 0 intake | `qa-intake` | `apps/<pack>/docs/features/<feature>.md` | The structural source is the **app map**, plus a story or issue (jira, github, local), an optional intake request and manual exploration notes |
 | 1 design | `qa-design` | `apps/<pack>/registry/<feature>.md` | UI techniques: EP and BVA from form constraints, state transitions, decision tables, pairwise over devices |
-| 2 automate | `qa-automate` | specs, pages, components, flows, mocks, baselines | Locators captured live, read-only; review by `ui-spec-reviewer` |
-| 3 publish | `qa-publish` | case definitions in test management | nearly the same |
-| 4 run | `qa-run` | a reported run | nearly the same; never touches baselines or specs |
+| 2 automate | `qa-automate` | specs, pages, components, flows, mocks, baselines | Locators captured live, read-only; review by `ui-spec-reviewer`; baselines written only in the container |
+| 3 publish | `qa-publish` | case definitions in test management | One definition per case, whatever the number of device projects |
+| 4 run | `qa-run` | a reported run | One result per case, the worst of its devices; never touches baselines or specs |
 
-- **App map**, the counterpart of the contract digest: `npm run app:map -- --pack <pack>` walks the
+- **App map**, the structural source of intake: `npm run app:map -- --pack <pack>` walks the
   application read-only (same origin, no form submission, login allowed) and records routes,
   landmarks, a summarized accessibility tree, forms with their HTML constraints (`required`,
   `maxlength`, `pattern`, `type`) and the endpoints seen on the network. It is tracked; its drift
   against the live application is a lane.
-- **Modes for a UI:** design navigates and reads, plus the pack's login (the counterpart of the
-  credential exchange). Submitting forms or signing up in design is forbidden outside a spec run.
+- **Modes for a UI:** design navigates and reads, plus the pack's login. Submitting forms or signing
+  up in design is forbidden outside a spec run.
 - **Feature contract doc for a UI:** source, routes, roles and entry state, elements by accessible
   name, business rules, validations, states (empty, loading, error, success), responsive
   differences, accessibility expectations, network dependencies, open questions.
 - **Agents:** `spec-author`; `ui-spec-reviewer` (brittle locators, waits, assertions that cannot fail
   or pass by coincidence, layers, title against body) with evaluation fixtures;
   `behaviour-investigator` (requirement against observed UI, read-only).
-- **Hooks:** `secret-guard` and `git-policy` as in the API framework; `session-probe` checks each
+- **Hooks:** `secret-guard` refuses and masks credentials, `git-policy` applies the commit rules of
+  qa-config, and `session-probe` checks each
   pack's URL and its login page.
 
-## 8. What comes from the API framework
+## 8. Shared with the API framework
 
-- **Nearly unchanged:** `scripts/tm/` (local, allure-report, allure-testops adapters),
-  `scripts/tracker/` (jira, github, local), the hooks and `hooks/lib`, the generic `scripts/lib/`
-  modules (registry, tags, env, env-names, log, cli, spawn, git with `gitEnv`, lint, results,
-  playwright-lane, container, pairwise, decision-table), `lint-docs`, secret scan, denylist scan,
-  changelog, commit title, release check, coverage status, cited status, traceability, quality gate,
-  and the evidence, redaction, anonymization, rng, clock, run-lock and data-gate helpers.
-- **Adapted:** the rules (service packs become app packs; generation; reporting), skills, agents,
-  `lint-harness`, `lint-suite`, `lint-layers`, `session-probe`, `scaffold:service` → `scaffold:app`,
-  `create-api-qa` → `create-web-qa`, and the ADRs on layers, per-pack configuration and container
-  lanes.
-- **Not taken:** the OpenAPI normalizer, `contract:*`, `BaseClient`, k6, the API DAST lane.
-- **New checks worth adding from the start:** soft assertions above an expected-failure arm
-  (`soft-before-arm`); a restore verdict that ignores declared provenance fields; every entry point
-  names a missing secret before the run starts; host placeholders in hand-written repro steps;
-  test-management metadata repair with a scope.
-- Backlog item: extract a shared core after web v0.2.
-
-## 9. Lessons applied from day one
-
-1. Denylist, gitleaks and hooks in the first commit, so the history never needs rewriting.
-2. Apache-2.0 and NOTICE from the start.
-3. Per-pack configuration from v0.1.
-4. A documentation review before every release.
-5. CodeQL and `npm audit` before going public; container images pinned by digest.
-6. Tag semantics defined in one filter.
-7. `gitEnv()` and the decoy `GIT_DIR` test from the start, so scripts never touch the caller's repo.
-8. Backlog conventions settled up front; gates run before a push, not before every commit.
-9. A case's identity comes from its id, never its title: renaming a title must not orphan the
-   published case.
-10. An ADR decides how known gaps appear in test management (`test.fail` shows as passed).
-11. A fast control test names the cause (missing credentials) instead of twenty opaque failures.
-12. Every write to test management or the tracker is read back; no `|| true` in CI.
-13. One waiting implementation for frames and document replacement; no `waitForTimeout`.
-14. Traces and videos record what is typed: recorded cases sign in through the API, and screenshots
-    mask sensitive fields.
+The framework shares its process, adapters, hooks and generic libraries with the sibling
+[api-qa-agentic-framework](https://github.com/marceloancieta/api-qa-agentic-framework); extracting a
+core both use is FUT-09 in the [backlog](backlog.md).

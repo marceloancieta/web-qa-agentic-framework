@@ -139,7 +139,7 @@ test('the gate refuses reports that are not of the latest run, and takes those t
     staleReasons([matrix, sweep], { expectedRunId: 'ci-7', newestResultStart: inside }),
     [],
   );
-  // A report written before the run whose results are in allure-results: the false FAIL of W8c.
+  // A report written before the run whose results are in allure-results would give a false FAIL.
   const old = ranAt(null, '2026-10-24T23:00:00.000Z', 60_000);
   assert.match(
     staleReasons([old], { newestResultStart: inside })[0],

@@ -41,7 +41,7 @@ export class BasketPage {
   /**
    * A row's cells are image, name, quantity (with a decrease and an increase button around it),
    * price, and a cell with the remove button. None of the three buttons has an accessible name, so
-   * they are found by their place in the row (a finding of the W8b2 gate).
+   * they are found by their place in the row (BASKET G4 in the basket contract).
    */
   quantity(name: string): Locator {
     return this.row(name).getByRole('cell').nth(2); // the third cell is the quantity

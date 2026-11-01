@@ -59,10 +59,10 @@ banners and fix the language. Accounts are not removed; the [application notes](
 
 | Feature | Contract | Registry |
 |---|---|---|
-| `LOGIN` | [sign-in](docs/features/login.md) | design (W6b) |
-| `SIGNUP` | [sign-up](docs/features/signup.md) | design (W6b) |
-| `BASKET` | [basket](docs/features/basket.md) | design (W6b) |
-| `SEARCH` | [product search](docs/features/search.md) | design (W6b) |
+| `LOGIN` | [sign-in](docs/features/login.md) | [sign-in cases](registry/login.md) |
+| `SIGNUP` | [sign-up](docs/features/signup.md) | [sign-up cases](registry/signup.md) |
+| `BASKET` | [basket](docs/features/basket.md) | [basket cases](registry/basket.md) |
+| `SEARCH` | [product search](docs/features/search.md) | [search cases](registry/search.md) |
 | `CHECKOUT` | [checkout](docs/features/checkout.md) | [checkout cases](registry/checkout.md) |
 | `JOURNEY` | [journeys](docs/features/journeys.md), across the features above | [journey cases](registry/journeys.md), tagged `@e2e` |
 
