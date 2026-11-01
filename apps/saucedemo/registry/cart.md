@@ -27,22 +27,22 @@ TC-CART-12); G2 and G6 wait for `qa-report-bug`; G4 and G5 stay recorded with no
 
 | ID | Title | Requirement | Technique | Priority | Tags | Devices | Status | Spec | Defect |
 |---|---|---|---|---|---|---|---|---|---|
-| TC-CART-01 | "Add to cart" for <OTHER_PRODUCT> on the list turns its button into "Remove", shows 1 on the cart badge, and the cart lists <OTHER_PRODUCT> with quantity 1 | REQ-CART-01 | use-case | high | @smoke | all | automated | specs/cart/cart.spec.ts |  |
-| TC-CART-02 | "Add to cart" on <PRODUCT>'s page puts it in the cart once: the button turns into "Remove", so the product cannot be added twice | REQ-CART-01 | equivalence-partition | medium | @regression | all | automated | specs/cart/cart.spec.ts |  |
-| TC-CART-03 | with <PRODUCT> and <OTHER_PRODUCT> in the cart, "Remove" on <PRODUCT> in the cart leaves only <OTHER_PRODUCT> and the badge shows 1 | REQ-CART-02 | state-transition | high | @regression | all | automated | specs/cart/cart.spec.ts |  |
-| TC-CART-04 | with <PRODUCT> in the cart, "Remove" on the list turns the button back into "Add to cart", the badge disappears and the cart button is named "Cart, empty" | REQ-CART-02 | state-transition | medium | @regression | all | automated | specs/cart/cart.spec.ts |  |
-| TC-CART-05 | the cart lists <PRODUCT> then <OTHER_PRODUCT> in the order added, each with quantity 1 and the name, description and price the list shows | REQ-CART-03 | use-case | medium | @regression | all | automated | specs/cart/cart.spec.ts |  |
-| TC-CART-06 | an empty cart shows only the column labels, "Continue Shopping" and "Checkout" | REQ-CART-04 | boundary-value | low | @regression | all | automated | specs/cart/cart.spec.ts |  |
-| TC-CART-07 | <PRODUCT> and <OTHER_PRODUCT> stay in the cart after a reload, and after a visit to the list and a product page | REQ-CART-05 | state-transition | medium | @regression @navigation | all | automated | specs/cart/cart.spec.ts |  |
-| TC-CART-08 | <PRODUCT>'s name in the cart opens its product page | REQ-CART-06 | use-case | low | @regression @navigation | all | automated | specs/cart/cart.spec.ts |  |
-| TC-CART-09 | "Continue Shopping" leads to /inventory.html and "Checkout" to /checkout-step-one.html, with the cart unchanged | REQ-CART-07 | use-case | medium | @regression @navigation | all | automated | specs/cart/cart.spec.ts |  |
-| TC-CART-10 | "Reset App State" in the menu empties the cart: the badge disappears and the cart lists nothing | REQ-CART-08 | state-transition | medium | @regression @known-gap | all | automated | specs/cart/cart.spec.ts | LOCAL-28 |
-| TC-CART-11 | /cart.html opened without a session sends the visitor to / with the message naming the path | REQ-CART-09 | equivalence-partition | medium | @regression @security | all | automated | specs/cart/cart.spec.ts |  |
-| TC-CART-12 | after Logout and a new login, the cart is empty |  | error-guessing | high | @regression @security @known-gap | all | automated | specs/cart/cart.spec.ts | LOCAL-29 |
-| TC-CART-13 | the cart with two products has no horizontal scroll | REQ-CART-10 | boundary-value | low | @regression @responsive | all | automated | specs/cart/cart.spec.ts |  |
-| TC-CART-14 | "Remove", "Continue Shopping" and "Checkout" are reached and used with the keyboard alone | REQ-CART-11 | use-case | medium | @regression @a11y | all | automated | specs/cart/cart.spec.ts |  |
-| TC-CART-15 | the cart button is named "Cart, empty", "Cart, 1 item" and "Cart, 2 items" as the cart holds 0, 1 and 2 products, and the cart page has no axe violation beyond the baseline |  | boundary-value | medium | @regression @a11y @known-gap | all | automated | specs/cart/cart.spec.ts | LOCAL-30 |
-| TC-CART-16 | the cart with two products looks as designed |  | use-case | low | @regression @visual @layout | all | automated | specs/visual/cart.spec.ts |  |
+| TC-CART-01 | "Add to cart" for <OTHER_PRODUCT> on the list turns its button into "Remove", shows 1 on the cart badge, and the cart lists <OTHER_PRODUCT> with quantity 1 | REQ-CART-01 | use-case | high | @smoke | all | published | specs/cart/cart.spec.ts |  |
+| TC-CART-02 | "Add to cart" on <PRODUCT>'s page puts it in the cart once: the button turns into "Remove", so the product cannot be added twice | REQ-CART-01 | equivalence-partition | medium | @regression | all | published | specs/cart/cart.spec.ts |  |
+| TC-CART-03 | with <PRODUCT> and <OTHER_PRODUCT> in the cart, "Remove" on <PRODUCT> in the cart leaves only <OTHER_PRODUCT> and the badge shows 1 | REQ-CART-02 | state-transition | high | @regression | all | published | specs/cart/cart.spec.ts |  |
+| TC-CART-04 | with <PRODUCT> in the cart, "Remove" on the list turns the button back into "Add to cart", the badge disappears and the cart button is named "Cart, empty" | REQ-CART-02 | state-transition | medium | @regression | all | published | specs/cart/cart.spec.ts |  |
+| TC-CART-05 | the cart lists <PRODUCT> then <OTHER_PRODUCT> in the order added, each with quantity 1 and the name, description and price the list shows | REQ-CART-03 | use-case | medium | @regression | all | published | specs/cart/cart.spec.ts |  |
+| TC-CART-06 | an empty cart shows only the column labels, "Continue Shopping" and "Checkout" | REQ-CART-04 | boundary-value | low | @regression | all | published | specs/cart/cart.spec.ts |  |
+| TC-CART-07 | <PRODUCT> and <OTHER_PRODUCT> stay in the cart after a reload, and after a visit to the list and a product page | REQ-CART-05 | state-transition | medium | @regression @navigation | all | published | specs/cart/cart.spec.ts |  |
+| TC-CART-08 | <PRODUCT>'s name in the cart opens its product page | REQ-CART-06 | use-case | low | @regression @navigation | all | published | specs/cart/cart.spec.ts |  |
+| TC-CART-09 | "Continue Shopping" leads to /inventory.html and "Checkout" to /checkout-step-one.html, with the cart unchanged | REQ-CART-07 | use-case | medium | @regression @navigation | all | published | specs/cart/cart.spec.ts |  |
+| TC-CART-10 | "Reset App State" in the menu empties the cart: the badge disappears and the cart lists nothing | REQ-CART-08 | state-transition | medium | @regression @known-gap | all | published | specs/cart/cart.spec.ts | LOCAL-28 |
+| TC-CART-11 | /cart.html opened without a session sends the visitor to / with the message naming the path | REQ-CART-09 | equivalence-partition | medium | @regression @security | all | published | specs/cart/cart.spec.ts |  |
+| TC-CART-12 | after Logout and a new login, the cart is empty |  | error-guessing | high | @regression @security @known-gap | all | published | specs/cart/cart.spec.ts | LOCAL-29 |
+| TC-CART-13 | the cart with two products has no horizontal scroll | REQ-CART-10 | boundary-value | low | @regression @responsive | all | published | specs/cart/cart.spec.ts |  |
+| TC-CART-14 | "Remove", "Continue Shopping" and "Checkout" are reached and used with the keyboard alone | REQ-CART-11 | use-case | medium | @regression @a11y | all | published | specs/cart/cart.spec.ts |  |
+| TC-CART-15 | the cart button is named "Cart, empty", "Cart, 1 item" and "Cart, 2 items" as the cart holds 0, 1 and 2 products, and the cart page has no axe violation beyond the baseline |  | boundary-value | medium | @regression @a11y @known-gap | all | published | specs/cart/cart.spec.ts | LOCAL-30 |
+| TC-CART-16 | the cart with two products looks as designed |  | use-case | low | @regression @visual @layout | all | published | specs/visual/cart.spec.ts |  |
 
 ## Notes
 
