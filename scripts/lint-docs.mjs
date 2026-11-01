@@ -17,6 +17,10 @@
 //   public-wording  in any text file, a phrase that presents the framework as taken from another
 //                   codebase. A phrase in quotes or backticks is a mention, not a claim, and passes;
 //                   so does LICENSE, whose text is fixed.
+//   closing-commit  in `docs/backlog.md`, a hash in the **Closed by** column of the **Done** table
+//                   that names no commit in the history of `HEAD`: a typo, a commit of a branch that
+//                   was never merged, or one a rewritten history dropped. The history is read with
+//                   `git rev-list HEAD`; a shallow clone cannot answer, so the linter stops (exit 2).
 //
 // Usage:
 //   node scripts/lint-docs.mjs [--root <dir>]     every file of the repository, or another tree
@@ -24,16 +28,32 @@
 //   node scripts/lint-docs.mjs --self-test        exact check against the fixture tree
 // Exit codes: 0 clean; 1 findings or an inexact self-test; 2 the linter could not run.
 
+import { spawnSync } from 'node:child_process';
 import { existsSync, readdirSync, readFileSync } from 'node:fs';
 import { join, posix, resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { parseArgs } from 'node:util';
 import { REPO_ROOT } from './lib/cli.mjs';
+import { gitEnv } from './lib/git.mjs';
 import { finding, report, selfTest } from './lib/lint.mjs';
+import { describeExit, spawnFailure } from './lib/spawn.mjs';
 
 export const TOOL = 'lint-docs';
 export const FIXTURES = join(import.meta.dirname, '__fixtures__', 'lint-docs');
-export const RULES = ['broken-link', 'broken-reference', 'host-in-notes', 'public-wording'];
+export const RULES = [
+  'broken-link',
+  'broken-reference',
+  'closing-commit',
+  'host-in-notes',
+  'public-wording',
+];
+export const BACKLOG = 'docs/backlog.md';
+// The history the fixture tree is checked against, so the self-test never depends on the commits
+// of this repository.
+export const SELF_TEST_HISTORY = [
+  'aaaaaaa1111111111111111111111111111111aa',
+  'ccccccc2222222222222222222222222222222cc',
+];
 
 const SKIPPED_DIRS = new Set([
   'node_modules',
@@ -204,14 +224,100 @@ export function wordingFindings(text) {
   return hits;
 }
 
+const CLOSED_BY = 'closed by';
+const COMMIT_HASH = /^[0-9a-f]{7,40}$/i;
+
+/** The cells of a Markdown table row, an escaped `\|` kept inside its cell. */
+function tableCells(line) {
+  return line
+    .trim()
+    .replace(/^\|/, '')
+    .replace(/\|$/, '')
+    .split(/(?<!\\)\|/)
+    .map((cell) => cell.trim());
+}
+
+/**
+ * The hashes the **Closed by** column of the backlog's **Done** table cites, with their lines.
+ * Hashes anywhere else (the item text, the open tables, code blocks) are not read.
+ * @returns {{ hash: string, line: number }[]}
+ */
+export function closingCommits(markdown) {
+  const cited = [];
+  let inDone = false;
+  let fenced = false;
+  let column = -1;
+  markdown.split(/\r?\n/).forEach((line, index) => {
+    if (/^\s*(```|~~~)/.test(line)) fenced = !fenced;
+    if (fenced) return;
+    const heading = /^(#{1,6})\s+(.*?)\s*#*\s*$/.exec(line);
+    if (heading) {
+      if (heading[1].length <= 2) inDone = heading[2].trim().toLowerCase() === 'done';
+      column = -1;
+      return;
+    }
+    if (!line.trim().startsWith('|')) {
+      column = -1; // a table ended; the next one starts with its own header
+      return;
+    }
+    if (!inDone) return;
+    const cells = tableCells(line.replace(/<!--.*?-->/g, ''));
+    if (column === -1) {
+      column = cells.findIndex((cell) => cell.toLowerCase() === CLOSED_BY);
+      return;
+    }
+    if (cells.every((cell) => /^:?-+:?$/.test(cell))) return; // the separator row
+    for (const [, code] of (cells[column] ?? '').matchAll(/`([^`]+)`/g)) {
+      if (COMMIT_HASH.test(code)) cited.push({ hash: code.toLowerCase(), line: index + 1 });
+    }
+  });
+  return cited;
+}
+
+function git(args, cwd) {
+  const result = spawnSync('git', args, {
+    cwd,
+    env: gitEnv(),
+    encoding: 'utf8',
+    maxBuffer: 64 * 1024 * 1024,
+  });
+  if (spawnFailure(result) || result.status !== 0) {
+    const detail = (result.stderr ?? '').trim() || describeExit(result);
+    throw new Error(`git ${args.join(' ')} failed: ${detail}`);
+  }
+  return result.stdout.trim();
+}
+
+/** The full hashes of every commit in the history of `HEAD` of the repository at `root`. */
+export function headHistory(root) {
+  if (git(['rev-parse', '--is-shallow-repository'], root) === 'true') {
+    throw new Error(
+      'the clone is shallow, so the history of HEAD is incomplete; fetch the full history ' +
+        '(git fetch --unshallow, or fetch-depth: 0 in CI) before checking the closing commits',
+    );
+  }
+  return git(['rev-list', 'HEAD'], root).split('\n').filter(Boolean);
+}
+
+function closingCommitFindings(text, history, add) {
+  const cited = closingCommits(text);
+  if (cited.length === 0) return;
+  const commits = history();
+  for (const { hash, line } of cited) {
+    if (commits.some((commit) => commit.startsWith(hash))) continue;
+    add('closing-commit', line, `cites ${hash}, which is not a commit in the history of HEAD`);
+  }
+}
+
 /** Findings for one file, by its path relative to `root`. */
-export function lintFile(root, file, hosts = configuredHosts(root)) {
+export function lintFile(root, file, hosts = configuredHosts(root), history = () => []) {
   const text = readFileSync(join(root, file), 'utf8');
   const findings = [];
   const add = (rule, line, message) => findings.push(finding(rule, file, line, message));
   if (file.endsWith('.md')) brokenLinks(root, file, text, add);
   if (AGENT_FILE.test(file)) brokenReferences(root, file, text, add);
   if (NOTES_FILE.test(file)) hostsInNotes(text, hosts, add);
+  if (file === BACKLOG) closingCommitFindings(text, history, add);
   if (!FIXED_TEXT.has(file)) {
     for (const { line, phrase } of wordingFindings(text)) {
       add(
@@ -224,10 +330,15 @@ export function lintFile(root, file, hosts = configuredHosts(root)) {
   return findings;
 }
 
-/** Every text file under `root`. */
-export function lintDocs(root = REPO_ROOT) {
+/**
+ * Every text file under `root`. `history` gives the full hashes of the history of `HEAD`; by default
+ * it is read from the repository at `root`, once and only when the backlog cites a closing commit.
+ */
+export function lintDocs(root = REPO_ROOT, { history } = {}) {
   const hosts = configuredHosts(root);
-  return textFiles(root).flatMap((file) => lintFile(root, file, hosts));
+  let commits = history;
+  const lazyHistory = () => (commits ??= headHistory(root));
+  return textFiles(root).flatMap((file) => lintFile(root, file, hosts, lazyHistory));
 }
 
 function main() {
@@ -239,7 +350,7 @@ function main() {
     },
   });
   if (values['self-test']) {
-    process.exitCode = selfTest(TOOL, FIXTURES, lintDocs(FIXTURES));
+    process.exitCode = selfTest(TOOL, FIXTURES, lintDocs(FIXTURES, { history: SELF_TEST_HISTORY }));
     return;
   }
   if (values.message) {

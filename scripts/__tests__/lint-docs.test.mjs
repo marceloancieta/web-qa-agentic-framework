@@ -1,17 +1,21 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { spawnSync } from 'node:child_process';
-import { mkdtempSync, writeFileSync } from 'node:fs';
+import { execFileSync, spawnSync } from 'node:child_process';
+import { mkdirSync, mkdtempSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { REPO_ROOT } from '../lib/cli.mjs';
+import { gitEnv } from '../lib/git.mjs';
 import { compareWithMarkers } from '../lib/lint.mjs';
 import {
+  BACKLOG,
+  closingCommits,
   DERIVATION_PHRASES,
   FIXTURES,
   headingIds,
   lintDocs,
   RULES,
+  SELF_TEST_HISTORY,
   wordingFindings,
 } from '../lint-docs.mjs';
 
@@ -19,7 +23,7 @@ const SCRIPT = join(import.meta.dirname, '..', 'lint-docs.mjs');
 const run = (...args) => spawnSync(process.execPath, [SCRIPT, ...args], { encoding: 'utf8' });
 
 test('self-test: the fixture tree yields exactly its marked findings, for every rule', () => {
-  const findings = lintDocs(FIXTURES);
+  const findings = lintDocs(FIXTURES, { history: SELF_TEST_HISTORY });
   assert.deepEqual(compareWithMarkers(FIXTURES, findings), { missed: [], unexpected: [] });
   assert.deepEqual([...new Set(findings.map((f) => f.rule))].sort(), [...RULES].sort());
   assert.equal(run('--self-test').status, 0);
@@ -43,6 +47,96 @@ test('every phrase is found with extra spaces, in any case, and only as whole wo
     assert.equal(wordingFindings(`a "${phrase}" mention`).length, 0, phrase);
   }
   assert.deepEqual(wordingFindings('reporting, supported, imported from npm'), []);
+});
+
+test('closing commits: only the Closed by column of the Done table is read', () => {
+  const backlog = [
+    '## Done',
+    '',
+    '| Id | Closed by | Item |',
+    '|---|---|---|',
+    '| A-01 | `abcdef1`, `ABCDEF2` | names `1234567` |',
+    '',
+    '## Later',
+    '',
+    '| Id | Closed by |',
+    '|---|---|',
+    '| B-01 | `7654321` |',
+  ].join('\n');
+  assert.deepEqual(closingCommits(backlog), [
+    { hash: 'abcdef1', line: 5 },
+    { hash: 'abcdef2', line: 5 },
+  ]);
+});
+
+/** A throwaway repository with its own identity; the working repository is never touched. */
+function tempRepository() {
+  const dir = mkdtempSync(join(tmpdir(), 'lint-docs-'));
+  const git = (...args) =>
+    execFileSync('git', args, { cwd: dir, env: gitEnv(), encoding: 'utf8' }).trim();
+  git('init', '-q', '-b', 'main');
+  git('config', 'user.name', 'Lint Docs Test');
+  git('config', 'user.email', 'lint-docs-test@example.invalid');
+  git('config', 'commit.gpgsign', 'false');
+  const commit = (message) => {
+    git('commit', '-q', '--allow-empty', '--no-verify', '-m', message);
+    return git('rev-parse', 'HEAD');
+  };
+  return { dir, git, commit };
+}
+
+test('closing commits are read from the history of HEAD, not from other branches', () => {
+  const { dir, git, commit } = tempRepository();
+  const merged = commit('feat(core): CORE-01 merged');
+  git('checkout', '-q', '-b', 'side');
+  const unmerged = commit('feat(core): CORE-02 never merged');
+  git('checkout', '-q', 'main');
+
+  mkdirSync(join(dir, 'docs'));
+  writeFileSync(
+    join(dir, BACKLOG),
+    [
+      '# Backlog',
+      '',
+      '## Done',
+      '',
+      '| Id | Item | Closed by |',
+      '|---|---|---|',
+      `| CORE-01 | Merged. | \`${merged.slice(0, 7)}\` |`,
+      `| CORE-02 | On a branch that was never merged. | \`${unmerged.slice(0, 7)}\` |`,
+      '| CORE-03 | A typo. | `0000000` |',
+      '',
+    ].join('\n'),
+  );
+
+  const findings = lintDocs(dir).filter((f) => f.rule === 'closing-commit');
+  assert.deepEqual(
+    findings.map((f) => [f.file, f.line]),
+    [
+      [BACKLOG, 8],
+      [BACKLOG, 9],
+    ],
+  );
+  assert.match(findings[0].message, new RegExp(`cites ${unmerged.slice(0, 7)}`));
+});
+
+test('closing commits: a shallow clone stops the linter instead of reporting', () => {
+  const { dir, commit } = tempRepository();
+  const first = commit('feat(core): CORE-01 first');
+  commit('feat(core): CORE-02 second');
+  const shallow = mkdtempSync(join(tmpdir(), 'lint-docs-shallow-'));
+  execFileSync('git', ['clone', '-q', '--depth', '1', `file://${dir}`, shallow], {
+    env: gitEnv(),
+  });
+  mkdirSync(join(shallow, 'docs'));
+  writeFileSync(
+    join(shallow, BACKLOG),
+    `## Done\n\n| Id | Closed by |\n|---|---|\n| CORE-01 | \`${first.slice(0, 7)}\` |\n`,
+  );
+  assert.throws(() => lintDocs(shallow), /shallow/);
+  const outcome = run('--root', shallow);
+  assert.equal(outcome.status, 2);
+  assert.match(outcome.stderr, /lint-docs: .*shallow/);
 });
 
 test('commit messages: exit 1 with the line, 0 when clean', () => {

@@ -56,7 +56,9 @@ A disagreement between two files about a fact this table does not list means the
 5. **Statements about other systems carry their key** ("until `<KEY>` is fixed"), so whoever reads
    them later can check the issue. Statements about the past use the past tense.
 6. **Backlog rows** keep one status from the backlog header. A finished row moves to **Done** with
-   its closing commit, in the commit after the one that finished it.
+   its closing commit, in the commit after the one that finished it. `lint-docs` closing-commit
+   checks that every hash a **Done** row cites is a commit in the history of `HEAD`, so a history
+   that is rewritten has to rewrite the hashes it cites.
 7. **Public wording.** Describe what the framework does on its own terms. `lint-docs` public-wording
    reports phrases that present it as taken from another codebase, in files and commit messages.
 
