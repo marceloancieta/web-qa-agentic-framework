@@ -17,7 +17,8 @@
 //
 // What is uploaded: for each attributed result of a published case, its last attempt's result file
 // and the attachments it references, with `fullName` and `testCaseId` set to the identity, the
-// manifest's status and the `ALLURE_ID` of its test case. A result without an identity, or of a
+// manifest's status, and the `ALLURE_ID`, name, description and tags of its test case (TestOps
+// updates a test case from its results; see uploadedResult). A result without an identity, or of a
 // case not published to the project, is skipped with a reason. The `host` and `thread` labels name
 // the machine and stay local. A result with no file behind it is uploaded as a minimal result built
 // from the manifest.
@@ -49,23 +50,44 @@ export function attachmentSources(item) {
 }
 
 /**
- * The result as uploaded: keyed by identity, without machine labels, with the manifest's status,
- * and linked to its published test case by the `ALLURE_ID` label when its TestOps id is known.
+ * The result as uploaded: keyed by identity, without machine labels, with the manifest's status.
  * The file's own status can differ: a known gap's expected failure is `passed` in the file and
  * `failed` in the manifest while its issue is open (scripts/tm/manifest.mjs knownGapOutcome).
+ *
+ * A result of a published test case (`linked`, from linkedCase) names it by the `ALLURE_ID` label
+ * and carries its name, description and tags. TestOps updates an automated test case from the
+ * results linked to it, so a result with the title and tags of the spec, and no description, would
+ * rewrite the definition on every report; carrying what the test case holds, a report changes none.
  */
-export function uploadedResult(source, identity, status = source.status, tmId = null) {
+export function uploadedResult(source, identity, status = source.status, linked = null) {
   const labels = (source.labels ?? []).filter(
-    (label) => !LOCAL_LABELS.has(label.name) && label.name !== ALLURE_ID,
+    (label) =>
+      !LOCAL_LABELS.has(label.name) &&
+      label.name !== ALLURE_ID &&
+      !(linked && label.name === 'tag'),
   );
+  const copy = { ...source, status, fullName: identity, testCaseId: identity, labels };
+  if (!linked) return copy;
+  delete copy.descriptionHtml;
   return {
-    ...source,
-    status,
-    fullName: identity,
-    testCaseId: identity,
-    labels: tmId ? [...labels, { name: ALLURE_ID, value: String(tmId) }] : labels,
+    ...copy,
+    name: linked.name,
+    description: linked.description,
+    labels: [
+      ...labels,
+      ...linked.tags.map((tag) => ({ name: 'tag', value: tag })),
+      { name: ALLURE_ID, value: linked.tmId },
+    ],
   };
 }
+
+/** What a result of a published test case must carry for TestOps to leave that test case as it is. */
+export const linkedCase = (dto) => ({
+  tmId: String(dto.id),
+  name: dto.name,
+  description: dto.description ?? '',
+  tags: (dto.tags ?? []).map((tag) => tag.name),
+});
 
 // A definition's fields that TestOps has no field for are kept in the description, one per line.
 const DESCRIPTION_KEYS = [
@@ -254,7 +276,7 @@ export function createAdapter(
         synthesizedResult(result),
         result.identity,
         result.status,
-        result.tmId,
+        result.linked,
       );
       return [{ name: `${synthesized.uuid}-result.json`, content: JSON.stringify(synthesized) }];
     }
@@ -263,7 +285,7 @@ export function createAdapter(
       {
         name: basename(file),
         content: JSON.stringify(
-          uploadedResult(source, result.identity, result.status, result.tmId),
+          uploadedResult(source, result.identity, result.status, result.linked),
         ),
       },
     ];
@@ -355,13 +377,13 @@ export function createAdapter(
           skipped.push({ identity: result.name ?? '(unnamed)', reason: 'no case identity' });
           continue;
         }
-        const definition = (await readDefinitions([result.identity]))[result.identity];
-        if (!definition) {
+        const testCase = await findCase(result.identity);
+        if (!testCase) {
           skipped.push({
             identity: result.identity,
             reason: `not published to Allure TestOps project ${projectId}: run npm run tm:publish first`,
           });
-        } else accepted.push({ ...result, tmId: definition.tmId });
+        } else accepted.push({ ...result, linked: linkedCase(testCase) });
       }
       for (let start = 0; start < accepted.length; start += UPLOAD_BATCH) {
         await upload(run.id, accepted.slice(start, start + UPLOAD_BATCH).flatMap(filesFor));
@@ -371,7 +393,7 @@ export function createAdapter(
       const expected = Object.fromEntries(accepted.map((r) => [r.identity, r]));
       const landed = (identity, stored) =>
         stored[identity]?.status === expected[identity].status &&
-        String(stored[identity]?.testCaseId) === expected[identity].tmId;
+        String(stored[identity]?.testCaseId) === expected[identity].linked.tmId;
       const deadline = Date.now() + waitMs;
       let pending = Object.keys(expected);
       while (pending.length > 0) {
@@ -381,7 +403,7 @@ export function createAdapter(
         if (Date.now() >= deadline) {
           const differences = pending.map(
             (identity) =>
-              `${identity}: wrote ${expected[identity].status} on test case ${expected[identity].tmId}, read back ${stored[identity] ? `${stored[identity].status} on test case ${stored[identity].testCaseId}` : 'nothing'}`,
+              `${identity}: wrote ${expected[identity].status} on test case ${expected[identity].linked.tmId}, read back ${stored[identity] ? `${stored[identity].status} on test case ${stored[identity].testCaseId}` : 'nothing'}`,
           );
           throw new Error(
             `Read-back of launch ${run.id} after ${waitMs / 1000}s does not match what was uploaded:\n  ${differences.join('\n  ')}`,

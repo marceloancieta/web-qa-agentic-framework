@@ -141,7 +141,18 @@ export function fakeTestOps({
           (result.labels ?? []).find((label) => label.name === 'ALLURE_ID')?.value,
         );
         let testCaseId = linkByAllureId && cases.has(allureId) ? allureId : null;
-        if (testCaseId === null) {
+        if (testCaseId !== null) {
+          // An automated test case takes the name, description and tags of its latest result, as
+          // the instance did: a result without a description cleared the test case's.
+          const linked = cases.get(testCaseId);
+          linked.name = result.name;
+          if (result.description === undefined) delete linked.description;
+          else linked.description = result.description;
+          linked.tags = (result.labels ?? [])
+            .filter((label) => label.name === 'tag')
+            .map((label, index) => ({ id: index + 1, name: label.value }))
+            .sort((a, b) => a.name.localeCompare(b.name));
+        } else {
           const key = result.testCaseId ?? result.fullName;
           if (!testCases.has(key)) {
             const made = newCase({ name: result.name, fullName: result.fullName, external: true });

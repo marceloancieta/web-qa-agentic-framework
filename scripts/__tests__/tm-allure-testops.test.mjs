@@ -114,10 +114,44 @@ test('the uploaded copy drops host and thread and takes the identity as fullName
   assert.equal(sent.fullName, 'shop-v1-TC-ITEM-01');
   assert.equal(sent.testCaseId, 'shop-v1-TC-ITEM-01');
   assert.deepEqual(
-    sent.labels.map((label) => label.name),
-    ['suite', 'ALLURE_ID'],
+    sent.labels.map((label) => [label.name, label.value]),
+    [
+      ['suite', 'items'],
+      ['tag', 'smoke'],
+      ['ALLURE_ID', '1'],
+    ],
+    'the tags and the ALLURE_ID are those of the published test case',
   );
-  assert.equal(sent.labels[1].value, '1', 'ALLURE_ID names the published test case');
+  assert.equal(sent.name, 'TC-ITEM-01 an item can be created with the required fields');
+  assert.match(sent.description, /^Case: TC-ITEM-01\n/);
+});
+
+test('a report leaves the published test case as it was', async () => {
+  // TestOps rewrites an automated test case from the results linked to it; the result in the file
+  // has the spec's title, its own tag and no description.
+  const fake = fakeTestOps();
+  const root = resultsRoot();
+  const file = join(root, 'allure-results', 'a1-result.json');
+  const source = JSON.parse(readFileSync(file, 'utf8'));
+  writeFileSync(
+    file,
+    JSON.stringify({
+      ...source,
+      name: 'TC-ITEM-01 an item can be created @smoke @regression',
+      labels: [...source.labels, { name: 'tag', value: '@regression' }],
+    }),
+  );
+  const adapter = adapterOver(fake, { root, wait_seconds: 1 });
+  const [first] = sampleCases();
+  await adapter.publishDefinitions([first]);
+  const before = { ...fake.cases.get(1) };
+  const run = await adapter.startRun({ name: 'sync' });
+  await adapter.reportResults(run, [
+    { identity: first.identity, status: 'passed', file: 'a1-result.json' },
+  ]);
+  assert.deepEqual(fake.cases.get(1), before);
+  const again = await adapter.publishDefinitions([first]);
+  assert.deepEqual(again.unchanged, [first.identity], 'nothing to publish again after a report');
 });
 
 test("a known gap is uploaded with the manifest's status, not its result file's", async () => {

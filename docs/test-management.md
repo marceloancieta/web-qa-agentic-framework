@@ -35,7 +35,9 @@ one run (CI reports to a tool whose credentials only it holds).
 In Allure TestOps a case is an automated test case whose `fullName` is the case identity; a result
 names its test case by the `ALLURE_ID` label, so a case is published before its first run, and a
 result of a case not published to the project is skipped with a reason
-(`scripts/tm/adapters/allure-testops/index.mjs` says what a test case holds). `QA_TM_PROVIDER` is
+(`scripts/tm/adapters/allure-testops/index.mjs` says what a test case holds). TestOps updates a test
+case from the results linked to it, so a result carries the name, description and tags its test case
+holds, and a report changes no definition. `QA_TM_PROVIDER` is
 read before the local env file, so it is set in the shell or the CI job; the options and the token
 can come from that file.
 
