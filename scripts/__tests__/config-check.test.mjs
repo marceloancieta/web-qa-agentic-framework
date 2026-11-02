@@ -94,7 +94,9 @@ test('cross-field rules: the default environment, the key pattern and the gate b
   config.quality_gate.pass_rate = { fail_below_pct: 90, review_below_pct: 80 };
   config.quality_gate.accessibility = { fail_above: { serious: 0 }, review_above: { serious: 2 } };
   config.quality_gate.visual = { fail_above: 1, review_above: 3 };
+  config.quality_gate.mutation = { fail_below_pct: 60, review_below_pct: 59.9 };
   const errors = configErrors(config).join('\n');
+  assert.match(errors, /mutation\.review_below_pct \(59\.9\) is below fail_below_pct \(60\)/);
   assert.match(errors, /default_environment "staging" is not one of: local, ci/);
   assert.match(errors, /key_pattern is not a valid regex/);
   assert.match(errors, /pass_rate\.review_below_pct \(80\) is below fail_below_pct \(90\)/);

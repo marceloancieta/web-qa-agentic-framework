@@ -24,6 +24,7 @@
     "blob-report",
     "scripts/__fixtures__",
     ".claude/worktrees",
-    "reports"
+    "reports",
+    ".stryker-tmp"
   ]
 }

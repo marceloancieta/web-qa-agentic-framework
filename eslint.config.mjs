@@ -16,6 +16,7 @@ export default tseslint.config(
       'scripts/__fixtures__/',
       '.claude/worktrees/',
       'reports/',
+      '.stryker-tmp/',
     ],
   },
   js.configs.recommended,

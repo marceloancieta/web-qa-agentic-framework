@@ -42,3 +42,5 @@ Thumbs.db
 
 # Quality gate and lane output
 /reports/
+# Stryker's sandboxes during npm run mutation
+/.stryker-tmp/

@@ -132,8 +132,8 @@ web-qa-agentic-framework/
   `recovery{command, ready_timeout_s}`, `actors{<role>: {account, ...}}` and `default_actor`
 - `test_management` and `tracker`: the adapter each one uses, with its options; `policies`: the
   commit rules `git-policy` applies
-- `quality_gate`: `pass_rate`, new accessibility violations per impact, visual differences; web
-  vitals in v0.2
+- `quality_gate`: `pass_rate`, new accessibility violations per impact, visual differences, and the
+  `mutation` score of `npm run mutation`; web vitals in v0.2
 
 ## 2. Devices and selectors
 

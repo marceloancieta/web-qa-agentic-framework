@@ -70,6 +70,7 @@ const SKIPPED_DIRS = new Set([
   'reports',
   '.auth',
   'worktrees',
+  '.stryker-tmp',
 ]);
 const TEXT_FILE = /\.(?:md|ts|mts|mjs|js|json|ya?ml|txt)$|^(?:NOTICE|LICENSE|\.env\.example)$/;
 const NOTES_FILE = /^apps\/[^/]+\/docs\/.+\.md$/;

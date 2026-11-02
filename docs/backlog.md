@@ -66,7 +66,7 @@ regression in a container, network mocking and state injection, proven on Juice 
 | FUT-12 | Publishing `create-web-qa` from a `v<x.y.z>` tag through npm trusted publishing (OIDC, no token) with provenance, then a read-back with `npm create` outside the repository. | practice | todo |
 | FUT-13 | The repository as a GitHub template with an adoption guide from **Use this template** to a green CI, `npm run framework:update -- --to v<x.y.z>` to take a later release into a copy, and `npm run remove:app -- --name <pack>` to remove an example pack. | plan | todo |
 | FUT-14 | Advisory AI review of pull requests (only on `pull_request`, skipped without its key), with a rubric that leaves out what the gates already check. | plan | todo |
-| FUT-15 | Mutation testing with Stryker over `scripts/lib` and `.claude/hooks/lib`, on demand, its score read by the quality gate. | practice | todo |
+| FUT-15 | Mutation testing with Stryker over `scripts/lib` and `.claude/hooks/lib`, on demand, its score read by the quality gate. | practice | in-progress |
 | FUT-16 | `cited-status`: the known gaps, waiting claims and workarounds the registries and contracts cite are checked against the tracker, and a closed or unknown key is reported. | plan | todo |
 
 ---

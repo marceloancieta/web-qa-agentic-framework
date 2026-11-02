@@ -41,6 +41,8 @@
     "coverage:status": "node scripts/coverage-status.mjs",
     "traceability": "node scripts/traceability.mjs",
     "quality:gate": "node scripts/quality-gate.mjs --summary reports/quality-gate.md",
+    "mutation": "stryker run && stryker run stryker.hooks.config.mjs && npm run mutation:gate",
+    "mutation:gate": "node scripts/quality-gate.mjs --mutation reports/mutation/scripts-lib.json --mutation reports/mutation/hooks-lib.json --summary reports/mutation/quality-gate.md",
     "ci:merge": "node scripts/ci-merge.mjs",
     "ci:needs": "node scripts/ci-needs.mjs",
     "ci:browsers": "playwright install --with-deps chromium firefox webkit",
@@ -64,6 +66,8 @@
     "@axe-core/playwright": "^4.14.0",
     "@eslint/js": "^10.0.1",
     "@playwright/test": "^1.64.1",
+    "@stryker-mutator/core": "^10.1.1",
+    "@stryker-mutator/tap-runner": "^10.1.1",
     "@types/node": "^22.20.5",
     "adm-zip": "^0.6.1",
     "allure": "^3.22.1",
@@ -82,6 +86,7 @@
     "yaml": "^2.9.1"
   },
   "overrides": {
-    "dompurify": "3.4.17"
+    "dompurify": "3.4.17",
+    "qs": "6.16.1"
   }
 }

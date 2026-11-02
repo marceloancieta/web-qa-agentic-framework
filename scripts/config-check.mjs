@@ -27,14 +27,13 @@ const validate = ajv.compile(JSON.parse(readFileSync(SCHEMA_PATH, 'utf8')));
 /** A REVIEW band must sit on the safe side of FAIL, or it could never be reached. */
 function qualityGateErrors(gate) {
   const errors = [];
-  const passRate = gate.pass_rate;
-  if (
-    passRate?.review_below_pct !== undefined &&
-    passRate.review_below_pct < passRate.fail_below_pct
-  ) {
-    errors.push(
-      `quality_gate.pass_rate.review_below_pct (${passRate.review_below_pct}) is below fail_below_pct (${passRate.fail_below_pct}), so REVIEW can never happen`,
-    );
+  for (const name of ['pass_rate', 'mutation']) {
+    const band = gate[name];
+    if (band?.review_below_pct !== undefined && band.review_below_pct < band.fail_below_pct) {
+      errors.push(
+        `quality_gate.${name}.review_below_pct (${band.review_below_pct}) is below fail_below_pct (${band.fail_below_pct}), so REVIEW can never happen`,
+      );
+    }
   }
   for (const [impact, review] of Object.entries(gate.accessibility?.review_above ?? {})) {
     const fail = gate.accessibility.fail_above?.[impact];

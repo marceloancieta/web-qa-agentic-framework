@@ -303,6 +303,20 @@
               "minimum": 0
             }
           }
+        },
+        "mutation": {
+          "description": "Mutation score of `npm run mutation` over scripts/lib and .claude/hooks/lib, in percent: detected mutants (killed or timed out) over every mutant that ran or that no test covers. Judged only when a mutation report is passed (`--mutation`).",
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["fail_below_pct"],
+          "properties": {
+            "fail_below_pct": {
+              "$ref": "#/$defs/percent"
+            },
+            "review_below_pct": {
+              "$ref": "#/$defs/percent"
+            }
+          }
         }
       }
     }

@@ -99,6 +99,7 @@
       "fail_above": { "critical": 0, "serious": 0 },
       "review_above": { "moderate": 0 }
     },
-    "visual": { "fail_above": 0 }
+    "visual": { "fail_above": 0 },
+    "mutation": { "fail_below_pct": 65, "review_below_pct": 80 }
   }
 }
