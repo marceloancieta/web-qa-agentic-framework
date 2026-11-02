@@ -95,3 +95,38 @@ npm run quality:gate -- --report reports/playwright.json --report reports/lanes/
 One `QA_RUN_ID` covers the shards, the lanes, the quality gate and the report; the gate refuses a
 report of another run. The workflow in [`.github/workflows/ci.yml`](../../.github/workflows/ci.yml)
 is the reference.
+
+## The workflows on your machine
+
+[`act`](https://github.com/nektos/act) runs the jobs of the GitHub workflows in Docker, so a change
+to a workflow is tried before it is pushed. [`.actrc`](../../.actrc) holds the settings every
+command needs: the runner image for each `runs-on` label, one job at a time, and the host network.
+A job's `npm run juice-shop:up` starts Juice Shop on the host's Docker, which publishes it on the
+host's loopback; only the host network reaches it there, at the same `http://localhost:3000` CI
+uses. A service name such as `http://juice-shop:3000` would change what the page offers: Juice Shop
+shows its Google login on `localhost` only.
+
+```sh
+act push -j gates                                  # the gates on Linux
+act push -j suite --matrix shard:1                 # the gates, then shard 1 of the suite
+act push -j lane --matrix lane:a11y                # the gates, then one lane
+act pull_request -j title -e <event.json>          # the title check, with a pull_request payload
+```
+
+A job runs the jobs it `needs` first, so every job of `ci.yml` starts with the gates. An event
+file for the title check holds `{"pull_request": {"number": 1, "title": "<title>"}}`. A run that is
+interrupted leaves its job containers running; `docker ps --filter name=act-` lists them.
+
+What `act` does not reproduce:
+
+| Job or step | Why |
+|---|---|
+| upload and download of artifacts | its artifact server does not speak the protocol of `upload-artifact` v7; the steps are skipped when `ACT` is set, and the reports stay in the job's container |
+| `report`, and `required`, which needs it | without the artifacts there is nothing to merge; run `npm run ci:merge` and the quality gate on the host after the shards ([sharding](#sharding-as-ci-does)) |
+| the visual lane | its container mounts the repository from the host's Docker, which does not see the copy inside the job; run `npm run lanes:visual` on the host, which uses the same pinned image |
+| `codeql.yml` | needs GitHub code scanning to receive the results |
+| `schedule` triggers | the flake lane runs with `act workflow_dispatch -j flake` |
+
+The jobs share the one Juice Shop of the host, while on GitHub each job starts its own: the
+destructive lane restarts it, and the next job sees a fresh one. A failure seen only under `act`
+is repeated with `npm run lanes:flake` before it is treated as a defect.

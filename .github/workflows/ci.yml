@@ -8,6 +8,10 @@
 #         → destructive lane┘
 #   required: one verdict over all of the above, the check branch protection requires
 #   flake lane: weekly and on demand only
+#
+# Under act, which sets ACT (docs/guides/running-tests.md), the artifact steps are skipped: its
+# artifact server does not speak the protocol of upload-artifact v7, so the reports stay in the job's
+# container and the report job has nothing to merge.
 name: ci
 
 on:
@@ -74,7 +78,7 @@ jobs:
         run: npm test -- --project='juice-shop-*' --shard=${{ matrix.shard }}/${{ matrix.total }}
         env:
           QA_BLOB_REPORT: '1'
-      - if: always()
+      - if: ${{ always() && !env.ACT }}
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: suite-${{ matrix.shard }}
@@ -109,7 +113,7 @@ jobs:
           # The lane runs in the pinned container, which reaches Juice Shop on the compose network:
           # Linux publishes the port on 127.0.0.1 only, out of a container's reach.
           QA_JUICE_SHOP_BASE_URL: http://juice-shop:3000
-      - if: always()
+      - if: ${{ always() && !env.ACT }}
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: lane-${{ matrix.lane }}
@@ -132,7 +136,8 @@ jobs:
           node-version: 22
           cache: npm
       - run: npm ci
-      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+      - if: ${{ !env.ACT }}
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
         with:
           pattern: '{suite,lane}-*'
           merge-multiple: true
@@ -141,7 +146,7 @@ jobs:
         run: npm run quality:gate -- --report reports/playwright.json --report reports/lanes/a11y.json --report reports/lanes/visual.json --report reports/lanes/destructive.json
       - if: ${{ !cancelled() }}
         run: npm run tm:report
-      - if: ${{ !cancelled() }}
+      - if: ${{ !cancelled() && !env.ACT }}
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: reports
@@ -179,7 +184,7 @@ jobs:
       - run: npm run ci:browsers
       - run: npm run juice-shop:up
       - run: npm run lanes:flake -- --project='juice-shop-*'
-      - if: always()
+      - if: ${{ always() && !env.ACT }}
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: lane-flake
