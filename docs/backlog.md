@@ -32,6 +32,7 @@ regression in a container, network mocking and state injection, proven on Juice 
 | CI-05 | W9 | The GitHub workflows run on the local machine with `act` before a push that changes them, with the settings it needs in `.actrc`. | practice | in-progress |
 | TM-04 | W9 | The `allure-testops` adapter proven on a real Allure TestOps, in a project of its own: the automated cases published there, then a run reported from a local machine and one from Jenkins (CI-04), with the token read from the environment or a Jenkins credential. | plan | todo |
 | DOC-03 | W9 | CHANGELOG and tag `v0.1.0`: `npm run changelog` writes a Keep a Changelog section per version from the commit titles, and `npm run release:check` runs the checks before a tag in order and stops at the first failure (a clean tree, `main` up to date, the gates, the changelog section, the version); the GitHub repository and any publishing only with the owner's approval. | plan | todo |
+| CI-06 | W9 | "Re-run failed jobs" stays one run: `QA_RUN_ID` in GitHub Actions is the run id without the attempt, so the quality gate takes the re-run shards beside the lanes' reports of the first attempt instead of refusing them as another run's. | practice | in-progress |
 
 **Acceptance for v0.1.0**
 
