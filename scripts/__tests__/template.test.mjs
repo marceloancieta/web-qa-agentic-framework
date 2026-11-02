@@ -43,6 +43,9 @@ function write(dir, files) {
 function repoWith(files, prefix) {
   const dir = mkdtempSync(join(tmpdir(), prefix));
   git(dir, 'init', '-q', '--initial-branch=main');
+  // The tests compare bytes, so line endings stay as written even where git's global
+  // core.autocrlf (Windows) would turn them into CRLF in the working tree.
+  git(dir, 'config', 'core.autocrlf', 'false');
   write(dir, files);
   git(dir, 'add', '-A');
   git(dir, 'commit', '-qm', 'initial');
