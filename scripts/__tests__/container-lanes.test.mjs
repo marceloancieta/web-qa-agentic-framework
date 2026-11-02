@@ -1,12 +1,12 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { spawnSync } from 'node:child_process';
-import { mkdtempSync, writeFileSync } from 'node:fs';
+import { mkdirSync, mkdtempSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { mergePlan } from '../ci-merge.mjs';
 import { REPO_ROOT } from '../lib/cli.mjs';
-import { containerUrl, imageProblem, pinnedImage } from '../lib/container.mjs';
+import { containerUrl, imageProblem, pinnedImage, returnOwnership } from '../lib/container.mjs';
 import { evaluate, newestPackResultStart, reportTests, staleReasons } from '../quality-gate.mjs';
 import { laneEnvironment, planLane } from '../visual-lane.mjs';
 
@@ -40,6 +40,45 @@ test('host addresses become host.docker.internal; other hosts stay', () => {
   assert.equal(env.QA_VISUAL, '1');
   assert.equal(env.QA_JUICE_SHOP_BASE_URL, 'http://host.docker.internal:3000');
   assert.equal(env.QA_JSON_REPORT, 'reports/lanes/visual.json');
+});
+
+test("what the lane wrote as root goes back to the repository's owner, and only that", () => {
+  const root = mkdtempSync(join(tmpdir(), 'owner-'));
+  for (const dir of [
+    'reports/lanes',
+    'test-results/case',
+    'node_modules/x',
+    '.git/objects',
+    'src',
+  ]) {
+    mkdirSync(join(root, dir), { recursive: true });
+  }
+  for (const file of ['reports/lanes/visual.json', 'test-results/case/diff.png', 'src/kept.ts']) {
+    writeFileSync(join(root, file), '');
+  }
+  // As a Linux host shows the mount: the repository is the user's, the lane's output root's.
+  const byRoot = ['reports', 'test-results', 'node_modules', '.git'];
+  const lstat = (path) => {
+    const relative = path.slice(root.length + 1).replaceAll('\\', '/');
+    return { uid: byRoot.some((dir) => relative.startsWith(dir)) ? 0 : 1000, gid: 1000 };
+  };
+  const calls = [];
+  const chown = (path, uid, gid) => calls.push([path.slice(root.length + 1), uid, gid]);
+  const changed = returnOwnership(root, { uid: 0, lstat, chown });
+  assert.deepEqual(calls.map(([path]) => path.replaceAll('\\', '/')).sort(), [
+    'reports',
+    'reports/lanes',
+    'reports/lanes/visual.json',
+    'test-results',
+    'test-results/case',
+    'test-results/case/diff.png',
+  ]);
+  assert.ok(calls.every(([, uid, gid]) => uid === 1000 && gid === 1000));
+  assert.equal(changed.length, calls.length);
+  // Not root: nothing to give back. A repository root owns (Docker Desktop's view): nothing either.
+  assert.deepEqual(returnOwnership(root, { uid: 1000, lstat, chown: assert.fail }), []);
+  const allRoot = () => ({ uid: 0, gid: 0 });
+  assert.deepEqual(returnOwnership(root, { uid: 0, lstat: allRoot, chown: assert.fail }), []);
 });
 
 test('the lane: updates only in the automate phase, Playwright options passed through', () => {

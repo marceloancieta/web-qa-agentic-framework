@@ -44,6 +44,7 @@
     "ci:merge": "node scripts/ci-merge.mjs",
     "ci:needs": "node scripts/ci-needs.mjs",
     "ci:browsers": "playwright install --with-deps chromium firefox webkit",
+    "ci:browsers:no-deps": "playwright install chromium firefox webkit",
     "tm:manifest": "node scripts/tm/manifest.mjs",
     "tm:publish": "node scripts/tm/run.mjs publish",
     "tm:report": "node scripts/tm/run.mjs report",

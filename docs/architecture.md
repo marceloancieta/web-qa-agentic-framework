@@ -215,7 +215,8 @@ web-qa-agentic-framework/
 - **The contract is npm plus Docker:** `npm run gates`, `npm test -- --project=...`, the lanes
   (`visual`, `a11y`, `known-gap`, `destructive`, `flake`), `npm run tm:report`. CI files only call
   these scripts: [`.github/workflows/ci.yml`](../.github/workflows/ci.yml) (primary) and the
-  [`Jenkinsfile`](../Jenkinsfile), checked by `scripts/__tests__/ci-files.test.mjs`. The flake lane runs
+  [`Jenkinsfile`](../Jenkinsfile) ([Jenkins](guides/jenkins.md): the same steps on one agent,
+  Windows or Linux), checked by `scripts/__tests__/ci-files.test.mjs`. The flake lane runs
   weekly and on demand, outside the pipeline of each change. `act` runs the GitHub jobs on a
   local machine before a workflow change is pushed
   ([the workflows on your machine](guides/running-tests.md#the-workflows-on-your-machine)).

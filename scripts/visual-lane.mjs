@@ -21,7 +21,7 @@ import { spawnSync } from 'node:child_process';
 import { join } from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { REPO_ROOT } from './lib/cli.mjs';
-import { containerUrl, imageProblem, inPinnedImage } from './lib/container.mjs';
+import { containerUrl, imageProblem, inPinnedImage, returnOwnership } from './lib/container.mjs';
 import { activeEnvironment, packVariable } from './lib/qa-config.mjs';
 import { exitCodeOf } from './lib/spawn.mjs';
 import { VISUAL_LANE_ENV } from './lib/tags.mjs';
@@ -103,6 +103,12 @@ function main() {
     stdio: 'inherit',
     env: laneEnvironment(REPO_ROOT),
   });
+  const given = returnOwnership(REPO_ROOT);
+  if (given.length) {
+    console.log(
+      `visual-lane: ${given.length} path(s) the lane wrote returned to the repository's owner.`,
+    );
+  }
   process.exit(exitCodeOf(result));
 }
 
