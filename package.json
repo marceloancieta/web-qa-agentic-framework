@@ -1,6 +1,6 @@
 {
   "name": "web-qa-agentic-framework",
-  "version": "0.0.0",
+  "version": "0.1.0",
   "description": "Agentic web UI QA framework: phase-gated test design, Playwright + TypeScript execution across browsers and devices, pluggable test-management adapters, Claude Code skills and guardrails.",
   "license": "Apache-2.0",
   "author": "Marcelo Ancieta",
