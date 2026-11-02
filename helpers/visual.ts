@@ -28,6 +28,45 @@ export function screenshotOptions(
   };
 }
 
+/** How long the images in view may take to finish loading before a screenshot. */
+export const IMAGES_LOADED_TIMEOUT_MS = 10_000;
+
+/**
+ * Waits until every image in the viewport has finished loading, loaded or broken, so a screenshot
+ * never catches a product picture still on its way: `toHaveScreenshot` waits for two equal shots,
+ * and two shots taken before a slow image arrives are equal. Images outside the viewport are left
+ * alone, since a lazy one would never load there. Throws naming the images still loading.
+ */
+export async function imagesLoaded(page: Page, timeout = IMAGES_LOADED_TIMEOUT_MS): Promise<void> {
+  // One function for the wait and for the report, run in the page as the expression's source.
+  const stillLoading = `(${imagesStillLoading.toString()})()`;
+  try {
+    await page.waitForFunction(`${stillLoading}.length === 0`, undefined, { timeout });
+  } catch {
+    const srcs = await page.evaluate<string[]>(stillLoading).catch(() => [] as string[]);
+    throw new Error(
+      `Images still loading after ${timeout} ms, so the screenshot would not show them: ${srcs.join(', ')}`,
+    );
+  }
+}
+
+/** Runs in the page: the sources of the images in the viewport that have not finished loading. */
+function imagesStillLoading(): string[] {
+  return Array.from(document.images)
+    .filter((image) => {
+      const box = image.getBoundingClientRect();
+      const inView =
+        box.width > 0 &&
+        box.height > 0 &&
+        box.bottom > 0 &&
+        box.right > 0 &&
+        box.top < window.innerHeight &&
+        box.left < window.innerWidth;
+      return inView && !image.complete;
+    })
+    .map((image) => image.currentSrc || image.src);
+}
+
 /** The most any scrolling box of the page, the document included, hides below its visible part. */
 async function hiddenHeight(page: Page): Promise<number> {
   return page.evaluate(() => {

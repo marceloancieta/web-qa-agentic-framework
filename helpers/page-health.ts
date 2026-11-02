@@ -1,6 +1,6 @@
 // Page health guard: what goes wrong on a page without failing the step that caused it. It watches
 // a page for the whole test and reports, at the end:
-//   console-error    a console message of type error
+//   console-error    a console message of type error, with the fields of any error object it logged
 //   uncaught-error   an exception no page script caught
 //   failed-request   a same-origin request that failed at the network level, or answered 5xx
 //   broken-image     an <img> that finished loading without an image
@@ -54,9 +54,41 @@ export function cancelledByPage(errorText: string | undefined): boolean {
   );
 }
 
+/**
+ * Runs in the page before its scripts: `console.error` keeps its arguments and adds, at the end, a
+ * description of each object argument that carries an error's fields (`name {message, status,
+ * statusText, url}`). A framework logs an error object (Angular: `ERROR` and the object), and a
+ * console message's text names it by engine (WebKit the minified class, Firefox `JSHandle@object`),
+ * so the report would not say what failed. The description is written when the error is logged,
+ * because a reload or a navigation right after it leaves nothing to ask the page for later.
+ */
+export function describeErrorObjects(): void {
+  const original = console.error.bind(console);
+  const describe = (value: object): string | null => {
+    const fields = value as Record<string, unknown>;
+    const parts = ['message', 'status', 'statusText', 'url']
+      .filter((key) => ['string', 'number'].includes(typeof fields[key]) && fields[key] !== '')
+      .map((key) => `${key}: ${String(fields[key])}`);
+    if (parts.length === 0) return null;
+    const name =
+      typeof fields.name === 'string' && fields.name ? fields.name : value.constructor?.name;
+    return `${name || 'Object'} {${parts.join(', ')}}`;
+  };
+  console.error = (...args: unknown[]) => {
+    const details = args
+      .filter((arg): arg is object => typeof arg === 'object' && arg !== null)
+      .map(describe)
+      .filter((detail): detail is string => detail !== null);
+    original(...args, ...(details.length ? [`[${details.join('; ')}]`] : []));
+  };
+}
+
 /** Start watching a page. Call before navigating, so early problems are not missed. */
 export function watchPageHealth(page: Page, options: PageHealthOptions = {}): PageHealthGuard {
   const seen: HealthProblem[] = [];
+  // Ordered before the caller's first navigation on the same connection; a page already closed has
+  // nothing left to watch.
+  void page.addInitScript(describeErrorObjects).catch(() => undefined);
   page.on('console', (message) => {
     // The browser's own "Failed to load resource" lines repeat what the request checks below
     // already judge (and would flag third-party hosts a mock blocked on purpose).
