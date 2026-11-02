@@ -80,6 +80,23 @@ test('every step of the Jenkinsfile calls an npm script', () => {
   assert.deepEqual(commands.map(notAnNpmScript).filter(Boolean), []);
 });
 
+// The test-management token is bound in one place, and only the report step runs inside it.
+test('the Jenkinsfile gives the Allure TestOps token to tm:report only', () => {
+  const helper = /def withTestManagement\([\s\S]*?\n\}\n/.exec(jenkinsfile)?.[0] ?? '';
+  assert.match(
+    helper,
+    /withCredentials\(\[string\(credentialsId: tokenCredential, variable: 'ALLURE_TOKEN'\)\]\)/,
+  );
+  assert.equal(jenkinsfile.replace(helper, '').match(/withCredentials/g), null);
+  const wrapped = [...jenkinsfile.matchAll(/withTestManagement \{([\s\S]*?)\n\s*\}/g)].map((m) =>
+    m[1].trim(),
+  );
+  assert.deepEqual(wrapped, ["shell 'npm run tm:report'"]);
+  for (const name of ['ALLURE_TOKEN_CREDENTIALS_ID', 'ALLURE_ENDPOINT', 'ALLURE_PROJECT_ID']) {
+    assert.match(jenkinsfile, new RegExp(`string\\(name: '${name}'`), name);
+  }
+});
+
 // A lane refuses an option it fixes itself (lanes.mjs), so the Jenkinsfile's WORKERS never reaches
 // a lane that fixes its workers.
 test('a lane that fixes its workers gets none from the Jenkinsfile', () => {

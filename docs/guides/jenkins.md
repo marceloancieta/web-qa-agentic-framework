@@ -12,7 +12,7 @@ machine ([running tests](running-tests.md)).
 | Gates | `npm run gates` |
 | Suite | Juice Shop, then the suite in `SHARDS` shards, one after another, each adding its blob report |
 | Lanes | the accessibility, visual and destructive lanes, the destructive one last, since it restarts Juice Shop |
-| Report | `npm run ci:merge`, the quality gate over the suite and the lanes, then `npm run tm:report` |
+| Report | `npm run ci:merge`, the quality gate over the suite and the lanes, then `npm run tm:report`, to Allure TestOps when the build names its token ([below](#reporting-to-allure-testops)) |
 | Flake lane | instead of the stages above, in a build the weekly timer starts or one with `FLAKE_LANE` |
 
 A failing shard or lane marks the build failed and the next steps still run, so the report covers
@@ -38,7 +38,7 @@ archive `playwright-report/`, `reports/` and `test-results/`, and stop Juice Sho
   project and port 3000. `disableConcurrentBuilds` keeps the job from overlapping itself; keep other
   jobs that use the same engine from running beside it.
 
-Plugins: Pipeline, Git, Credentials, JUnit and Timestamper.
+Plugins: Pipeline, Git, Credentials, Credentials Binding, JUnit and Timestamper.
 
 ## The job
 
@@ -57,6 +57,17 @@ Parameters appear after the first build has read the file; until then each takes
 | `WORKERS` | Playwright workers of every run but the destructive lane, which keeps its one worker; empty keeps Playwright's default, half the agent's CPUs. Fewer suit an agent whose browsers are slow: cases that time out under load are the agent's limit, not the product's |
 | `BROWSER_DEPS` | also install the browsers' system packages; needs administrator rights on the agent |
 | `FLAKE_LANE` | run only the flake lane |
+| `ALLURE_TOKEN_CREDENTIALS_ID` | the id of a **Secret text** credential with an Allure TestOps API token; set, the run is reported to Allure TestOps instead of the tool in qa-config |
+| `ALLURE_ENDPOINT`, `ALLURE_PROJECT_ID` | the Allure TestOps instance and project, with `ALLURE_TOKEN_CREDENTIALS_ID` |
+
+### Reporting to Allure TestOps
+
+The cases are published to the project first, from a machine (`npm run tm:publish`, the `qa-publish`
+skill), since a result of a case the project does not hold is skipped
+([test management](../test-management.md)). Then each build reports its run there when it names the
+token's credential. The token reaches only the `tm:report` step, through `withTestManagement` in the
+`Jenkinsfile`, and Jenkins masks it in the log. A scheduled build has no parameters of its own: an
+agent or global environment variable `DEFAULT_<parameter>` gives any of the three a default.
 
 The pipeline declares its weekly timer for the flake lane (`cron('H 6 * * 1')`), so Jenkins adds it
 to the job after the first build.

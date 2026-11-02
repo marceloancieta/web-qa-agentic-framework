@@ -39,6 +39,32 @@ def playwrightOptions(boolean withWorkers = true) {
   return '--project="juice-shop-*"' + (workers ? " --workers=${workers}" : '')
 }
 
+/** A parameter, else the agent's or Jenkins' DEFAULT_<name> variable, else empty. */
+def setting(String name) {
+  return (params[name] ?: env."DEFAULT_${name}" ?: '').toString().trim()
+}
+
+/**
+ * Allure TestOps receives the run when its token credential is named (docs/guides/jenkins.md); the
+ * token reaches only the step inside. Otherwise the tool in qa-config does.
+ */
+def withTestManagement(Closure body) {
+  String tokenCredential = setting('ALLURE_TOKEN_CREDENTIALS_ID')
+  if (!tokenCredential) {
+    body()
+    return
+  }
+  withEnv([
+    'QA_TM_PROVIDER=allure-testops',
+    "ALLURE_ENDPOINT=${setting('ALLURE_ENDPOINT')}",
+    "ALLURE_PROJECT_ID=${setting('ALLURE_PROJECT_ID')}",
+  ]) {
+    withCredentials([string(credentialsId: tokenCredential, variable: 'ALLURE_TOKEN')]) {
+      body()
+    }
+  }
+}
+
 // Set once Juice Shop has been started; the post steps stop it only then.
 @Field boolean juiceShopStarted = false
 
@@ -52,6 +78,9 @@ pipeline {
     string(name: 'WORKERS', defaultValue: '', description: 'Playwright workers of each run; empty means the Playwright default. Fewer suit an agent whose browsers are slow.')
     booleanParam(name: 'BROWSER_DEPS', defaultValue: false, description: 'Also install the system packages the browsers need. It needs administrator rights on the agent; once per agent is enough.')
     booleanParam(name: 'FLAKE_LANE', defaultValue: false, description: 'Run only the flake lane.')
+    string(name: 'ALLURE_TOKEN_CREDENTIALS_ID', defaultValue: '', description: 'Secret-text credential with an Allure TestOps API token. Set: the run is reported to TestOps instead of the tool in qa-config.')
+    string(name: 'ALLURE_ENDPOINT', defaultValue: '', description: 'Allure TestOps instance URL, with ALLURE_TOKEN_CREDENTIALS_ID.')
+    string(name: 'ALLURE_PROJECT_ID', defaultValue: '', description: 'Allure TestOps project id, with ALLURE_TOKEN_CREDENTIALS_ID.')
   }
 
   triggers {
@@ -180,7 +209,11 @@ pipeline {
               echo readFile('reports/quality-gate.md')
             }
           }
-          shell 'npm run tm:report'
+          catchError(buildResult: 'FAILURE', stageResult: 'FAILURE') {
+            withTestManagement {
+              shell 'npm run tm:report'
+            }
+          }
         }
       }
     }
