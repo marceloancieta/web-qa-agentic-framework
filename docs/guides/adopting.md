@@ -1,8 +1,16 @@
 # Adopting the framework
 
 How a team starts its own test project from the framework, gets its CI green, and later takes a
-newer release. The framework is published as a GitHub template; `npm create web-qa` (FUT-02) makes
-the same starting point without GitHub.
+newer release. The framework is published as a GitHub template, and as the `create-web-qa` package
+for a start without GitHub:
+
+```sh
+npm create web-qa@<version> <dir>
+```
+
+The package's project holds the same product as a template copy and records its release in
+`.web-qa.json` at once; it starts without git, so `git init` and a first commit come before step 1.2.
+The framework builds the package with `npm run create:pack` (`scripts/create-package.mjs`).
 
 ## 1. Make the copy
 
@@ -45,9 +53,8 @@ Add the team's own applications with `npm run scaffold:app`
 2. The workflows need no secrets: the CI starts Juice Shop in Docker and runs the `ci` environment
    of qa-config. A pack of the team's own needs its URL in the `ci` environment and its accounts as
    repository secrets, read through the variables its actors name (never written in a file).
-3. Apply the repository settings the CI relies on: the `required` and `title` checks on `main`,
-   squash merges and a linear history. The framework's own settings are a model to start from, not
-   a requirement.
+3. Apply the repository settings the CI relies on ([repository settings](../repository-settings.md)):
+   the `required` and `title` checks on `main`, squash merges and a linear history.
 4. Push a branch, open a pull request and wait for `required` to pass.
 
 ## 4. Take a later release
@@ -68,7 +75,7 @@ with uncommitted changes and a release that is not later than the recorded one.
 What it never touches:
 
 - the framework's development records: its backlog, changelog, decisions (`docs/adr/`), community
-  files and repository settings; the project keeps its own;
+  files; the project keeps its own;
 - the app packs and their skills (`apps/<pack>/`, `.claude/skills/<pack>-ui/`), which are the
   project's.
 
