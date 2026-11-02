@@ -1,15 +1,17 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { mkdirSync, mkdtempSync, writeFileSync } from 'node:fs';
+import { mkdirSync, mkdtempSync, readFileSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { httpClient } from '../lib/http.mjs';
 import {
   attachmentSources,
   createAdapter,
+  definitionFrom,
   synthesizedResult,
+  testCaseBody,
 } from '../tm/adapters/allure-testops/index.mjs';
-import { describeAdapterContract } from '../tm/contract.mjs';
+import { describeAdapterContract, sampleCases } from '../tm/contract.mjs';
 import { fakeTestOps } from '../__fixtures__/tm/fake-testops.mjs';
 
 const noWait = async () => {};
@@ -57,6 +59,7 @@ function resultsRoot() {
 test('uploads the result file and its evidence, keyed by identity, without machine labels', async () => {
   const fake = fakeTestOps();
   const adapter = adapterOver(fake, { root: resultsRoot() });
+  await adapter.publishDefinitions([sampleCases()[0]]);
   const run = await adapter.startRun({ name: 'items', runId: 'ab12cd34' });
   assert.deepEqual(
     [...fake.launches.get(run.id).tags.map((tag) => tag.name)],
@@ -85,8 +88,9 @@ test('uploads the result file and its evidence, keyed by identity, without machi
   assert.equal(
     stored.results['shop-v1-TC-ITEM-01'].testCaseId,
     1,
-    'TestOps keyed a test case by identity',
+    'the result landed on the published test case',
   );
+  assert.equal(fake.cases.size, 1, 'the upload made no test case of its own');
 });
 
 test('the uploaded copy drops host and thread and takes the identity as fullName', async () => {
@@ -102,6 +106,7 @@ test('the uploaded copy drops host and thread and takes the identity as fullName
     { endpoint: 'https://testops.example', project_id: fake.projectId, poll_ms: 0 },
     { root: resultsRoot(), env: { ALLURE_TOKEN: fake.token }, fetchImpl: spy, wait: noWait },
   );
+  await adapter.publishDefinitions([sampleCases()[0]]);
   const run = await adapter.startRun({ name: 'labels' });
   await adapter.reportResults(run, [
     { identity: 'shop-v1-TC-ITEM-01', status: 'passed', file: 'a1-result.json' },
@@ -109,18 +114,145 @@ test('the uploaded copy drops host and thread and takes the identity as fullName
   assert.equal(sent.fullName, 'shop-v1-TC-ITEM-01');
   assert.equal(sent.testCaseId, 'shop-v1-TC-ITEM-01');
   assert.deepEqual(
-    sent.labels.map((label) => label.name),
-    ['suite'],
+    sent.labels.map((label) => [label.name, label.value]),
+    [
+      ['suite', 'items'],
+      ['tag', 'smoke'],
+      ['ALLURE_ID', '1'],
+    ],
+    'the tags and the ALLURE_ID are those of the published test case',
   );
+  assert.equal(sent.name, 'TC-ITEM-01 an item can be created with the required fields');
+  assert.match(sent.description, /^Case: TC-ITEM-01\n/);
+});
+
+test('a report leaves the published test case as it was', async () => {
+  // TestOps rewrites an automated test case from the results linked to it; the result in the file
+  // has the spec's title, its own tag and no description.
+  const fake = fakeTestOps();
+  const root = resultsRoot();
+  const file = join(root, 'allure-results', 'a1-result.json');
+  const source = JSON.parse(readFileSync(file, 'utf8'));
+  writeFileSync(
+    file,
+    JSON.stringify({
+      ...source,
+      name: 'TC-ITEM-01 an item can be created @smoke @regression',
+      labels: [...source.labels, { name: 'tag', value: '@regression' }],
+    }),
+  );
+  const adapter = adapterOver(fake, { root, wait_seconds: 1 });
+  const [first] = sampleCases();
+  await adapter.publishDefinitions([first]);
+  const before = { ...fake.cases.get(1) };
+  const run = await adapter.startRun({ name: 'sync' });
+  await adapter.reportResults(run, [
+    { identity: first.identity, status: 'passed', file: 'a1-result.json' },
+  ]);
+  assert.deepEqual(fake.cases.get(1), before);
+  const again = await adapter.publishDefinitions([first]);
+  assert.deepEqual(again.unchanged, [first.identity], 'nothing to publish again after a report');
+});
+
+test("a known gap is uploaded with the manifest's status, not its result file's", async () => {
+  // The file holds `passed` for an expected failure; while the gap's issue is open the manifest
+  // says `failed`, and once the defect is gone (the file says `failed`) it says `passed`.
+  for (const [inFile, inManifest, knownGap] of [
+    ['passed', 'failed', 'open'],
+    ['failed', 'passed', 'closed'],
+  ]) {
+    const fake = fakeTestOps();
+    const root = resultsRoot();
+    const file = join(root, 'allure-results', 'a1-result.json');
+    const source = JSON.parse(readFileSync(file, 'utf8'));
+    writeFileSync(file, JSON.stringify({ ...source, status: inFile }));
+    const adapter = adapterOver(fake, { root, wait_seconds: 1 });
+    await adapter.publishDefinitions([sampleCases()[0]]);
+    const run = await adapter.startRun({ name: `gap ${knownGap}` });
+    const outcome = await adapter.reportResults(run, [
+      { identity: 'shop-v1-TC-ITEM-01', status: inManifest, knownGap, file: 'a1-result.json' },
+    ]);
+    assert.deepEqual(outcome.reported, ['shop-v1-TC-ITEM-01'], knownGap);
+    const stored = await adapter.readRun(run);
+    assert.equal(stored.results['shop-v1-TC-ITEM-01'].status, inManifest, knownGap);
+  }
 });
 
 test('an upload TestOps never finishes processing fails the read-back by identity', async () => {
   const fake = fakeTestOps({ processingReads: 1000 });
   const adapter = adapterOver(fake, { wait_seconds: 0 });
+  await adapter.publishDefinitions([sampleCases()[0]]);
   const run = await adapter.startRun({ name: 'slow import' });
   await assert.rejects(
     adapter.reportResults(run, [{ identity: 'shop-v1-TC-ITEM-01', status: 'failed' }]),
-    /shop-v1-TC-ITEM-01: wrote failed, read back nothing/,
+    /shop-v1-TC-ITEM-01: wrote failed on test case 1, read back nothing/,
+  );
+});
+
+test('a result TestOps files under a test case other than the published one fails the read-back', async () => {
+  // As if the instance ignored ALLURE_ID and made a test case from the result itself.
+  const fake = fakeTestOps({ linkByAllureId: false });
+  const adapter = adapterOver(fake, { wait_seconds: 1 });
+  await adapter.publishDefinitions([sampleCases()[0]]);
+  const run = await adapter.startRun({ name: 'unlinked' });
+  await assert.rejects(
+    adapter.reportResults(run, [{ identity: 'shop-v1-TC-ITEM-01', status: 'passed' }]),
+    /shop-v1-TC-ITEM-01: wrote passed on test case 1, read back passed on test case 2/,
+  );
+});
+
+test('a test case is written named, tagged and described, and read back as its definition', () => {
+  const [withSpec, withoutSpec] = sampleCases();
+  const body = testCaseBody({ ...withSpec, tags: ['@smoke', '@a11y'] });
+  assert.deepEqual(body, {
+    name: 'TC-ITEM-01 an item can be created with the required fields',
+    fullName: 'shop-v1-TC-ITEM-01',
+    automated: true,
+    description: [
+      'Case: TC-ITEM-01',
+      'Feature: ITEM',
+      'Technique: equivalence-partition',
+      'Priority: high',
+      'Spec: apps/shop/specs/items.spec.ts:7',
+    ].join('\n'),
+    tags: [{ name: 'a11y' }, { name: 'smoke' }],
+  });
+  // TestOps answers with ids and sorted tags; the definition comes back with the tool id.
+  const stored = {
+    ...body,
+    id: 41,
+    tags: [
+      { id: 2, name: 'a11y' },
+      { id: 1, name: 'smoke' },
+    ],
+  };
+  assert.deepEqual(definitionFrom(stored), {
+    tmId: '41',
+    title: withSpec.title,
+    feature: 'ITEM',
+    technique: 'equivalence-partition',
+    priority: 'high',
+    tags: ['@a11y', '@smoke'],
+    spec: { file: 'apps/shop/specs/items.spec.ts', line: 7 },
+  });
+  assert.equal(definitionFrom({ ...testCaseBody(withoutSpec), id: 42 }).spec, null);
+});
+
+test('an edited case is updated in place; two test cases with one identity are refused', async () => {
+  const fake = fakeTestOps();
+  const adapter = adapterOver(fake);
+  const [first] = sampleCases();
+  await adapter.publishDefinitions([first]);
+  const edited = await adapter.publishDefinitions([{ ...first, title: 'a new title' }]);
+  assert.equal(edited.published[0].tmId, '1');
+  assert.equal(fake.cases.get(1).name, 'TC-ITEM-01 a new title');
+  assert.ok(fake.calls.includes('PATCH /api/testcase/1'), 'updated, not created again');
+
+  const copy = { ...fake.cases.get(1) };
+  fake.cases.set(2, { ...copy, id: 2 });
+  await assert.rejects(
+    adapter.publishDefinitions([first]),
+    /holds 2 test cases for shop-v1-TC-ITEM-01 \(ids 1, 2\); keep one/,
   );
 });
 

@@ -34,6 +34,8 @@ services:
       # The run the lane belongs to, so its report and results carry the id of the whole CI run.
       QA_RUN_ID: ${QA_RUN_ID:-}
       CI: ${CI:-}
+      # The JUnit file a CI step asks for, relative to the repository, which is mounted at /work.
+      QA_JUNIT_REPORT: ${QA_JUNIT_REPORT:-}
       # Juice Shop on the compose network (http://juice-shop:3000), for a host whose published
       # port a container cannot reach: Linux publishes it on 127.0.0.1 only. Empty: qa-config's URL.
       QA_JUICE_SHOP_BASE_URL: ${QA_JUICE_SHOP_BASE_URL:-}

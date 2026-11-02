@@ -1,6 +1,6 @@
 {
   "name": "create-web-qa",
-  "version": "0.0.0",
+  "version": "0.1.0",
   "description": "Start a web UI test project from the web-qa agentic framework: npm create web-qa@<version> <dir>",
   "license": "Apache-2.0",
   "type": "module",

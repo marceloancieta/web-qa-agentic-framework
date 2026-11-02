@@ -105,6 +105,33 @@ test('results of the latest run attach to cases; retries collapse; the rest is e
   );
 });
 
+test('a run started within minutes of the one before is told apart by its run id', () => {
+  const run = (id) => [{ name: 'run', value: id }];
+  const dir = resultsDir([
+    result({ testCaseId: 'shop-v1-TC-ITEM-03', status: 'failed', labels: run('first') }),
+    result({ testCaseId: 'shop-v1-TC-ITEM-08', status: 'failed', labels: run('first') }),
+    result({ name: 'an unlabelled result of the first run', start: T0 + 50, stop: T0 + 60 }),
+    // Two minutes later, with another id: only this run is reported.
+    result({
+      testCaseId: 'shop-v1-TC-ITEM-03',
+      labels: run('second'),
+      start: T0 + 120_000,
+      stop: T0 + 120_100,
+    }),
+    result({ name: 'an unlabelled result of the second run', start: T0 + 120_050 }),
+  ]);
+  const manifest = buildManifest({ root: ROOT, resultsDir: dir });
+  assert.deepEqual(manifest.recordedRuns, ['second']);
+  assert.deepEqual(
+    manifest.results.map((r) => [r.identity, r.status, r.attempts, r.run]),
+    [['shop-v1-TC-ITEM-03', 'passed', 1, 'second']],
+  );
+  assert.deepEqual(
+    manifest.excluded.map((e) => e.name),
+    ['an unlabelled result of the second run'],
+  );
+});
+
 test('a missing results directory yields cases and no results', () => {
   const manifest = buildManifest({ root: ROOT, resultsDir: join(tmpdir(), 'does-not-exist-tm') });
   assert.deepEqual([manifest.results, manifest.excluded, manifest.runSize], [[], [], 0]);

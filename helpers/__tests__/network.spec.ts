@@ -29,7 +29,9 @@ test('a delayed answer shows the loading indicator, which then goes away', async
   fakeApp,
 }) => {
   await delay(page, '**/api/products', 800);
-  await page.goto(`${fakeApp.url}/products`);
+  // The indicator is in the page's HTML and shows only while the answer is held: waiting for the
+  // load event would spend part of those 800 ms, and a busy machine all of them.
+  await page.goto(`${fakeApp.url}/products`, { waitUntil: 'commit' });
   await expect(page.getByRole('status')).toHaveText('Loading products');
   await expect(page.getByRole('status')).toBeHidden();
   await expect(page.getByRole('listitem')).toHaveCount(2);

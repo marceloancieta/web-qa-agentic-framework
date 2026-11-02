@@ -1,6 +1,6 @@
 {
   "name": "web-qa-agentic-framework",
-  "version": "0.0.0",
+  "version": "0.1.0",
   "description": "Agentic web UI QA framework: phase-gated test design, Playwright + TypeScript execution across browsers and devices, pluggable test-management adapters, Claude Code skills and guardrails.",
   "license": "Apache-2.0",
   "author": "Marcelo Ancieta",
@@ -51,6 +51,7 @@
     "ci:merge": "node scripts/ci-merge.mjs",
     "ci:needs": "node scripts/ci-needs.mjs",
     "ci:browsers": "playwright install --with-deps chromium firefox webkit",
+    "ci:browsers:no-deps": "playwright install chromium firefox webkit",
     "tm:manifest": "node scripts/tm/manifest.mjs",
     "tm:publish": "node scripts/tm/run.mjs publish",
     "tm:report": "node scripts/tm/run.mjs report",

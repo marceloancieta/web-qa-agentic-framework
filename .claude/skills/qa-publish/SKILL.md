@@ -30,7 +30,10 @@ description: >-
 4. **Gate.** Show the dry run and wait for approval. Confirm that no case id changed since the last
    publish: a changed id makes a second definition beside the old one.
 5. **Publish**: `npm run tm:publish -- --pack <pack>`. The adapter reads every write back. A tool
-   that keeps no definitions (`allure-report`) skips the phase with a notice; its cases appear with
+   other than the configured one, such as the Allure TestOps a CI job reports to, is named by
+   `QA_TM_PROVIDER` in the shell ([test management](../../../docs/test-management.md)); its results
+   are reported only for the cases published there. `--case` without `--pack` takes that id from
+   every pack. A tool that keeps no definitions (`allure-report`) skips the phase with a notice; its cases appear with
    the next reported run, so hand off to `qa-run` and come back for step 6 with
    `reports/tm/report-<provider>.json`.
 6. **Record**: rows the read-back confirmed move to `published`. Their feature code is frozen from

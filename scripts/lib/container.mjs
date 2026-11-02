@@ -3,7 +3,7 @@
 // pinned by digest in docker/compose.yml, whose version must be the @playwright/test version of
 // the repository (an older or newer image renders with a different browser).
 
-import { readFileSync } from 'node:fs';
+import { lchownSync, lstatSync, readdirSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 
 /** Set inside the image by the compose service; the lanes refuse to run without it. */
@@ -47,4 +47,36 @@ export function containerUrl(url) {
   if (!['localhost', '127.0.0.1'].includes(parsed.hostname)) return url;
   parsed.hostname = 'host.docker.internal';
   return parsed.toString().replace(/\/$/, '');
+}
+
+// Never walked: neither holds what a lane writes, and node_modules is large.
+const NOT_WALKED = new Set(['node_modules', '.git']);
+
+/**
+ * Gives what a lane created as root in the mounted repository back to the repository's owner, and
+ * returns the paths it changed. The image runs as root, and a Linux host keeps the owners of a bind
+ * mount, so the host user could not overwrite or delete the reports, results or baselines a lane
+ * left. Nothing changes when the lane does not run as root, or when the repository itself belongs to
+ * root (Docker Desktop on Windows and macOS shows every mounted file as root's).
+ */
+export function returnOwnership(
+  root,
+  { uid = process.getuid?.(), lstat = lstatSync, chown = lchownSync, readdir = readdirSync } = {},
+) {
+  const owner = lstat(root);
+  if (uid !== 0 || owner.uid === 0) return [];
+  const changed = [];
+  const walk = (dir) => {
+    for (const entry of readdir(dir, { withFileTypes: true })) {
+      if (NOT_WALKED.has(entry.name)) continue;
+      const path = join(dir, entry.name);
+      if (lstat(path).uid === 0) {
+        chown(path, owner.uid, owner.gid);
+        changed.push(path);
+      }
+      if (entry.isDirectory()) walk(path);
+    }
+  };
+  walk(root);
+  return changed;
 }

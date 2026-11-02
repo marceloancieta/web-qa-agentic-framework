@@ -121,7 +121,7 @@ test('no results means no run is started', async () => {
   const adapter = await localAdapter();
   const outcome = await report({ adapter, manifest: manifestWith([]), log: quietLog(), name: 'x' });
   assert.deepEqual(outcome, { skipped: true, reason: 'no results' });
-  // A results-first tool such as TestOps would otherwise get an empty launch.
+  // A results-first tool, one that keeps no definitions, would otherwise get an empty run.
   const resultsFirst = { ...adapter, capabilities: { definitions: false, runs: true } };
   const empty = await report({
     adapter: resultsFirst,

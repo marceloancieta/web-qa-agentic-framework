@@ -1,6 +1,7 @@
 # 0006 - Branching model and change traceability
 
-**Status:** Accepted (2026-10-24); amended (2026-11-01, CI-03) with the dependency-update exception
+**Status:** Accepted (2026-10-24); amended (2026-11-01, CI-03) with the dependency-update exception;
+amended (2026-11-02, DOC-02) with the history kept until the repository is public
 
 ## Context
 
@@ -16,11 +17,13 @@ what contributors expect.
 
 ## Decision
 
-**Before the first push:** one local commit per roadmap stage (W0 to W9) on `main`, after the gates
-pass, following the commit convention below.
+**Until the repository is public:** commits go to `main` after the gates pass, one or a few per
+roadmap stage (W0 to W9) or backlog item, following the commit convention below. Work done on a
+branch in parallel is merged with `--no-ff`, never squashed, because the **Done** rows it adds cite
+its commits by hash; the merge commit keeps git's own subject.
 
-**From the first push:** GitHub Flow. `main` is protected and always green; branches are short-lived
-and squash-merged.
+**Once the repository is public:** GitHub Flow (DOC-05). `main` is protected and always green;
+branches are short-lived and squash-merged.
 
 | Element | Convention |
 |---|---|
@@ -40,6 +43,7 @@ name a backlog item, so `build(deps): …`, `build(deps-dev): …` and `ci(deps)
 
 ## Consequences
 
-- The history reads as one commit per stage, then one per backlog item, each traceable.
-- The history scans (secrets, denylist, wording) run before the first push, so it is published as
-  it was written.
+- Each commit names the backlog item it serves, so the history is traceable from the first commit;
+  the merge commits of parallel branches are the only subjects without an id.
+- The history scans (secrets, denylist, wording) run before every push (the `pre-push` hook), so
+  nothing reaches the remote without passing them.

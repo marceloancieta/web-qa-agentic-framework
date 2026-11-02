@@ -92,6 +92,7 @@ skills are in [`AGENTS.md`](AGENTS.md); the design and the reasons behind it are
 | running suites, tags, lanes and reports | [Running tests](docs/guides/running-tests.md) |
 | bringing in another application | [Adding an app pack](docs/guides/adding-an-app-pack.md) |
 | starting a project of your own from the template, and taking later releases | [Adopting the framework](docs/guides/adopting.md) |
+| the pipeline on a Jenkins agent, Windows or Linux | [Jenkins](docs/guides/jenkins.md) |
 | the phases, skills, agents and hooks in practice | [Working with Claude Code](docs/guides/working-with-claude-code.md) |
 | the rules any change follows, and where everything lives | [`AGENTS.md`](AGENTS.md) |
 | the design and the reasons behind it | [Architecture](docs/architecture.md) |

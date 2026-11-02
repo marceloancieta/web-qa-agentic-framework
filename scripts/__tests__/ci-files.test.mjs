@@ -8,14 +8,19 @@ import { parse } from 'yaml';
 import { REPO_ROOT } from '../lib/cli.mjs';
 import { DEPENDENCY_UPDATES } from '../changelog.mjs';
 import { titleProblem } from '../commit-title.mjs';
+import { LANES } from '../lanes.mjs';
 
 const scripts = JSON.parse(readFileSync(join(REPO_ROOT, 'package.json'), 'utf8')).scripts;
 const workflow = parse(readFileSync(join(REPO_ROOT, '.github', 'workflows', 'ci.yml'), 'utf8'));
 const jenkinsfile = readFileSync(join(REPO_ROOT, 'Jenkinsfile'), 'utf8');
 
-// Commands that install the toolchain rather than test anything: gitleaks, which the secret scan
-// of the gates needs.
-const TOOLCHAIN = [/^curl -sSfL "https:\/\/github\.com\/gitleaks\/gitleaks\/releases\/download\//];
+// Commands that install or probe the toolchain rather than test anything: gitleaks, which the secret
+// scan of the gates needs, and the Jenkins Node stage's checks of the agent's Node and npm.
+const TOOLCHAIN = [
+  /^curl -sSfL "https:\/\/github\.com\/gitleaks\/gitleaks\/releases\/download\//,
+  /^node -p "process\.(?:versions\.node|platform)\b/,
+  /^npm exec -c "node -p process\.platform"$/,
+];
 
 /** Why a command line is not an npm script call, or null when it is one. */
 export function notAnNpmScript(line) {
@@ -41,8 +46,18 @@ const workflowCommands = () =>
       .filter((line) => line && !line.startsWith('#')),
   );
 
+// Every step of the Jenkinsfile goes through its `shell` helper (`sh` or `bat` by agent), as
+// `shell '<command>'`, `shell "<command>"` or `shell(<options>, '<command>')`; a bare `sh` or `bat`
+// would run on one platform only.
 const jenkinsCommands = () =>
-  [...jenkinsfile.matchAll(/\bsh\s+(['"])(.*?)\1/g)].map((match) => match[2].trim());
+  [...jenkinsfile.matchAll(/\bshell\s*\(?\s*(?:\w+:\s*\w+,\s*)*(['"])((?:\\.|(?!\1).)*)\1/g)].map(
+    (match) => match[2].replace(/\\(["'])/g, '$1').trim(),
+  );
+
+test('the Jenkinsfile runs no step outside its shell helper', () => {
+  const body = jenkinsfile.replace(/def shell\([\s\S]*?\n\}\n/, '');
+  assert.deepEqual(body.match(/\b(?:sh|bat)\s*[('"]/g) ?? [], []);
+});
 
 test('a command line is an npm script call, a toolchain install, or a finding', () => {
   assert.equal(notAnNpmScript('npm run gates'), null);
@@ -59,10 +74,41 @@ test('every run step of the GitHub workflow calls an npm script', () => {
   assert.deepEqual(commands.map(notAnNpmScript).filter(Boolean), []);
 });
 
-test('every sh step of the Jenkinsfile calls an npm script', () => {
+test('every step of the Jenkinsfile calls an npm script', () => {
   const commands = jenkinsCommands();
   assert.ok(commands.length > 10);
   assert.deepEqual(commands.map(notAnNpmScript).filter(Boolean), []);
+});
+
+// The test-management token is bound in one place, and only the report step runs inside it.
+test('the Jenkinsfile gives the Allure TestOps token to tm:report only', () => {
+  const helper = /def withTestManagement\([\s\S]*?\n\}\n/.exec(jenkinsfile)?.[0] ?? '';
+  assert.match(
+    helper,
+    /withCredentials\(\[string\(credentialsId: tokenCredential, variable: 'ALLURE_TOKEN'\)\]\)/,
+  );
+  assert.equal(jenkinsfile.replace(helper, '').match(/withCredentials/g), null);
+  const wrapped = [...jenkinsfile.matchAll(/withTestManagement \{([\s\S]*?)\n\s*\}/g)].map((m) =>
+    m[1].trim(),
+  );
+  assert.deepEqual(wrapped, ["shell 'npm run tm:report'"]);
+  for (const name of ['ALLURE_TOKEN_CREDENTIALS_ID', 'ALLURE_ENDPOINT', 'ALLURE_PROJECT_ID']) {
+    assert.match(jenkinsfile, new RegExp(`string\\(name: '${name}'`), name);
+  }
+});
+
+// A lane refuses an option it fixes itself (lanes.mjs), so the Jenkinsfile's WORKERS never reaches
+// a lane that fixes its workers.
+test('a lane that fixes its workers gets none from the Jenkinsfile', () => {
+  const fixed = Object.entries(LANES)
+    .filter(([, lane]) => (lane.args ?? []).some((arg) => arg.startsWith('--workers')))
+    .map(([name]) => name);
+  assert.ok(fixed.includes('destructive'));
+  for (const name of fixed) {
+    const calls = jenkinsCommands().filter((line) => line.startsWith(`npm run lanes:${name} `));
+    assert.ok(calls.length > 0, name);
+    for (const call of calls) assert.match(call, /\$\{playwrightOptions\(false\)\}/, name);
+  }
 });
 
 test('the lanes the workflow runs are scripts, and the quality gate reads each one report', () => {

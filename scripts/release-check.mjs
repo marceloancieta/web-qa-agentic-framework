@@ -31,7 +31,8 @@ export const CHECKS = ['clean tree', 'main up to date', 'gates', 'changelog sect
 export function machineIo(root = REPO_ROOT) {
   return {
     git: (args) => spawnSync('git', args, { cwd: root, env: gitEnv(), encoding: 'utf8' }),
-    gates: () => spawnSync('npm', ['run', 'gates'], { cwd: root, stdio: 'inherit', shell: false }),
+    // A fixed command through the shell, as lanes.mjs does, so `npm` resolves to npm.cmd on Windows.
+    gates: () => spawnSync('npm run gates', { cwd: root, stdio: 'inherit', shell: true }),
     read: (file) => readTextIfExists(join(root, file)),
   };
 }

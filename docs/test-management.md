@@ -32,6 +32,15 @@ one run (CI reports to a tool whose credentials only it holds).
 | `allure-report` | no | yes | builds the HTML report from `allure-results/` |
 | `allure-testops` | yes | yes | `endpoint`, `project_id`, `token_env` (default `ALLURE_TOKEN`); each falls back to `ALLURE_ENDPOINT`, `ALLURE_PROJECT_ID` |
 
+In Allure TestOps a case is an automated test case whose `fullName` is the case identity; a result
+names its test case by the `ALLURE_ID` label, so a case is published before its first run, and a
+result of a case not published to the project is skipped with a reason
+(`scripts/tm/adapters/allure-testops/index.mjs` says what a test case holds). TestOps updates a test
+case from the results linked to it, so a result carries the name, description and tags its test case
+holds, and a report changes no definition. `QA_TM_PROVIDER` is
+read before the local env file, so it is set in the shell or the CI job; the options and the token
+can come from that file.
+
 ## Devices and known gaps
 
 A case runs on every device project of the environment, and is reported once: with the worst status
