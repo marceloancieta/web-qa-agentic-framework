@@ -55,6 +55,29 @@ export function cancelledByPage(errorText: string | undefined): boolean {
 }
 
 /**
+ * The URLs a console error blames on a request that never got an answer: every error object it
+ * describes (see describeErrorObjects) with `status: 0` and a `url`, resolved against the page's
+ * address. Null when the message describes no error object, or any of them is not of that kind, so a
+ * message is only ever excused as a whole.
+ */
+export function unansweredRequestUrls(text: string, pageUrl: string): string[] | null {
+  const described = /\[([^[\]]*\{[^[\]]*\})\]$/s.exec(text)?.[1];
+  if (!described) return null;
+  const urls: string[] = [];
+  for (const detail of described.split('; ')) {
+    const status = /[{ ]status: (\d+)[,}]/.exec(detail)?.[1];
+    const url = /[{ ]url: ([^,}]+)[,}]/.exec(detail)?.[1];
+    if (status !== '0' || !url) return null;
+    try {
+      urls.push(new URL(url, pageUrl).href);
+    } catch {
+      return null;
+    }
+  }
+  return urls;
+}
+
+/**
  * Runs in the page before its scripts: `console.error` keeps its arguments and adds, at the end, a
  * description of each object argument that carries an error's fields (`name {message, status,
  * statusText, url}`). A framework logs an error object (Angular: `ERROR` and the object), and a
@@ -86,6 +109,13 @@ export function describeErrorObjects(): void {
 /** Start watching a page. Call before navigating, so early problems are not missed. */
 export function watchPageHealth(page: Page, options: PageHealthOptions = {}): PageHealthGuard {
   const seen: HealthProblem[] = [];
+  // A request the page cancels is not a problem, and neither is the error a framework logs for it
+  // (Angular in Firefox: an HttpErrorResponse with status 0 when a reload cuts its request). The
+  // two events come in either order, so the console error is excused when problems are read.
+  const cancelled = new Set<string>();
+  const blamed = new Map<HealthProblem, string[]>();
+  const excused = (problem: HealthProblem) =>
+    blamed.get(problem)?.every((url) => cancelled.has(url)) ?? false;
   // Ordered before the caller's first navigation on the same connection; a page already closed has
   // nothing left to watch.
   void page.addInitScript(describeErrorObjects).catch(() => undefined);
@@ -94,7 +124,10 @@ export function watchPageHealth(page: Page, options: PageHealthOptions = {}): Pa
     // already judge (and would flag third-party hosts a mock blocked on purpose).
     if (message.text().startsWith('Failed to load resource')) return;
     if (message.type() === 'error' && !matches(message.text(), options.allowConsole)) {
-      seen.push({ kind: 'console-error', detail: message.text() });
+      const problem: HealthProblem = { kind: 'console-error', detail: message.text() };
+      const urls = unansweredRequestUrls(message.text(), page.url());
+      if (urls) blamed.set(problem, urls);
+      seen.push(problem);
     }
   });
   page.on('pageerror', (error) => {
@@ -103,7 +136,10 @@ export function watchPageHealth(page: Page, options: PageHealthOptions = {}): Pa
   page.on('requestfailed', (request) => {
     const url = request.url();
     if (!sameOrigin(url, page.url()) || matches(url, options.allowRequests)) return;
-    if (cancelledByPage(request.failure()?.errorText)) return;
+    if (cancelledByPage(request.failure()?.errorText)) {
+      cancelled.add(url);
+      return;
+    }
     seen.push({
       kind: 'failed-request',
       detail: `${request.method()} ${url}: ${request.failure()?.errorText}`,
@@ -125,7 +161,8 @@ export function watchPageHealth(page: Page, options: PageHealthOptions = {}): Pa
 
   return {
     async problems() {
-      if (page.isClosed()) return [...seen];
+      const kept = seen.filter((problem) => !excused(problem));
+      if (page.isClosed()) return kept;
       const broken = await page
         .evaluate(() =>
           Array.from(document.images)
@@ -138,7 +175,7 @@ export function watchPageHealth(page: Page, options: PageHealthOptions = {}): Pa
       const images = broken
         .filter((src) => !matches(src, options.allowRequests))
         .map((src): HealthProblem => ({ kind: 'broken-image', detail: src }));
-      return [...seen, ...images];
+      return [...kept, ...images];
     },
   };
 }
