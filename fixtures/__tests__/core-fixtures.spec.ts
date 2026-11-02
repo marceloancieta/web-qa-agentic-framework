@@ -65,6 +65,7 @@ const test = createTest(provider).extend<object, { fakeApp: FakeApp & { close():
           source: 'test',
           environment: 'unit',
           devices: ['desktop-chromium'],
+          pairwise: false,
           accessibilityTags: ['wcag2a', 'wcag2aa'],
           testManagement: 'local',
           tracker: { keyPattern: null, issueUrl: null },

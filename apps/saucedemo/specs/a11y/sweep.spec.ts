@@ -1,8 +1,9 @@
 // The accessibility sweep (`@a11y-sweep`, selected only by the a11y lane): every route of the app
 // maps, as the role each map was walked as, against a11y-known.json. Not registry cases, so the
-// titles carry no case id. helpers/a11y-sweep.ts plans the routes and waits for each to be ready.
+// titles carry no case id. helpers/a11y-sweep.ts plans the routes and waits for each to be ready;
+// in a pairwise environment each project sweeps only the roles the pairwise set gives it.
 
-import { openForSweep, sweepPlan } from '../../../../helpers/a11y-sweep';
+import { openForSweep, pairwiseSkip, sweepPlan } from '../../../../helpers/a11y-sweep';
 import { test } from '../../fixtures';
 
 const plan = sweepPlan('saucedemo');
@@ -21,7 +22,9 @@ test.describe('a11y sweep', { tag: ['@regression', '@a11y-sweep'] }, () => {
   }
 
   for (const target of plan.targets) {
-    test(`${target.role} ${target.route}`, async ({ actor, a11y }) => {
+    test(`${target.role} ${target.route}`, async ({ actor, a11y }, testInfo) => {
+      const skip = pairwiseSkip(target, testInfo.project);
+      test.skip(skip !== null, skip ?? '');
       const { page } = await actor(target.role);
       await openForSweep(page, target);
       await a11y.expectNoNewViolations(page);

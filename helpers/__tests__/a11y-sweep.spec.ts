@@ -1,7 +1,10 @@
-import { mkdirSync, mkdtempSync, writeFileSync } from 'node:fs';
+import { copyFileSync, mkdirSync, mkdtempSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { openForSweep, readyMarks, sweepPlan, type SweepTarget } from '../a11y-sweep';
+import { runSet } from '../../scripts/lib/run-matrix.mjs';
+import { deviceProjects } from '../../scripts/lib/devices.mjs';
+import { openForSweep, pairwiseSkip, readyMarks, sweepPlan, type SweepTarget } from '../a11y-sweep';
+import { REPO_ROOT } from '../config';
 import { expect, test } from './fake-app';
 
 const SHELL = ['button "Open Sidenav"', 'button "Show/hide account menu"', 'textbox ""'];
@@ -151,4 +154,74 @@ test('opening a target waits until the page stops changing, and fails when it ne
   expect(await page.locator('p').textContent()).toBe('What is 3+4?');
   await expect(openForSweep(page, target('/ticking'))).rejects.toThrow(/stops changing/);
   await context.close();
+});
+
+const SIX = [
+  'desktop-chromium',
+  'desktop-firefox',
+  'desktop-webkit',
+  'tablet',
+  'mobile-chrome',
+  'mobile-safari',
+];
+
+/** A root whose qa-config has one environment, pairwise or not, serving the pack `shop`. */
+function configRoot(pairwise: boolean): string {
+  const root = mkdtempSync(join(tmpdir(), 'sweep-pairwise-'));
+  mkdirSync(join(root, 'helpers'));
+  copyFileSync(
+    join(REPO_ROOT, 'helpers', 'device-projects.json'),
+    join(root, 'helpers', 'device-projects.json'),
+  );
+  const shop = { base_url: 'http://shop.test', actors: { customer: { account: 'provisioned' } } };
+  writeFileSync(
+    join(root, 'qa-config.json'),
+    JSON.stringify({
+      app: {
+        default_environment: 'ci',
+        environments: { ci: { projects: SIX, pairwise, packs: { shop } } },
+      },
+    }),
+  );
+  return root;
+}
+
+const project = (device: string) => ({
+  name: `shop-${device}`,
+  metadata: { pack: 'shop', device },
+});
+
+test('a pairwise environment sweeps each role on the projects the pairwise set gives it', () => {
+  const root = configRoot(true);
+  const env = {};
+  const roles = ['anonymous', 'customer'];
+  const runs = runSet(
+    deviceProjects(REPO_ROOT).filter((p) => SIX.includes(p.name)),
+    roles,
+  );
+  for (const device of SIX) {
+    for (const role of roles) {
+      const skip = pairwiseSkip({ role }, project(device), env, root);
+      const assigned = runs.some((run) => run.project === device && run.role === role);
+      expect(skip === null, `${device} as ${role}`).toBe(assigned);
+      if (skip)
+        expect(skip).toMatch(
+          new RegExp(
+            `^pairwise \\(ci\\): ${device} sweeps .*; ${role} is swept on another project$`,
+          ),
+        );
+    }
+  }
+  // Fewer runs than every project with every role, and each role still runs somewhere.
+  expect(runs.length).toBeLessThan(SIX.length * roles.length);
+  // A role the pack's entry does not name, and a project without a device, are never skipped here.
+  expect(pairwiseSkip({ role: 'admin' }, project('tablet'), env, root)).toBeNull();
+  expect(pairwiseSkip({ role: 'customer' }, { name: 'unit' }, env, root)).toBeNull();
+});
+
+test('outside a pairwise environment every target is swept on every project', () => {
+  const root = configRoot(false);
+  for (const device of SIX)
+    for (const role of ['anonymous', 'customer'])
+      expect(pairwiseSkip({ role }, project(device), {}, root)).toBeNull();
 });

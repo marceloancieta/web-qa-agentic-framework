@@ -29,7 +29,10 @@ interface PackEntry {
 interface QaConfigFile {
   app?: {
     default_environment?: string;
-    environments?: Record<string, { projects?: string[]; packs?: Record<string, PackEntry> }>;
+    environments?: Record<
+      string,
+      { projects?: string[]; pairwise?: boolean; packs?: Record<string, PackEntry> }
+    >;
     accessibility?: { tags?: string[] };
   };
   test_management?: { provider?: string };
@@ -45,6 +48,8 @@ export interface QaSettings {
   source: string;
   environment: string;
   devices: DeviceName[];
+  /** The environment stands for the whole device catalog (`pairwise: true`, FUT-10). */
+  pairwise: boolean;
   accessibilityTags: string[];
   testManagement: string;
   tracker: { keyPattern: string | null; issueUrl: string | null };
@@ -102,17 +107,23 @@ function selectEnvironment(file: QaConfigFile, source: string, env: NodeJS.Proce
       `${source}: environment "${environment}" lists unknown projects: ${unknown.join(', ')}.`,
     );
   }
-  return { environment, devices: listed as DeviceName[], packs: selected.packs ?? {} };
+  return {
+    environment,
+    devices: listed as DeviceName[],
+    pairwise: selected.pairwise === true,
+    packs: selected.packs ?? {},
+  };
 }
 
 /** The settings shared by every pack. QA_ENV picks the environment. */
 export function loadSettings(env: NodeJS.ProcessEnv = process.env, root = REPO_ROOT): QaSettings {
   const { file, source } = readConfigFile(root);
-  const { environment, devices } = selectEnvironment(file, source, env);
+  const { environment, devices, pairwise } = selectEnvironment(file, source, env);
   return {
     source,
     environment,
     devices,
+    pairwise,
     accessibilityTags: file.app?.accessibility?.tags ?? DEFAULT_A11Y_TAGS,
     testManagement: file.test_management?.provider ?? 'local',
     tracker: {

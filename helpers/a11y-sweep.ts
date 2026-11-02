@@ -19,7 +19,9 @@
 import { readdirSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { expect, type Page } from '@playwright/test';
-import { ANONYMOUS_ACTOR, REPO_ROOT } from './config';
+import { deviceProjects } from '../scripts/lib/devices.mjs';
+import { packRoles, runSet } from '../scripts/lib/run-matrix.mjs';
+import { ANONYMOUS_ACTOR, loadRuntime, loadSettings, projectPack, REPO_ROOT } from './config';
 
 type AriaRole = Parameters<Page['getByRole']>[0];
 
@@ -142,6 +144,33 @@ export function sweepPlan(pack: string, root = REPO_ROOT): SweepPlan {
     else plan.targets.push(...targetsOf(role, map.routes));
   }
   return plan;
+}
+
+/**
+ * Why a target is not swept on this device project, or null when it is. In an environment marked
+ * `pairwise` (qa-config, FUT-10) each project sweeps only the roles the pairwise set gives it, the
+ * same set `npm run pairwise` prints, so every pair of browser, form factor and role is still swept
+ * once. Elsewhere, and for a role the pack's entry does not name, every target is swept.
+ */
+export function pairwiseSkip(
+  target: Pick<SweepTarget, 'role'>,
+  project: { name: string; metadata?: Record<string, unknown> },
+  env: NodeJS.ProcessEnv = process.env,
+  root = REPO_ROOT,
+): string | null {
+  const settings = loadSettings(env, root);
+  const device = project.metadata?.device;
+  if (!settings.pairwise || typeof device !== 'string') return null;
+  const roles = packRoles(loadRuntime(projectPack(project), env, root));
+  if (!roles.includes(target.role)) return null;
+  const catalog = deviceProjects(root);
+  const projects = settings.devices.flatMap((name) => catalog.filter((p) => p.name === name));
+  const here = runSet(projects, roles)
+    .filter((run) => run.project === device)
+    .map((run) => run.role);
+  return here.includes(target.role)
+    ? null
+    : `pairwise (${settings.environment}): ${device} sweeps ${here.join(', ') || 'no role'}; ${target.role} is swept on another project`;
 }
 
 /**

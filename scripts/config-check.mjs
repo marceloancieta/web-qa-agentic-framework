@@ -24,7 +24,7 @@ export const SCHEMA_PATH = join(REPO_ROOT, 'schemas', 'qa-config.schema.json');
 
 let devices;
 /** The device catalog, read once and only when a pairwise environment needs it. */
-const catalog = () => (devices ??= deviceProjects());
+const catalog = () => (devices ??= deviceProjects(REPO_ROOT));
 
 const ajv = new Ajv2020({ allErrors: true, strict: true, useDefaults: false });
 addFormats(ajv);
@@ -98,7 +98,7 @@ export function semanticErrors(config) {
     // A pairwise environment stands for the whole catalog: its projects realize every browser ×
     // form factor pair, and `npm run pairwise` spreads the roles over them.
     if (environment?.pairwise) {
-      const projects = environment.projects ?? defaultProjects();
+      const projects = environment.projects ?? defaultProjects(REPO_ROOT);
       for (const gap of projectGaps(projects, catalog()))
         errors.push(`app.environments.${name} is pairwise, but no project covers ${gap}`);
     }

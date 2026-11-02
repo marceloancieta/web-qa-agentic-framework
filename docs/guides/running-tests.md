@@ -56,7 +56,7 @@ Playwright options (`--project`, a spec file, a narrower `--grep`) and writes it
 | Lane | Runs | Notes |
 |---|---|---|
 | `npm run lanes:visual` | the `@visual` cases | in the pinned Playwright container, so screenshots match the baselines; it refuses `--update-snapshots` ([ADR 0009](../adr/0009-container-lanes.md)) |
-| `npm run lanes:a11y` | an accessibility sweep over every route of the app maps, per role | new violations fail; known ones are in the pack's `a11y-known.json` with a tracker key and an expiry |
+| `npm run lanes:a11y` | an accessibility sweep over every route of the app maps, per role; in a `pairwise` environment (`ci`) each project sweeps only the roles `npm run pairwise` gives it | new violations fail; known ones are in the pack's `a11y-known.json` with a tracker key and an expiry |
 | `npm run lanes:mocked` | the `@mocked` cases | answers come from route mocks, not the application |
 | `npm run lanes:known-gap` | the `@known-gap` cases | then a summary of which gaps still fail as armed and which now pass |
 | `npm run lanes:destructive` | the `@destructive` cases | one worker, then each selected pack's recovery; refused for a pack without one |

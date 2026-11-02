@@ -32,6 +32,12 @@ export function runFactors(projects, roles) {
   return { factors, allowed };
 }
 
+/** The roles of a pack's entry in qa-config: anonymous first, then its actors. */
+export const packRoles = (entry) => [
+  ANONYMOUS_ROLE,
+  ...Object.keys(entry?.actors ?? {}).filter((name) => name !== ANONYMOUS_ROLE),
+];
+
 /** `{ project, role }` from `<project> as <role>`, or null when the text is not a run. */
 export function parseRun(text) {
   const match = RUN.exec(String(text ?? '').trim());

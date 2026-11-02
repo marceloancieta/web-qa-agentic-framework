@@ -143,7 +143,9 @@ web-qa-agentic-framework/
   (`local`: desktop Chromium and mobile Chrome; `ci`: six device projects). The catalog is
   `helpers/device-projects.json`. An environment marked `pairwise` (`ci`) stands for the whole
   catalog: config:check proves its projects realize every browser × form factor pair, and
-  `npm run pairwise` spreads each pack's roles over them (`scripts/lib/run-matrix.mjs`).
+  `npm run pairwise` spreads each pack's roles over them (`scripts/lib/run-matrix.mjs`). The a11y
+  sweep follows that set there: each project sweeps the routes of the roles it is given
+  (`pairwiseSkip` in `helpers/a11y-sweep.ts`), and the others are skipped with the reason.
 - **Locator policy**, in the generation rule and in the linter: `getByRole` and `getByLabel`, then
   `getByTestId` (attribute set per pack in `app.json`; SauceDemo uses `data-test`), then `getByText`
   with a deliberate `exact`, then CSS only with a comment that says why. XPath and `nth-child` are

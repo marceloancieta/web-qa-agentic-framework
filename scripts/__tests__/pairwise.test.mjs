@@ -6,8 +6,8 @@ import { configErrors } from '../config-check.mjs';
 import { REPO_ROOT } from '../lib/cli.mjs';
 import { defaultProjects, deviceProjects } from '../lib/devices.mjs';
 import { coverageGaps, pairwiseSet, product, requiredPairs } from '../lib/pairwise.mjs';
-import { parseRun, projectGaps, runGaps, runSet } from '../lib/run-matrix.mjs';
-import { environmentRuns, packRoles } from '../pairwise.mjs';
+import { packRoles, parseRun, projectGaps, runGaps, runSet } from '../lib/run-matrix.mjs';
+import { environmentRuns } from '../pairwise.mjs';
 
 /** Every pair of two different factors that the rows hold, as text. */
 function pairsOf(rows, names) {
@@ -58,7 +58,7 @@ test('gaps name the missing pairs and the rows that cannot exist', () => {
 });
 
 test('the device catalog gives each project its engine and form factor', () => {
-  const catalog = deviceProjects();
+  const catalog = deviceProjects(REPO_ROOT);
   const byName = Object.fromEntries(catalog.map((p) => [p.name, p]));
   assert.deepEqual(byName['desktop-firefox'], {
     name: 'desktop-firefox',
@@ -67,7 +67,7 @@ test('the device catalog gives each project its engine and form factor', () => {
   });
   assert.equal(byName.tablet.browser, 'webkit');
   assert.equal(byName['mobile-chrome'].browser, 'chromium');
-  assert.ok(defaultProjects().every((name) => name in byName));
+  assert.ok(defaultProjects(REPO_ROOT).every((name) => name in byName));
 });
 
 test('a run is a project and a role; anything else is not a run', () => {
@@ -80,7 +80,7 @@ test('a run is a project and a role; anything else is not a run', () => {
 });
 
 test('the run set covers browser, form factor and role over the catalog, with real projects', () => {
-  const catalog = deviceProjects();
+  const catalog = deviceProjects(REPO_ROOT);
   const roles = ['anonymous', 'customer'];
   const runs = runSet(catalog, roles);
   assert.deepEqual(runGaps(runs, catalog, roles), { unknown: [], missing: [] });
@@ -95,7 +95,7 @@ test('the run set covers browser, form factor and role over the catalog, with re
 });
 
 test('project gaps are the browser and form factor pairs a project list misses', () => {
-  const catalog = deviceProjects();
+  const catalog = deviceProjects(REPO_ROOT);
   assert.deepEqual(
     projectGaps(
       [
@@ -163,7 +163,10 @@ test('npm run pairwise gives each pack of the environment its runs: anonymous an
   assert.equal(shop.pack, 'juice-shop');
   assert.equal(shop.full, 12);
   assert.ok(shop.runs.length < shop.full);
-  assert.deepEqual(runGaps(shop.runs, deviceProjects(), shop.roles), { unknown: [], missing: [] });
+  assert.deepEqual(runGaps(shop.runs, deviceProjects(REPO_ROOT), shop.roles), {
+    unknown: [],
+    missing: [],
+  });
   assert.throws(
     () => environmentRuns(example(), 'nowhere'),
     /environment "nowhere" is not defined/,

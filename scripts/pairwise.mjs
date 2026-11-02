@@ -18,19 +18,18 @@ import { parseArgs } from 'node:util';
 import { REPO_ROOT } from './lib/cli.mjs';
 import { defaultProjects, deviceProjects } from './lib/devices.mjs';
 import { readConfig } from './lib/qa-config.mjs';
-import { ANONYMOUS_ROLE, fullRunCount, projectGaps, runSet } from './lib/run-matrix.mjs';
-
-/** The roles of a pack's entry: anonymous first, then its actors. */
-export const packRoles = (entry) => [
-  ANONYMOUS_ROLE,
-  ...Object.keys(entry?.actors ?? {}).filter((name) => name !== ANONYMOUS_ROLE),
-];
+import { fullRunCount, packRoles, projectGaps, runSet } from './lib/run-matrix.mjs';
 
 /**
  * The runs of an environment: `{ name, pairwise, gaps, packs: [{ pack, roles, runs, full }] }`,
  * with `gaps` the browser × form factor pairs its projects miss.
  */
-export function environmentRuns(config, name, catalog = deviceProjects(), root = REPO_ROOT) {
+export function environmentRuns(
+  config,
+  name,
+  catalog = deviceProjects(REPO_ROOT),
+  root = REPO_ROOT,
+) {
   const environment = config.app?.environments?.[name];
   if (!environment) throw new Error(`environment "${name}" is not defined in qa-config.`);
   const names = environment.projects ?? defaultProjects(root);

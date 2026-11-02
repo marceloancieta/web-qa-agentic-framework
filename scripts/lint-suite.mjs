@@ -161,7 +161,7 @@ export function lintSuite(root = REPO_ROOT) {
   const add = (rule, file, line, message) => findings.push(finding(rule, file, line, message));
   const registries = loadRegistries(root);
   // The catalog is the framework's, also when another tree is linted (the fixtures).
-  const catalog = deviceProjects();
+  const catalog = deviceProjects(REPO_ROOT);
   const tests = specCases(root);
 
   const casesByPack = new Map();
