@@ -13,9 +13,24 @@ export function fakeTestOps({
   token = 'testops-fake-token',
   projectId = 7,
   processingReads = 2,
+  // false: behave as an instance that ignores ALLURE_ID, so every result makes its own test case.
+  linkByAllureId = true,
 } = {}) {
   const launches = new Map();
+  // Test cases by id, as `api/testcase` keeps them; tags come back sorted by name, as the instance
+  // returned them.
+  const cases = new Map();
+  // A result without ALLURE_ID makes or reuses a test case keyed by its testCaseId (results-first).
   const testCases = new Map();
+  let nextCase = 1;
+  const newCase = (fields) => {
+    const dto = { id: nextCase++, deleted: false, ...fields };
+    dto.tags = (fields.tags ?? [])
+      .map((tag, index) => ({ id: index + 1, name: tag.name }))
+      .sort((a, b) => a.name.localeCompare(b.name));
+    cases.set(dto.id, dto);
+    return dto;
+  };
   let nextLaunch = 1;
   let nextResult = 1;
   const calls = [];
@@ -29,6 +44,37 @@ export function fakeTestOps({
       return json(401, { message: 'Unauthorized', status: 401 });
     }
     let match;
+    if (method === 'POST' && pathname === '/api/testcase') {
+      const body = JSON.parse(init.body);
+      if (body.projectId !== projectId) return json(404, { message: 'project not found' });
+      if (!body.name) return json(400, { message: 'name is required' });
+      return json(200, newCase({ ...body, external: false }));
+    }
+    if (method === 'GET' && pathname === '/api/testcase/__search') {
+      if (Number(searchParams.get('projectId')) !== projectId) return json(200, { content: [] });
+      // Only the query the adapter sends: fullName = "<identity>".
+      const rql = /^fullName = "(.*)"$/.exec(searchParams.get('rql') ?? '');
+      if (!rql) return json(400, { message: `unsupported rql ${searchParams.get('rql')}` });
+      const content = [...cases.values()].filter(
+        (dto) => !dto.deleted && dto.fullName === rql[1].replaceAll('\\"', '"'),
+      );
+      return json(200, { content, last: true, number: 0 });
+    }
+    if ((match = pathname.match(/^\/api\/testcase\/(\d+)$/))) {
+      const dto = cases.get(Number(match[1]));
+      if (!dto) return json(404, { message: `test case with id ${match[1]} not found` });
+      if (method === 'GET') return json(200, dto);
+      if (method === 'PATCH') {
+        const body = JSON.parse(init.body);
+        Object.assign(dto, body);
+        if (body.tags) {
+          dto.tags = body.tags
+            .map((tag, index) => ({ id: index + 1, name: tag.name }))
+            .sort((a, b) => a.name.localeCompare(b.name));
+        }
+        return json(200, dto);
+      }
+    }
     if (method === 'POST' && pathname === '/api/launch') {
       const body = JSON.parse(init.body);
       if (body.projectId !== projectId) return json(404, { message: 'project not found' });
@@ -90,15 +136,26 @@ export function fakeTestOps({
       // Processing finishes after a few reads, like the real background import.
       for (const item of launch.processing) item.readsLeft -= 1;
       for (const { result } of launch.processing.filter((item) => item.readsLeft < 0)) {
-        const key = result.testCaseId ?? result.fullName;
-        if (!testCases.has(key)) testCases.set(key, testCases.size + 1);
+        // ALLURE_ID names an existing test case; without it the result makes or reuses its own.
+        const allureId = Number(
+          (result.labels ?? []).find((label) => label.name === 'ALLURE_ID')?.value,
+        );
+        let testCaseId = linkByAllureId && cases.has(allureId) ? allureId : null;
+        if (testCaseId === null) {
+          const key = result.testCaseId ?? result.fullName;
+          if (!testCases.has(key)) {
+            const made = newCase({ name: result.name, fullName: result.fullName, external: true });
+            testCases.set(key, made.id);
+          }
+          testCaseId = testCases.get(key);
+        }
         launch.results.push({
           id: nextResult++,
           launchId: launch.id,
           name: result.name,
           fullName: result.fullName,
           status: result.status,
-          testCaseId: testCases.get(key),
+          testCaseId,
           hidden: false,
         });
       }
@@ -111,5 +168,5 @@ export function fakeTestOps({
     return json(404, { message: `No endpoint ${method} ${pathname}.` });
   };
 
-  return { fetchImpl, calls, uploads, launches, testCases, token, projectId };
+  return { fetchImpl, calls, uploads, launches, cases, testCases, token, projectId };
 }
