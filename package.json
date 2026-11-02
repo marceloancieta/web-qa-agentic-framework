@@ -42,6 +42,8 @@
     "traceability": "node scripts/traceability.mjs",
     "quality:gate": "node scripts/quality-gate.mjs --summary reports/quality-gate.md",
     "pairwise": "node scripts/pairwise.mjs",
+    "framework:update": "node scripts/framework-update.mjs",
+    "remove:app": "node scripts/remove-app.mjs",
     "mutation": "stryker run && stryker run stryker.hooks.config.mjs && npm run mutation:gate",
     "mutation:gate": "node scripts/quality-gate.mjs --mutation reports/mutation/scripts-lib.json --mutation reports/mutation/hooks-lib.json --summary reports/mutation/quality-gate.md",
     "ci:merge": "node scripts/ci-merge.mjs",

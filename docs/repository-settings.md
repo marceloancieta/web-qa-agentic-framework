@@ -5,6 +5,12 @@ rely on. They live in GitHub, not in a file, so this page records what they must
 the repository applies them. Rulesets and private vulnerability reporting need a public repository
 (or a paid plan on a private one), so they are applied when the repository becomes public.
 
+## Template
+
+**Settings → General → Template repository**: turn it on once the repository is public, so a team
+can start its own project with **Use this template** ([adopting the framework](guides/adopting.md)).
+The copies take later releases from the `v<x.y.z>` tags, so every release is tagged.
+
 ## Pull requests
 
 **Settings → General → Pull Requests**
