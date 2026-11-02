@@ -1,18 +1,36 @@
 // The create-web-qa package (FUT-02): what it ships, how its documents keep their links, and the
 // project it generates.
+import { spawnSync } from 'node:child_process';
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { existsSync, mkdirSync, mkdtempSync, readFileSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
-import { join } from 'node:path';
+import { join, resolve } from 'node:path';
 import { create, GITIGNORE, projectName } from '../../packages/create-web-qa/index.mjs';
 import { linkRecords, PACKAGE_DIR, shippedFiles } from '../create-package.mjs';
 import { REPO_ROOT } from '../lib/cli.mjs';
+import { gitEnv } from '../lib/git.mjs';
 import { FRAMEWORK_REPOSITORY } from '../lib/product.mjs';
 
 const readJson = (path) => JSON.parse(readFileSync(join(REPO_ROOT, path), 'utf8'));
 
-test('the package ships the product: these top-level entries, and nothing else', () => {
+/**
+ * shippedFiles reads `git ls-files`, so the tests of what ships need the tree to be a checkout of its
+ * own. A Stryker sandbox (`npm run mutation`) is a copy under the ignored `.stryker-tmp/` of the
+ * repository, where git lists nothing; there they are skipped.
+ */
+function notOwnCheckout() {
+  const run = spawnSync('git', ['rev-parse', '--show-toplevel'], {
+    cwd: REPO_ROOT,
+    env: gitEnv(),
+    encoding: 'utf8',
+  });
+  if (run.status === 0 && resolve(run.stdout.trim()) === resolve(REPO_ROOT)) return false;
+  return 'the tree is not a git checkout of its own, such as a Stryker sandbox';
+}
+const SHIPPED = { skip: notOwnCheckout() };
+
+test('the package ships the product: these top-level entries, and nothing else', SHIPPED, () => {
   const top = [...new Set(shippedFiles().map((file) => file.split('/')[0]))].sort();
   assert.deepEqual(top, [
     '.actrc',
@@ -51,39 +69,43 @@ test('the package ships the product: these top-level entries, and nothing else',
   ]);
 });
 
-test('the product includes the agent setup, templates, core and gates, and leaves out the records', () => {
-  const files = new Set(shippedFiles());
-  for (const file of [
-    '.claude/rules/modes.md',
-    '.claude/skills/qa-design/SKILL.md',
-    '.claude/agents/ui-spec-reviewer.md',
-    '.claude/hooks/secret-guard.mjs',
-    '.claude/settings.json',
-    'docs/templates/registry.md',
-    'docs/guides/adopting.md',
-    'docs/repository-settings.md',
-    'helpers/devices.ts',
-    'fixtures/index.ts',
-    'scripts/lint-suite.mjs',
-    'scripts/framework-update.mjs',
-    '.github/workflows/ci.yml',
-    'apps/juice-shop/app.json',
-  ])
-    assert.ok(files.has(file), `${file} is shipped`);
-  const docs = [...files].filter((file) => file.startsWith('docs/'));
-  for (const file of [...files])
-    assert.ok(!file.startsWith(`${PACKAGE_DIR}/`), `${file}: the package's own source`);
-  assert.ok(!docs.some((file) => file.startsWith('docs/adr/')), 'no decision of the framework');
-  for (const file of [
-    'docs/backlog.md',
-    'CHANGELOG.md',
-    'CONTRIBUTING.md',
-    'SECURITY.md',
-    'CODE_OF_CONDUCT.md',
-    'scripts/__tests__/community-files.test.mjs',
-  ])
-    assert.ok(!files.has(file), `${file} is the framework's own`);
-});
+test(
+  'the product includes the agent setup, templates, core and gates, and leaves out the records',
+  SHIPPED,
+  () => {
+    const files = new Set(shippedFiles());
+    for (const file of [
+      '.claude/rules/modes.md',
+      '.claude/skills/qa-design/SKILL.md',
+      '.claude/agents/ui-spec-reviewer.md',
+      '.claude/hooks/secret-guard.mjs',
+      '.claude/settings.json',
+      'docs/templates/registry.md',
+      'docs/guides/adopting.md',
+      'docs/repository-settings.md',
+      'helpers/devices.ts',
+      'fixtures/index.ts',
+      'scripts/lint-suite.mjs',
+      'scripts/framework-update.mjs',
+      '.github/workflows/ci.yml',
+      'apps/juice-shop/app.json',
+    ])
+      assert.ok(files.has(file), `${file} is shipped`);
+    const docs = [...files].filter((file) => file.startsWith('docs/'));
+    for (const file of [...files])
+      assert.ok(!file.startsWith(`${PACKAGE_DIR}/`), `${file}: the package's own source`);
+    assert.ok(!docs.some((file) => file.startsWith('docs/adr/')), 'no decision of the framework');
+    for (const file of [
+      'docs/backlog.md',
+      'CHANGELOG.md',
+      'CONTRIBUTING.md',
+      'SECURITY.md',
+      'CODE_OF_CONDUCT.md',
+      'scripts/__tests__/community-files.test.mjs',
+    ])
+      assert.ok(!files.has(file), `${file} is the framework's own`);
+  },
+);
 
 test('links and paths into a development record point at the framework at the release tag', () => {
   const at = (path) => `${FRAMEWORK_REPOSITORY}/blob/v1.2.3/${path}`;
