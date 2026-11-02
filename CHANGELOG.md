@@ -52,6 +52,7 @@ commit history by `scripts/changelog.mjs`.
 - **core:** the delayed answer unit test sees the loading indicator on a busy machine (CORE-19) `b10f9ed`
 - **juice-shop:** first ci-environment run: WebKit fixes, @not-webkit, reset connections retried (CI-01) `f573cd2`
 - **proc:** reviewer fixtures follow what W8 learned, measured again (AGT-02) `e26f88e`
+- **release:** release:check runs the gates on Windows (DOC-03) `9046aab`
 - **tm:** a known gap is uploaded to TestOps with the manifest's status (TM-04) `867f9f5`
 - **tm:** a report to TestOps leaves the published test case as it was (TM-04) `fc4d4fa`
 - **tm:** a run started within minutes of the one before is reported on its own (TM-04) `50b5c13`
@@ -59,6 +60,7 @@ commit history by `scripts/changelog.mjs`.
 ### Other
 
 - **chore(juice-shop):** 55 cases published and the first reported run (JS-06) `c83ee32`
+- **chore(release):** version 0.1.0 and its changelog section (DOC-03) `566bc90`
 - **chore(repo):** bootstrap repository, safety gates and agent guides (REPO-01) `678ffb6`
 - **ci(ci):** GitHub Actions workflow and Jenkinsfile that only call the npm scripts (CI-02) `c92da8a`
 - **ci(github):** CodeQL, npm audit, history scans and Dependabot (CI-03) `dac5b15`
