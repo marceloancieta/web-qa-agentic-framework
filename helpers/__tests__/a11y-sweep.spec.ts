@@ -1,7 +1,16 @@
 import { mkdirSync, mkdtempSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { openForSweep, readyMarks, sweepPlan, type SweepTarget } from '../a11y-sweep';
+import {
+  openForSweep,
+  readTree,
+  readyMarks,
+  sweepPlan,
+  untilSteady,
+  type Settle,
+  type SweepOptions,
+  type SweepTarget,
+} from '../a11y-sweep';
 import { expect, test } from './fake-app';
 
 const SHELL = ['button "Open Sidenav"', 'button "Show/hide account menu"', 'textbox ""'];
@@ -124,6 +133,19 @@ test('opening a target waits for its marks and fails when one never shows', asyn
   await context.close();
 });
 
+test('settling ends on two equal readings and fails while they keep differing', async () => {
+  // The outcome depends on what the readings return, so a short pace proves the same as the real one.
+  const quick: Settle = { intervalMs: 10, timeoutMs: 500 };
+  const late = ['Feedback', 'Feedback What is 3+4?', 'Feedback What is 3+4?'];
+  let reads = 0;
+  await untilSteady(async () => late[Math.min(reads++, late.length - 1)] ?? '', '/late', quick);
+  expect(reads).toBe(3);
+  let tick = 0;
+  await expect(untilSteady(async () => `tick ${tick++}`, '/ticking', quick)).rejects.toThrow(
+    /\/ticking settles: its accessibility tree stops changing/,
+  );
+});
+
 test('opening a target waits until the page stops changing, and fails when it never does', async ({
   browser,
 }) => {
@@ -140,15 +162,31 @@ test('opening a target waits until the page stops changing, and fails when it ne
     });
   });
   const page = await context.newPage();
+  // The page's timers run on a paused clock that only a reading moves on, by 600 ms, so what each
+  // reading sees is fixed however slow the machine is.
+  await page.clock.install({ time: 0 });
+  await page.clock.pauseAt(1_000);
+  let readings = 0;
+  const options: SweepOptions = {
+    settle: { intervalMs: 50, timeoutMs: 2_000 },
+    read: async (sweptPage) => {
+      const tree = await readTree(sweptPage);
+      readings += 1;
+      await sweptPage.clock.runFor(600);
+      return tree;
+    },
+  };
   const target = (route: string): SweepTarget => ({
     role: 'anonymous',
     route,
     ready: [{ role: 'heading', name: 'Feedback', level: 1 }],
     readyOn: 'every',
   });
-  await openForSweep(page, target('/late'));
+  await openForSweep(page, target('/late'), options);
+  // Without the question, the second reading, the first two would have matched.
+  expect(readings).toBe(3);
   // Read once on purpose: the question must already be there when openForSweep returns.
   expect(await page.locator('p').textContent()).toBe('What is 3+4?');
-  await expect(openForSweep(page, target('/ticking'))).rejects.toThrow(/stops changing/);
+  await expect(openForSweep(page, target('/ticking'), options)).rejects.toThrow(/stops changing/);
   await context.close();
 });

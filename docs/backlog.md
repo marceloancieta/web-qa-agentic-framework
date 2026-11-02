@@ -32,6 +32,7 @@ regression in a container, network mocking and state injection, proven on Juice 
 | CI-05 | W9 | The GitHub workflows run on the local machine with `act` before a push that changes them, with the settings it needs in `.actrc`. | practice | todo |
 | TM-04 | W9 | The `allure-testops` adapter proven on a real Allure TestOps, in a project of its own: the automated cases published there, then a run reported from a local machine and one from Jenkins (CI-04), with the token read from the environment or a Jenkins credential. | plan | todo |
 | DOC-03 | W9 | CHANGELOG and tag `v0.1.0`: `npm run changelog` writes a Keep a Changelog section per version from the commit titles, and `npm run release:check` runs the checks before a tag in order and stops at the first failure (a clean tree, `main` up to date, the gates, the changelog section, the version); the GitHub repository and any publishing only with the owner's approval. | plan | todo |
+| GATE-11 | W9 | The settle check of the accessibility sweep is tested on a clock it controls: `untilSteady` decides on what the readings return, never on how fast they come, and its unit test drives the page's timers with `page.clock`, so the test gives the same result on a loaded machine and no longer spends the whole 15-second wait on a page that never settles. The sweep itself still reads every second for up to 15 seconds. | practice | in-progress |
 
 **Acceptance for v0.1.0**
 
