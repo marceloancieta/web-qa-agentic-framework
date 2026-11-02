@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { mkdirSync, mkdtempSync, writeFileSync } from 'node:fs';
+import { mkdirSync, mkdtempSync, readFileSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { httpClient } from '../lib/http.mjs';
@@ -112,6 +112,29 @@ test('the uploaded copy drops host and thread and takes the identity as fullName
     sent.labels.map((label) => label.name),
     ['suite'],
   );
+});
+
+test("a known gap is uploaded with the manifest's status, not its result file's", async () => {
+  // The file holds `passed` for an expected failure; while the gap's issue is open the manifest
+  // says `failed`, and once the defect is gone (the file says `failed`) it says `passed`.
+  for (const [inFile, inManifest, knownGap] of [
+    ['passed', 'failed', 'open'],
+    ['failed', 'passed', 'closed'],
+  ]) {
+    const fake = fakeTestOps();
+    const root = resultsRoot();
+    const file = join(root, 'allure-results', 'a1-result.json');
+    const source = JSON.parse(readFileSync(file, 'utf8'));
+    writeFileSync(file, JSON.stringify({ ...source, status: inFile }));
+    const adapter = adapterOver(fake, { root, wait_seconds: 1 });
+    const run = await adapter.startRun({ name: `gap ${knownGap}` });
+    const outcome = await adapter.reportResults(run, [
+      { identity: 'shop-v1-TC-ITEM-01', status: inManifest, knownGap, file: 'a1-result.json' },
+    ]);
+    assert.deepEqual(outcome.reported, ['shop-v1-TC-ITEM-01'], knownGap);
+    const stored = await adapter.readRun(run);
+    assert.equal(stored.results['shop-v1-TC-ITEM-01'].status, inManifest, knownGap);
+  }
 });
 
 test('an upload TestOps never finishes processing fails the read-back by identity', async () => {

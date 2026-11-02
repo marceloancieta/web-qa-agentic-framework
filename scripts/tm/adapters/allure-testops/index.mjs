@@ -39,10 +39,15 @@ export function attachmentSources(item) {
   ];
 }
 
-/** The result as uploaded: keyed by identity, without machine labels. */
-export function uploadedResult(source, identity) {
+/**
+ * The result as uploaded: keyed by identity, without machine labels, with the manifest's status.
+ * The file's own status can differ: a known gap's expected failure is `passed` in the file and
+ * `failed` in the manifest while its issue is open (scripts/tm/manifest.mjs knownGapOutcome).
+ */
+export function uploadedResult(source, identity, status = source.status) {
   return {
     ...source,
+    status,
     fullName: identity,
     testCaseId: identity,
     labels: (source.labels ?? []).filter((label) => !LOCAL_LABELS.has(label.name)),
@@ -142,7 +147,7 @@ export function createAdapter(
     const files = [
       {
         name: basename(file),
-        content: JSON.stringify(uploadedResult(source, result.identity)),
+        content: JSON.stringify(uploadedResult(source, result.identity, result.status)),
       },
     ];
     for (const attachment of attachmentSources(source)) {
