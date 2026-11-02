@@ -140,8 +140,10 @@ web-qa-agentic-framework/
 - **Projects from qa-config:** `desktop-chromium`, `desktop-webkit`, `desktop-firefox`, `tablet`
   (iPad, WebKit), `mobile-chrome` (Pixel 7), `mobile-safari` (iPhone 14, WebKit), and `-landscape`
   variants for orientation. `playwright.config.ts` builds them; each environment picks which run
-  (`local`: desktop Chromium and mobile Chrome; `ci`: six device projects). Reducing the full
-  product with pairwise is FUT-10.
+  (`local`: desktop Chromium and mobile Chrome; `ci`: six device projects). The catalog is
+  `helpers/device-projects.json`. An environment marked `pairwise` (`ci`) stands for the whole
+  catalog: config:check proves its projects realize every browser × form factor pair, and
+  `npm run pairwise` spreads each pack's roles over them (`scripts/lib/run-matrix.mjs`).
 - **Locator policy**, in the generation rule and in the linter: `getByRole` and `getByLabel`, then
   `getByTestId` (attribute set per pack in `app.json`; SauceDemo uses `data-test`), then `getByText`
   with a deliberate `exact`, then CSS only with a comment that says why. XPath and `nth-child` are
@@ -153,7 +155,9 @@ web-qa-agentic-framework/
 - **Real differences in behaviour** are written in the feature contract doc and tagged
   `@desktop-only` or `@mobile-only`; each project filters them out with `grepInvert`, and the linter
   requires the registry case to state the reason.
-- **Design:** pairwise over browser × device × role instead of the full product.
+- **Design:** pairwise over browser × device × role instead of the full product: a registry lists
+  the runs of its pairwise cases under `pairwise`, and `lint-suite` pairwise-gap names a pair they
+  leave out.
 
 ## 3. Visual regression and accessibility
 

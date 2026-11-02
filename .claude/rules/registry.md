@@ -49,6 +49,7 @@ may name the same contract, and its rules may be cited from any of them.
 | `contract` | no | the feature contract, relative to the pack |
 | `kind` | no | `feature`, the default, or `journey` (below) |
 | `actors` | no | the roles the cases act as (`anonymous`, roles from the pack's `actors` in qa-config) |
+| `pairwise` | no | the runs the cases were designed for, `<device project> as <role>`; required when a case's technique is `pairwise`. `lint-suite` pairwise-gap reports a run that names an unknown project or a role outside `actors`, and a pair of browser, form factor and role no run covers; `npm run pairwise` proposes a set |
 | `dimensions` | yes | each of the seven UI quality dimensions: `applies`, or `n/a: <why>` |
 | `requirements` | no | `{ id: REQ-<FEATURE>-NN, text }`, only for a registry without a contract |
 | `test_data` | no | each `<PLACEHOLDER>` the cases use and what it stands for |

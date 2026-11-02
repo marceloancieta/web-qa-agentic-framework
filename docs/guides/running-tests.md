@@ -21,8 +21,9 @@ QA_JUICE_SHOP_BASE_URL=http://localhost:3001 npx playwright test --project='juic
 ## Choosing projects and cases
 
 Projects are named `<pack>-<device>`; the devices are defined in
-[`helpers/devices.ts`](../../helpers/devices.ts) and each environment picks its own. A `unit` project
-runs the core's own tests.
+[`helpers/device-projects.json`](../../helpers/device-projects.json) and each environment picks its
+own. A `unit` project runs the core's own tests. `npm run pairwise -- --env ci` prints which roles
+each project needs so that every pair of browser, form factor and role is covered once.
 
 ```sh
 npx playwright test --project='juice-shop-*'                       # one pack, every device

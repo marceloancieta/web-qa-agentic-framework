@@ -33,8 +33,10 @@ phase opens no browser.
      `apps/<pack>/rules/<case id>.yaml`, in the format of `scripts/lib/decision-table.mjs`, one
      rule per row, and the spec walks it. `lint-suite` reports a combination no rule covers, two
      rules that disagree, and a `decision-table` case without its table.
-   - **Pairwise over devices** when a case does not need every device project: say which pairs of
-     device and condition the set covers, in the notes under the table.
+   - **Pairwise over devices** when a case does not need every device project with every role:
+     list its runs under the front matter key `pairwise` (`<device project> as <role>`), so every
+     pair of browser, form factor and role is covered once. `npm run pairwise` proposes a set for
+     the environment, and `lint-suite` pairwise-gap names a pair the list leaves out.
    - **Error guessing** for what UIs get wrong: a double submit, text that is very long or injected,
      a session that expired, a deep link to a page that needs a role.
 2. **Cover every dimension the contract says applies** with at least one case carrying its tag

@@ -365,6 +365,10 @@
             "$ref": "#/$defs/device"
           }
         },
+        "pairwise": {
+          "description": "The environment stands for the whole device catalog through pairwise coverage: its projects must realize every browser x form factor pair of the catalog (config:check), and `npm run pairwise` gives each project the roles that cover every pair with each pack's roles.",
+          "type": "boolean"
+        },
         "packs": {
           "type": "object",
           "minProperties": 1,

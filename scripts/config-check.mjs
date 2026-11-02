@@ -17,8 +17,14 @@ import { pathToFileURL } from 'node:url';
 import Ajv2020 from 'ajv/dist/2020.js';
 import addFormats from 'ajv-formats';
 import { REPO_ROOT } from './lib/cli.mjs';
+import { defaultProjects, deviceProjects } from './lib/devices.mjs';
+import { projectGaps } from './lib/run-matrix.mjs';
 
 export const SCHEMA_PATH = join(REPO_ROOT, 'schemas', 'qa-config.schema.json');
+
+let devices;
+/** The device catalog, read once and only when a pairwise environment needs it. */
+const catalog = () => (devices ??= deviceProjects());
 
 const ajv = new Ajv2020({ allErrors: true, strict: true, useDefaults: false });
 addFormats(ajv);
@@ -88,6 +94,13 @@ export function semanticErrors(config) {
   for (const [name, environment] of Object.entries(environments)) {
     for (const [pack, entry] of Object.entries(environment?.packs ?? {})) {
       errors.push(...packErrors(`app.environments.${name}.packs.${pack}`, entry ?? {}));
+    }
+    // A pairwise environment stands for the whole catalog: its projects realize every browser ×
+    // form factor pair, and `npm run pairwise` spreads the roles over them.
+    if (environment?.pairwise) {
+      const projects = environment.projects ?? defaultProjects();
+      for (const gap of projectGaps(projects, catalog()))
+        errors.push(`app.environments.${name} is pairwise, but no project covers ${gap}`);
     }
   }
   const pattern = config.tracker?.key_pattern;

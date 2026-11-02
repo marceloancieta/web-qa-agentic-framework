@@ -55,6 +55,7 @@
           "mobile-chrome",
           "mobile-safari"
         ],
+        "pairwise": true,
         "packs": {
           "juice-shop": {
             "base_url": "http://localhost:3000",

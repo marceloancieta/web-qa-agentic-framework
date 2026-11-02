@@ -83,5 +83,5 @@ broken by the application today, so their cases run as known gaps (LOCAL-1, LOCA
   contract, and a page that shows an ordinary empty basket is a defect to triage.
 - **Devices.** Every case runs on every device project of the environment. TC-BASKET-08 checks the
   button in both of its forms ("Your Basket <n>" from 960 px, the count alone below) through the
-  page object, which picks the form from the project. A pairwise reduction for the full CI set
-  waits for FUT-10.
+  page object, which picks the form from the project. No case is pairwise: each runs on every
+  project, and the `ci` projects cover every browser and form factor pair (`npm run pairwise`).

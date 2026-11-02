@@ -61,5 +61,5 @@ signed in) was accepted by the owner and has no case.
   perf applies and the case gains `@perf`.
 - **Devices.** Every case runs on every device project of the environment (local: desktop Chromium
   and mobile Chrome). The account menu moves at 960 px; `components/account-menu.ts` hides the
-  difference, so no case needs a device tag. A pairwise reduction for the full CI set waits for
-  FUT-10.
+  difference, so no case needs a device tag. No case is pairwise: each runs on every project, and
+  the `ci` projects cover every browser and form factor pair (`npm run pairwise`).
