@@ -140,13 +140,33 @@ const specOf = (result) =>
  * could not be, with reasons. Results from elsewhere (the core's unit tests) are not test-management
  * cases: they are counted in `outside`, not listed, and never decide which run is the latest.
  */
+/**
+ * Runs started closer together than the idle gap of groupRuns are told apart by their run id: the
+ * run of the result that started last is kept, with the results without a run id that started once
+ * it had begun.
+ */
+function latestRun(group) {
+  const labelled = group.filter((result) => label(result, 'run'));
+  if (new Set(labelled.map((result) => label(result, 'run'))).size < 2) return group;
+  const id = label(
+    labelled.reduce((a, b) => ((b.start ?? 0) > (a.start ?? 0) ? b : a)),
+    'run',
+  );
+  const begun = Math.min(
+    ...labelled.filter((result) => label(result, 'run') === id).map((result) => result.start ?? 0),
+  );
+  return group.filter((result) =>
+    label(result, 'run') ? label(result, 'run') === id : (result.start ?? 0) >= begun,
+  );
+}
+
 export function collectResults(resultsDir, cases, packs) {
   const prefixes = packs.map((pack) => `apps/${pack}/specs/`);
   const all = readResultFiles(resultsDir);
   const inPacks = all.filter((result) =>
     prefixes.some((prefix) => specOf(result).startsWith(prefix)),
   );
-  const run = groupRuns(inPacks).at(-1) ?? [];
+  const run = latestRun(groupRuns(inPacks).at(-1) ?? []);
   // A case runs once per device project: the last attempt of each device counts, and the case
   // takes the worst status of its devices, so a failure on one device is never hidden by a pass on
   // another. Results recorded without a device label count as one device.
