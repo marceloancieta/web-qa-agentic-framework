@@ -53,7 +53,6 @@ regression in a container, network mocking and state injection, proven on Juice 
 | Id | Item | Origin | Status |
 |---|---|---|---|
 | FUT-01 | Toolshop pack (Practice Software Testing, local Docker): authorization in the UI by role, `data-test` attributes. | plan | todo |
-| FUT-02 | `npm create web-qa@<version> <dir>` (package `create-web-qa`). The generated project gets the product (`.claude/`, `AGENTS.md`, `CLAUDE.md`, templates, core, gates) and none of the framework's own development records (this backlog, `CHANGELOG.md`, the framework's ADRs); a test lists what the package ships. | plan | in-progress |
 | FUT-03 | Web vitals (LCP, CLS, INP) with per-pack budgets, and a Lighthouse lane. | practice | todo |
 | FUT-04 | i18n: projects per `locale` and `timezoneId`, pseudo-localization, right-to-left. | practice | todo |
 | FUT-05 | Design-token checks from the pack's `design-tokens.json`; `prefers-reduced-motion` emulation. | plan | todo |
@@ -63,7 +62,7 @@ regression in a container, network mocking and state injection, proven on Juice 
 | FUT-09 | Extract a shared core with the sibling API framework once both are stable. | plan | todo |
 | FUT-11 | App map drift: a scheduled job maps each pack again and compares the result with the tracked `app-map.json`, so a changed route, role, name or form constraint is reported before the specs fail on it. | plan | todo |
 | FUT-12 | Publishing `create-web-qa` from a `v<x.y.z>` tag through npm trusted publishing (OIDC, no token) with provenance, then a read-back with `npm create` outside the repository. | practice | todo |
-| FUT-14 | Advisory AI review of pull requests (only on `pull_request`, skipped without its key), with a rubric that leaves out what the gates already check. | plan | todo |
+| FUT-14 | Advisory AI review of pull requests (only on `pull_request`, skipped without its key), with a rubric that leaves out what the gates already check. | plan | in-progress |
 | FUT-16 | `cited-status`: the known gaps, waiting claims and workarounds the registries and contracts cite are checked against the tracker, and a closed or unknown key is reported. | plan | todo |
 
 ---
@@ -128,3 +127,4 @@ regression in a container, network mocking and state injection, proven on Juice 
 | FUT-15 | Mutation testing with Stryker over `scripts/lib` and `.claude/hooks/lib`, on demand (`npm run mutation`, one run per library), its score read by the quality gate against qa-config `quality_gate.mutation`. The first runs gave 69.5% together (REVIEW). | `925c596` |
 | FUT-10 | Pairwise over browser × form factor × role (`scripts/lib/pairwise.mjs`, `scripts/lib/run-matrix.mjs`): a `pairwise` environment (`ci`) must realize every browser × form factor pair of the catalog (config:check), `npm run pairwise` spreads each pack's roles over its projects, and a registry lists the runs of its pairwise cases under `pairwise`, checked by `lint-suite` pairwise-gap. | `1c18553` |
 | FUT-13 | The repository as a GitHub template: the adoption guide (`docs/guides/adopting.md`) from **Use this template** to a green CI, `npm run framework:update -- --to v<x.y.z>` (the product diff between two release tags, applied with a three-way merge, the release recorded in `.web-qa.json`) and `npm run remove:app -- --name <pack>`; what is product is `scripts/lib/product.mjs`. Turning on "Template repository" waits for the public repository. | `6b3c1dd` |
+| FUT-02 | `npm create web-qa@<version> <dir>` (package `create-web-qa`, built by `npm run create:pack`): the generated project gets the product and none of the framework's development records, whose links point at the framework's repository at the release tag; it records its release for `framework:update`, and a test lists what the package ships. Publishing is FUT-12. | `a15f23e` |

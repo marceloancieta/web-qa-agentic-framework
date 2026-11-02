@@ -231,6 +231,11 @@ web-qa-agentic-framework/
   CodeQL scans the sources ([`.github/workflows/codeql.yml`](../.github/workflows/codeql.yml)).
   The gates scan the whole history for secrets, denylisted terms and the wording of every commit
   message.
+- Advisory review: on each pull request with the `ANTHROPIC_API_KEY` secret, Claude reads the diff
+  against [`.github/pr-review-rubric.md`](../.github/pr-review-rubric.md), which leaves out what the
+  gates check, and posts one comment (`npm run review:pr`,
+  [`.github/workflows/pr-review.yml`](../.github/workflows/pr-review.yml)). It is not a required
+  check and decides nothing.
 - `workers` per pack in `app.json`: some systems under test do not tolerate parallel runs.
 - The visual lane runs in the container both locally and in CI.
 

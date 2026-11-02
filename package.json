@@ -45,6 +45,7 @@
     "framework:update": "node scripts/framework-update.mjs",
     "remove:app": "node scripts/remove-app.mjs",
     "create:pack": "node scripts/create-package.mjs",
+    "review:pr": "node scripts/pr-review.mjs",
     "mutation": "stryker run && stryker run stryker.hooks.config.mjs && npm run mutation:gate",
     "mutation:gate": "node scripts/quality-gate.mjs --mutation reports/mutation/scripts-lib.json --mutation reports/mutation/hooks-lib.json --summary reports/mutation/quality-gate.md",
     "ci:merge": "node scripts/ci-merge.mjs",
@@ -67,6 +68,7 @@
     "gates": "npm run lint && npm run format:check && npm run types:check && npm run config:check && npm run test:hooks && npm run test:scripts && npm run lint:qa && npm run coverage:status && npm run traceability && npm run test:unit && npm run scan:denylist:self-test && npm run scan:denylist && npm run scan:denylist:history && npm run lint:docs:history && npm run scan:secrets"
   },
   "devDependencies": {
+    "@anthropic-ai/sdk": "^0.135.0",
     "@axe-core/playwright": "^4.14.0",
     "@eslint/js": "^10.0.1",
     "@playwright/test": "^1.64.1",

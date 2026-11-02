@@ -1,0 +1,50 @@
+# The advisory AI review of a pull request (FUT-14): scripts/pr-review.mjs against
+# .github/pr-review-rubric.md, posted as one comment that each push updates. It is not a required
+# check and decides nothing.
+#
+# It runs on `pull_request` only, never `pull_request_target`, so a fork's pull request gets no
+# secrets and no write token: the job finds no key and skips. The repository secret it needs is
+# ANTHROPIC_API_KEY (Settings → Secrets and variables → Actions); without it every step after the
+# checkout is skipped. The pull request's title and body reach the script only through environment
+# variables, never inside a run script.
+name: pr-review
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
+
+permissions:
+  contents: read
+  pull-requests: write
+
+concurrency:
+  group: pr-review-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  review:
+    if: github.event.pull_request.draft == false
+    runs-on: ubuntu-24.04
+    env:
+      HAS_KEY: ${{ secrets.ANTHROPIC_API_KEY != '' }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0 # the diff against the base branch
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        if: env.HAS_KEY == 'true'
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+        if: env.HAS_KEY == 'true'
+      - run: npm run review:pr
+        if: env.HAS_KEY == 'true'
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          GITHUB_TOKEN: ${{ github.token }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          PR_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+          PR_TITLE: ${{ github.event.pull_request.title }}
+          PR_BODY: ${{ github.event.pull_request.body }}
+          BASE_REF: ${{ github.base_ref }}
