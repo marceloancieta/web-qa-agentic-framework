@@ -32,7 +32,9 @@ concurrency:
 env:
   CI: '1'
   QA_ENV: ci
-  QA_RUN_ID: gh-${{ github.run_id }}-${{ github.run_attempt }}
+  # One id for the whole run, its re-runs included: "Re-run failed jobs" keeps the reports of the
+  # jobs that passed, and the quality gate refuses reports of another run (CI-06).
+  QA_RUN_ID: gh-${{ github.run_id }}
   GITLEAKS_VERSION: 8.30.1
 
 jobs:

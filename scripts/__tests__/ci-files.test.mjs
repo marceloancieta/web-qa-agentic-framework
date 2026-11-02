@@ -73,6 +73,16 @@ test('the lanes the workflow runs are scripts, and the quality gate reads each o
   assert.ok(gate.includes('reports/playwright.json'));
 });
 
+// CI-06: "Re-run failed jobs" runs a shard again as a new attempt and keeps the lanes' reports of
+// the first one. With the attempt in the id, the quality gate refused the mix as another run's.
+test('one QA_RUN_ID covers a run and its re-runs: the run id, never the attempt', () => {
+  assert.equal(workflow.env.QA_RUN_ID, 'gh-${{ github.run_id }}');
+  assert.doesNotMatch(
+    readFileSync(join(REPO_ROOT, '.github', 'workflows', 'ci.yml'), 'utf8'),
+    /QA_RUN_ID:.*run_attempt/,
+  );
+});
+
 test('the shard list and its total agree', () => {
   const { shard, total } = workflow.jobs.suite.strategy.matrix;
   assert.deepEqual(

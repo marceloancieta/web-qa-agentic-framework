@@ -113,7 +113,8 @@ npm run quality:gate -- --report reports/playwright.json --report reports/lanes/
 ```
 
 One `QA_RUN_ID` covers the shards, the lanes, the quality gate and the report; the gate refuses a
-report of another run. The workflow in [`.github/workflows/ci.yml`](../../.github/workflows/ci.yml)
+report of another run. In GitHub Actions it is the run id without the attempt, so "Re-run failed
+jobs" stays one run with the reports of the jobs that passed before. The workflow in [`.github/workflows/ci.yml`](../../.github/workflows/ci.yml)
 is the reference.
 
 ## The workflows on your machine
