@@ -64,6 +64,19 @@ the evidence when you say something works: the command and its result.
 Never push to `main` directly, and never force-push a branch someone else works on. The repository
 enforces this with a ruleset; its settings are in [repository settings](docs/repository-settings.md).
 
+## Releasing
+
+A release is a `vX.Y.Z` tag on `main`, made by the owner:
+
+1. On an up-to-date `main`, in one release commit: set `version` in `package.json`, and write the
+   changelog section with `npm run changelog:write` (`npm run changelog` shows it first; the
+   version comes from the commit titles since the last tag).
+2. `npm run release:check -- --version X.Y.Z` runs the checks before a tag in order and stops at
+   the first that fails: a clean tree, `main` equal to `origin/main`, the gates, the changelog's
+   latest section, and the version (in `package.json`, not tagged yet, later than the last tag).
+3. Only then the owner tags (`git tag vX.Y.Z`) and pushes the tag. Publishing anything else, such as
+   a package, needs the owner's approval too.
+
 ## Conduct
 
 Everyone taking part follows the [code of conduct](CODE_OF_CONDUCT.md).

@@ -70,6 +70,7 @@ import { applyCaseMeta } from '../helpers/case-meta';
 import { rememberSecret } from '../helpers/run-secrets';
 import {
   fitViewportToContent,
+  imagesLoaded,
   screenshotOptions,
   WHOLE_PAGE_SCREENSHOT_TIMEOUT_MS,
 } from '../helpers/visual';
@@ -379,6 +380,8 @@ export function createTest(provider: ActorProvider) {
       ) => {
         const page = 'page' in target ? target.page() : target;
         const restore = wholePage ? await fitViewportToContent(page) : undefined;
+        // After the resize, so the images a taller viewport brings into view are loaded too.
+        await imagesLoaded(page);
         const options = {
           ...screenshotOptions(app, mask),
           // A whole page is many screens tall on a phone, and WebKit takes longer than the

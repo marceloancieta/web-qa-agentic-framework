@@ -168,8 +168,8 @@ web-qa-agentic-framework/
 - A `visual` lane that runs **only inside the official Playwright image pinned by digest**, the same
   version as `@playwright/test` (a gate checks they match). Outside the container the lane refuses to
   run and says why. One set of baselines, no OS suffix.
-- Stability: `animations: 'disabled'`, `caret: 'hide'`, fonts installed in the image, dynamic regions
-  masked by the page object (not the spec), a per-pack `stylePath` that hides volatile parts, a
+- Stability: `animations: 'disabled'`, `caret: 'hide'`, fonts installed in the image, every image in
+  view loaded before the shot (`imagesLoaded`), dynamic regions masked by the page object (not the spec), a per-pack `stylePath` that hides volatile parts, a
   per-pack `maxDiffPixelRatio`. A case about a whole page grows the viewport to the content's height
   at the same width (`wholePage`), since layouts that scroll an inner box defeat a full-page
   screenshot.
@@ -269,7 +269,7 @@ say how a case runs rather than which dimension it covers.
 | **Responsiveness** | tablet and landscape projects; a "no horizontal scroll" check per breakpoint (`scrollWidth ≤ clientWidth`); visual per project | — |
 | **Perceived performance** | loading indicators: a mock adds `delay(ms)` and the case checks the spinner appears and goes away; no flash of empty content | web vitals (LCP, CLS, INP) in Chromium with per-pack budgets in qa-config; a Lighthouse lane; `prefers-reduced-motion` emulation (animation smoothness cannot be measured reliably) |
 | **Security in the UI** | password fields use `type=password` and the right `autocomplete`; generic login errors (no user enumeration); protected routes redirect without a session; after logout, Back shows no data; nothing sensitive in the URL or `localStorage`; injection payloads from the builders render as text | security headers (CSP, frame options) per response; a ZAP baseline lane against the UI (container lanes) |
-| **Layout and design** | a **page health guard** on every test (opt-out with a reason): broken images, failed same-origin requests, console errors, uncaught exceptions; visual regression covers alignment | design-token checks (colour, font, size from the pack's `design-tokens.json`) on key components |
+| **Layout and design** | a **page health guard** on every test (opt-out with a reason): broken images, failed same-origin requests, console errors (with the fields of an error object they log), uncaught exceptions; visual regression covers alignment | design-token checks (colour, font, size from the pack's `design-tokens.json`) on key components |
 | **Navigation and interaction** | states through `toBeDisabled` and `toBeFocused`; hover and focus states in visual; Back and Forward, deep links, reload keeps state, a session across tabs | — |
 | **Accessibility** | axe (colour contrast included) with a baseline; a keyboard helper (tab order by accessible name, visible focus, no focus traps); **ARIA snapshots** (`toMatchAriaSnapshot`) as a regression of what a screen reader announces | — |
 | **Content handling** | builders with boundary and very long texts (injected through the API or mocks) plus an overflow check and visual | i18n: projects per `locale` and `timezoneId`, pseudo-localization (+40 % text), right-to-left; Juice Shop has a language switch |

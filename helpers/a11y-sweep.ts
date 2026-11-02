@@ -146,6 +146,54 @@ export function sweepPlan(pack: string, root = REPO_ROOT): SweepPlan {
   return plan;
 }
 
+/** How a page is read while it settles: the time between two readings and the whole wait. */
+export interface Settle {
+  intervalMs: number;
+  timeoutMs: number;
+}
+
+/** A second between readings: an answer slower than that arrives after the scan. */
+export const SETTLE: Settle = { intervalMs: 1_000, timeoutMs: 15_000 };
+
+export interface SweepOptions {
+  settle?: Settle;
+  /** Reads the page's accessibility tree; `readTree` unless a test drives the page between readings. */
+  read?: (page: Page) => Promise<string>;
+}
+
+/** The accessibility tree of the whole page, as one comparable string. */
+export function readTree(page: Page): Promise<string> {
+  return page.locator('body').ariaSnapshot();
+}
+
+/**
+ * Resolve once two consecutive readings are the same; reject naming `subject` when the readings
+ * still differ after `settle.timeoutMs`. Whether it settles depends on what the readings return,
+ * never on how fast they come, so the outcome is the same on a loaded machine.
+ */
+export async function untilSteady(
+  read: () => Promise<string>,
+  subject: string,
+  settle: Settle = SETTLE,
+): Promise<void> {
+  let previous: string | null = null;
+  await expect
+    .poll(
+      async () => {
+        const current = await read();
+        const steady = current === previous;
+        previous = current;
+        return steady;
+      },
+      {
+        message: `${subject} settles: its accessibility tree stops changing`,
+        intervals: [settle.intervalMs],
+        timeout: settle.timeoutMs,
+      },
+    )
+    .toBe(true);
+}
+
 /**
  * Why a target is not swept on this device project, or null when it is. In an environment marked
  * `pairwise` (qa-config, FUT-10) each project sweeps only the roles the pairwise set gives it, the
@@ -175,9 +223,13 @@ export function pairwiseSkip(
 
 /**
  * Open a target's route, wait until its marks are visible (every one, or any one), then until two
- * readings of the page's accessibility tree a second apart are the same.
+ * readings of the page's accessibility tree `settle.intervalMs` apart are the same.
  */
-export async function openForSweep(page: Page, target: SweepTarget): Promise<void> {
+export async function openForSweep(
+  page: Page,
+  target: SweepTarget,
+  { settle = SETTLE, read = readTree }: SweepOptions = {},
+): Promise<void> {
   await page.goto(target.route);
   const locators = target.ready.map((mark) =>
     page.getByRole(mark.role, {
@@ -192,21 +244,5 @@ export async function openForSweep(page: Page, target: SweepTarget): Promise<voi
   } else {
     for (const locator of locators) await expect(locator.first()).toBeVisible();
   }
-  let previous: string | null = null;
-  await expect
-    .poll(
-      async () => {
-        const current = await page.locator('body').ariaSnapshot();
-        const steady = current === previous;
-        previous = current;
-        return steady;
-      },
-      {
-        message: `${target.route} settles: its accessibility tree stops changing`,
-        // A second between readings: an answer slower than that arrives after the scan.
-        intervals: [1_000],
-        timeout: 15_000,
-      },
-    )
-    .toBe(true);
+  await untilSteady(() => read(page), target.route, settle);
 }
