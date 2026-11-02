@@ -15,6 +15,7 @@ const readJson = (path) => JSON.parse(readFileSync(join(REPO_ROOT, path), 'utf8'
 test('the package ships the product: these top-level entries, and nothing else', () => {
   const top = [...new Set(shippedFiles().map((file) => file.split('/')[0]))].sort();
   assert.deepEqual(top, [
+    '.actrc',
     '.claude',
     '.editorconfig',
     '.env.example',

@@ -222,7 +222,9 @@ web-qa-agentic-framework/
   (`visual`, `a11y`, `known-gap`, `destructive`, `flake`), `npm run tm:report`. CI files only call
   these scripts: [`.github/workflows/ci.yml`](../.github/workflows/ci.yml) (primary) and the
   [`Jenkinsfile`](../Jenkinsfile), checked by `scripts/__tests__/ci-files.test.mjs`. The flake lane runs
-  weekly and on demand, outside the pipeline of each change.
+  weekly and on demand, outside the pipeline of each change. `act` runs the GitHub jobs on a
+  local machine before a workflow change is pushed
+  ([the workflows on your machine](guides/running-tests.md#the-workflows-on-your-machine)).
 - Jobs: gates → local packs in compose (pinned by digest) → project matrix with `--shard=i/n` and the
   `blob` reporter (`QA_BLOB_REPORT=1`) → `npm run ci:merge` → quality gate over the merged report and
   the lanes' reports, one `QA_RUN_ID` for all of them → report to test management.

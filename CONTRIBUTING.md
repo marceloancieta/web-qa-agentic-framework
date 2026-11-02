@@ -39,8 +39,10 @@ does not repeat them.
 npm run gates
 ```
 
-The `pre-push` hook runs the same command, so a push never carries a red gate. Show the evidence
-when you say something works: the command and its result.
+The `pre-push` hook runs the same command, so a push never carries a red gate. A change to a
+workflow under `.github/workflows/` also runs on your machine with `act` before it is pushed
+([the workflows on your machine](docs/guides/running-tests.md#the-workflows-on-your-machine)). Show
+the evidence when you say something works: the command and its result.
 
 ## Proposing it: GitHub Flow
 

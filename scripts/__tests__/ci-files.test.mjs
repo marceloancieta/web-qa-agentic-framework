@@ -217,3 +217,66 @@ test('the required job depends on every other job of the change', () => {
   assert.deepEqual([...jobs.required.needs].sort(), others.sort());
   assert.match(jobs.required.if, /always\(\)/, 'it reports even when a job it needs failed');
 });
+
+// The workflows on the local machine (CI-05): `act` runs each job in a container of the image
+// `.actrc` maps to its runner label, on the compose network, where Juice Shop answers by its service
+// name; and it sets ACT, which skips the artifact steps its artifact server cannot serve.
+const actrc = readFileSync(join(REPO_ROOT, '.actrc'), 'utf8')
+  .split('\n')
+  .map((line) => line.trim())
+  .filter((line) => line && !line.startsWith('#'));
+const compose = parse(readFileSync(join(REPO_ROOT, 'docker', 'compose.yml'), 'utf8'));
+
+/** The artifact steps of a workflow that would also run under act. */
+export function artifactStepsUnderAct(workflowText) {
+  const { jobs = {} } = parse(workflowText) ?? {};
+  return Object.entries(jobs).flatMap(([job, { steps = [] }]) =>
+    steps
+      .filter((step) => /^actions\/(?:upload|download)-artifact@/.test(step.uses ?? ''))
+      .filter((step) => !/!\s*env\.ACT\b/.test(String(step.if ?? '')))
+      .map((step) => `${job}: ${step.uses.split('@')[0]}`),
+  );
+}
+
+test('an artifact step without the act guard is a finding', () => {
+  const step = (uses, condition) => ({ jobs: { t: { steps: [{ uses, if: condition }] } } });
+  const yaml = (doc) => JSON.stringify(doc);
+  const upload = `actions/upload-artifact@${'a'.repeat(40)}`;
+  assert.equal(artifactStepsUnderAct(yaml(step(upload, 'always()'))).length, 1);
+  assert.equal(artifactStepsUnderAct(yaml(step(upload))).length, 1);
+  assert.equal(artifactStepsUnderAct(yaml(step(upload, '${{ env.ACT }}'))).length, 1);
+  assert.deepEqual(artifactStepsUnderAct(yaml(step(upload, '${{ always() && !env.ACT }}'))), []);
+  assert.deepEqual(artifactStepsUnderAct(yaml(step(`actions/checkout@${'b'.repeat(40)}`))), []);
+});
+
+test('no workflow runs an artifact step under act', () => {
+  for (const name of workflowFiles()) {
+    assert.deepEqual(artifactStepsUnderAct(readFileSync(join(WORKFLOWS, name), 'utf8')), [], name);
+  }
+});
+
+test('.actrc gives every runner label of every workflow an image', () => {
+  const mapped = actrc.map((line) => /^-P\s+([\w.-]+)=\S+$/.exec(line)?.[1]).filter(Boolean);
+  const labels = workflowFiles().flatMap((name) =>
+    Object.values(parse(readFileSync(join(WORKFLOWS, name), 'utf8')).jobs).map(
+      (job) => job['runs-on'],
+    ),
+  );
+  assert.ok(labels.length > 5);
+  for (const label of new Set(labels)) assert.ok(mapped.includes(label), label);
+});
+
+test('.actrc runs one job at a time on the host network, where Juice Shop is at its CI URL', () => {
+  // Every job shares the one Juice Shop of the host, which the destructive lane restarts.
+  assert.ok(actrc.includes('--concurrent-jobs 1'), 'one job at a time');
+  // The published port binds the host's loopback, which only the host network reaches; the
+  // service name would change the origin the application sees (Juice Shop offers its Google
+  // login on localhost only).
+  assert.ok(actrc.includes('--network host'), 'the host network');
+  assert.ok(!actrc.some((line) => /_BASE_URL=/.test(line)), 'no base URL of its own');
+  const ci = JSON.parse(readFileSync(join(REPO_ROOT, 'qa-config.example.json'), 'utf8')).app
+    .environments.ci.packs['juice-shop'].base_url;
+  const published = compose.services['juice-shop'].ports[0].split(':');
+  assert.equal(ci, `http://localhost:${published.at(-2)}`, 'CI reaches the published port');
+  assert.equal(published[0], '127.0.0.1');
+});
