@@ -99,11 +99,24 @@ export function redact(text) {
   return masked.replace(LONG_RUN, (run) => (looksGenerated(run) ? MASK : run));
 }
 
-/** Mask every string inside a JSON-like value, keeping its shape. */
+/**
+ * Whether a string is the encoded bytes of a medium (an image, a PDF, audio) rather than text: the
+ * `base64` field of a file the Read tool returns, or the `data` or `blob` field of an MCP content
+ * block that names its `mimeType`. Masking a run inside such bytes would not hide any text; it would
+ * corrupt the file, and the model would receive a broken image instead of the picture.
+ */
+function isEncodedMedium(key, holder) {
+  if (key === 'base64') return true;
+  return (key === 'data' || key === 'blob') && typeof holder?.mimeType === 'string';
+}
+
+/** Mask every string inside a JSON-like value, keeping its shape and leaving encoded media whole. */
 export function redactValue(value) {
   if (value === undefined) return value;
   // A JSON round trip visits every nested string through the reviver; tool payloads are plain JSON.
-  return JSON.parse(JSON.stringify(value), (_key, item) =>
-    typeof item === 'string' ? redact(item) : item,
-  );
+  // The reviver gets the object that holds the string as `this`, so it must be a function.
+  return JSON.parse(JSON.stringify(value), function (key, item) {
+    if (typeof item !== 'string' || isEncodedMedium(key, this)) return item;
+    return redact(item);
+  });
 }

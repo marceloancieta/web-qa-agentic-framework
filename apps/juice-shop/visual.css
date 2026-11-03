@@ -9,3 +9,16 @@
 aside.ribbon {
   visibility: hidden !important;
 }
+
+/*
+ * The basket title, "Your Basket (<email>)", on the basket and the order summary. The email is a
+ * new account's, so its width changes from run to run; near the edge of the card the title wraps
+ * onto a second line on one run and not on the next, and every row below it moves. The page object
+ * masks the title's text; kept to one line, its height stays the same too. The heading has no
+ * class or test id, so it is reached through the component that holds it.
+ */
+app-purchase-basket > h1 {
+  white-space: nowrap !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+}

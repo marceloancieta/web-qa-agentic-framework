@@ -8,7 +8,7 @@ import { mergePlan } from '../ci-merge.mjs';
 import { REPO_ROOT } from '../lib/cli.mjs';
 import { containerUrl, imageProblem, pinnedImage, returnOwnership } from '../lib/container.mjs';
 import { evaluate, newestPackResultStart, reportTests, staleReasons } from '../quality-gate.mjs';
-import { laneEnvironment, planLane } from '../visual-lane.mjs';
+import { laneEnvironment, planLane, playwrightArgs } from '../visual-lane.mjs';
 
 const DIGEST = 'a'.repeat(64);
 
@@ -99,6 +99,14 @@ test('the lane: updates only in the automate phase, Playwright options passed th
     /--update-snapshots/,
   );
   assert.match(planLane(['--phase', 'publish']).refusal, /run or automate/);
+});
+
+test('an update narrowed to one spec file keeps the file as a filter, not as the update mode', () => {
+  const spec = 'apps/juice-shop/specs/visual/basket.spec.ts';
+  const args = playwrightArgs(planLane(['--phase', 'automate', '--update', spec]));
+  assert.deepEqual(args, ['test', '--grep', '@visual', '--update-snapshots=changed', spec]);
+  assert.ok(!args.includes('--update-snapshots'), 'a bare flag would read the next argument');
+  assert.deepEqual(playwrightArgs(planLane([spec])), ['test', '--grep', '@visual', spec]);
 });
 
 test('the lane refuses to run outside the pinned image', () => {

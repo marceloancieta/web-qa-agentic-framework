@@ -12,7 +12,7 @@ what a command does. `__tests__/settings.test.mjs` keeps the read and edit lists
 
 | Script | Events | What it does |
 |---|---|---|
-| `secret-guard.mjs` | `UserPromptSubmit`, `PreToolUse` (every tool), `PostToolUse` (every tool) | Refuses prompts and tool calls that contain credentials, refuses access to files that usually hold secrets, refuses network commands or web/subagent calls carrying secrets, and masks credentials in tool output. |
+| `secret-guard.mjs` | `UserPromptSubmit`, `PreToolUse` (every tool), `PostToolUse` (every tool) | Refuses prompts and tool calls that contain credentials, refuses access to files that usually hold secrets, refuses network commands or web/subagent calls carrying secrets, and masks credentials in tool output. Encoded media in the output (an image or PDF the Read tool returns, an MCP block with a `mimeType`) is left whole, since masking its bytes would corrupt the file without hiding any text. |
 | `git-policy.mjs` | `PreToolUse` (`Bash`, `PowerShell`) | Optional commit and pull-request rules read from `qa-config` (`tracker`, `policies`). Each rule applies once configured; with no qa-config at all, none applies. |
 | `session-probe.mjs` | `SessionStart` | Adds a short status report to the session: setup state, application reachability (one line per pack the active environment configures, with its login page when app.json names one), coverage totals once the coverage report exists. |
 
