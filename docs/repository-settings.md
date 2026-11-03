@@ -90,8 +90,14 @@ provenance statement naming the repository, the workflow and the tagged commit. 
   **Allow npm publish**; without it the publisher may only stage a version, and the job fails with
   `403 ... OIDC permission denied for this action`. Leave **Allow npm dist-tag** unticked.
 - npm configures a trusted publisher only on a package that exists, so its first version is published
-  by hand by the owner. Once a version has been published by the workflow, set the package's
+  by hand by the owner. A new package published by hand goes through npm's staged publishing: npm
+  creates it with a placeholder version `0.0.0-stage`, which no one else can publish (a plain
+  `npm publish` of that version is refused with `403`), and the version staged beside it waits for
+  the owner's approval on npm. Once a version has been published by the workflow, set the package's
   publishing access to require two-factor authentication and disallow tokens.
+- npm warns that **Allow npm publish** is weaker than leaving it unticked, which lets the publisher
+  only stage a version for the owner's approval on npm. The workflow publishes directly, after the
+  approval of the `npm` environment; staged publishing is backlog CI-09.
 - The job installs a pinned npm (trusted publishing needs 11.5.1 or later; Node 22 bundles 10).
   Dependabot does not read that pin: update it by hand to a release at least two weeks old, with the
   command the test in `scripts/__tests__/create-publish.test.mjs` expects.
