@@ -205,6 +205,22 @@ test('Dependabot: every ecosystem waits 14 days, and its titles pass the commit 
   }
 });
 
+test("Node's typings stay on the Node major the project supports, and Dependabot leaves them there", () => {
+  const major = (version) => Number(/(\d+)/.exec(version)?.[1]);
+  const nvmrc = major(readFileSync(join(REPO_ROOT, '.nvmrc'), 'utf8'));
+  const manifest = JSON.parse(readFileSync(join(REPO_ROOT, 'package.json'), 'utf8'));
+  assert.equal(major(manifest.engines.node), nvmrc, 'engines.node and .nvmrc name one major');
+  assert.equal(
+    major(manifest.devDependencies['@types/node']),
+    nvmrc,
+    '@types/node is on that major',
+  );
+  const { updates } = parse(readFileSync(join(REPO_ROOT, '.github', 'dependabot.yml'), 'utf8'));
+  const npm = updates.find((u) => u['package-ecosystem'] === 'npm');
+  const rule = (npm.ignore ?? []).find((i) => i['dependency-name'] === '@types/node');
+  assert.deepEqual(rule?.['update-types'], ['version-update:semver-major']);
+});
+
 // Script injection (DOC-05): text an outsider controls (a pull request's title or body, a branch
 // name, a commit message) written into `run:` with ${{ }} is executed as shell code. It reaches a
 // script only through `env:`.
