@@ -41,7 +41,7 @@ Every item of v0.1.0 is done; each is in **Done**.
   page; the horizontal-scroll check fails on an overflowing fixture; the dimensions linter fails on a
   registry that declares `@security` without cases; a deliberately changed ARIA snapshot fails.
 
-## v0.2.0
+## v0.3.0
 
 | Id | Item | Origin | Status |
 |---|---|---|---|
