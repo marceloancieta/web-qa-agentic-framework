@@ -1,0 +1,67 @@
+# Publishes `create-web-qa` from a release tag (FUT-12), with npm trusted publishing: npm trusts this
+# workflow file through GitHub's OIDC token, so no npm token is stored anywhere, and the package
+# carries a provenance statement that links it to this run and the tagged commit. The job waits in
+# the `npm` environment until the owner approves it. CONTRIBUTING (releasing) owns the order of the
+# release steps; docs/repository-settings.md (Publishing) records the setup on npm and on GitHub.
+#
+# Only the framework's repository publishes: a repository created from it keeps this file, but its
+# tags skip the job, so GitHub never creates the environment there.
+name: publish
+
+on:
+  push:
+    tags: ['v[0-9]+.[0-9]+.[0-9]+']
+
+permissions: {}
+
+concurrency:
+  group: publish-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  create-web-qa:
+    name: publish (create-web-qa)
+    # The repository packages/create-web-qa/package.json names (a test keeps them equal).
+    if: ${{ github.repository == 'marceloancieta/web-qa-agentic-framework' }}
+    runs-on: ubuntu-24.04
+    # Leaves room for the read-back's wait (create:readback, 15 minutes) after the steps before it.
+    timeout-minutes: 30
+    environment: npm
+    permissions:
+      contents: read
+      # The OIDC token npm exchanges for a short-lived publish credential, and signs provenance with.
+      id-token: write
+    env:
+      TAG: ${{ github.ref_name }}
+    steps:
+      - name: Check out the full history
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          # The tag is checked to be on main, which needs main's history.
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Set up Node from .nvmrc
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version-file: .nvmrc
+          package-manager-cache: false
+
+      # Nothing else is installed: a job that can publish runs no dependency's install script, and
+      # the three scripts below import only Node and scripts/lib. Trusted publishing needs npm 11.5.1
+      # or later, newer than the npm that Node 22 bundles; Dependabot does not read this pin.
+      - name: Install a pinned npm
+        run: npm install --global npm@11.21.0
+
+      # Refuses a tag that is not this checkout, clean and on main, or not the package's version.
+      - name: Build the package from the tag
+        run: npm run create:pack -- --tag "$TAG"
+
+      # The package's prepublishOnly refuses a folder built without --tag.
+      - name: Publish with provenance
+        run: npm run create:publish
+
+      # A failure here comes after a good publish, which a re-run cannot repeat: its message says to
+      # read the version back by hand instead.
+      - name: Read the published version back
+        run: npm run create:readback -- --tag "$TAG"

@@ -68,14 +68,23 @@ enforces this with a ruleset; its settings are in [repository settings](docs/rep
 
 A release is a `vX.Y.Z` tag on `main`, made by the owner:
 
-1. On an up-to-date `main`, in one release commit: set `version` in `package.json`, and write the
-   changelog section with `npm run changelog:write` (`npm run changelog` shows it first; the
-   version comes from the commit titles since the last tag).
+1. On an up-to-date `main`, in one release commit: set `version` in `package.json` and in
+   `packages/create-web-qa/package.json` (a test keeps them equal), and write the changelog section
+   with `npm run changelog:write` (`npm run changelog` shows it first; the version comes from the
+   commit titles since the last tag).
 2. `npm run release:check -- --version X.Y.Z` runs the checks before a tag in order and stops at
    the first that fails: a clean tree, `main` equal to `origin/main`, the gates, the changelog's
    latest section, and the version (in `package.json`, not tagged yet, later than the last tag).
-3. Only then the owner tags (`git tag vX.Y.Z`) and pushes the tag. Publishing anything else, such as
-   a package, needs the owner's approval too.
+3. Only then the owner tags (`git tag vX.Y.Z`) and pushes the tag.
+4. The tag starts [`publish.yml`](.github/workflows/publish.yml), which waits in the `npm`
+   environment until the owner approves it, then builds `create-web-qa` from the tag
+   (`npm run create:pack -- --tag vX.Y.Z`), publishes it with provenance and reads it back with
+   `npm create web-qa@X.Y.Z` outside the repository. The setup on npm and GitHub is in
+   [repository settings](docs/repository-settings.md#publishing). A tag never moves: a run that
+   failed before publishing is re-run once its cause outside the repository is fixed, and a cause
+   inside the repository becomes the next patch release. A published version can never be
+   published again, so a failed read-back is not re-run; its message says how to read the version
+   back by hand.
 
 ## Conduct
 

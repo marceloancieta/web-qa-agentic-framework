@@ -15,9 +15,11 @@ const workflow = parse(readFileSync(join(REPO_ROOT, '.github', 'workflows', 'ci.
 const jenkinsfile = readFileSync(join(REPO_ROOT, 'Jenkinsfile'), 'utf8');
 
 // Commands that install or probe the toolchain rather than test anything: gitleaks, which the secret
-// scan of the gates needs, and the Jenkins Node stage's checks of the agent's Node and npm.
+// scan of the gates needs, the pinned npm the publish job needs for trusted publishing, and the
+// Jenkins Node stage's checks of the agent's Node and npm.
 const TOOLCHAIN = [
   /^curl -sSfL "https:\/\/github\.com\/gitleaks\/gitleaks\/releases\/download\//,
+  /^npm install --global npm@\d+\.\d+\.\d+$/,
   /^node -p "process\.(?:versions\.node|platform)\b/,
   /^npm exec -c "node -p process\.platform"$/,
 ];
