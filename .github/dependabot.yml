@@ -18,6 +18,11 @@ updates:
     groups:
       npm-minor-and-patch:
         update-types: [minor, patch]
+    # Node's typings follow the lowest Node the project supports (`.nvmrc`, `engines`): typings of a
+    # later major accept APIs that fail at run time on that Node. They move with `.nvmrc`, by hand.
+    ignore:
+      - dependency-name: '@types/node'
+        update-types: [version-update:semver-major]
     open-pull-requests-limit: 5
 
   - package-ecosystem: github-actions
