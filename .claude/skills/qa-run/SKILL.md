@@ -54,10 +54,14 @@ description: >-
      run the selection again rather than judge a report the run did not write;
    - the run link from `reports/tm/report-<provider>.json`;
    - definitions with no spec, and specs with no definition;
-   - data the run created and did not remove.
+   - data the run created and did not remove;
+   - the cited keys whose issue is closed or unknown (`npm run cited-status`, which reads the
+     tracker and writes nothing; `.claude/rules/registry.md`). If the tracker does not answer, say
+     so (`.claude/rules/reachability.md`) and leave this line out.
 7. **Follow-ups are proposals**, not actions: a design change (`qa-design`), a defect
-   (`qa-report-bug`), a flaky case, or a known gap that started to pass (check that its issue is
-   fixed before the arm and the tag go). When `qa-publish` sent this run for a tool without
+   (`qa-report-bug`), a flaky case, a known gap that started to pass (check that its issue is
+   fixed before the arm and the tag go), or a closed or unknown cited key (`qa-design` revisits the
+   case or the claim). When `qa-publish` sent this run for a tool without
    definitions, return to its step 6; this skill never moves a registry row.
 
 ## If it stops halfway

@@ -69,6 +69,22 @@ computes them, and a number typed by hand goes stale.
   finding (`mocked-only`): a mock shows how the UI handles an answer, not that the application gives
   it.
 
+## Tracker keys
+
+A key in a registry or a contract stands for something that waits on the tracker: a known gap in
+the Defect column, a gap in the contract's table, a rule "the application breaks", a workaround
+"until `<KEY>` is fixed". When the issue closes, what cites it may no longer be true.
+
+- `npm run cited-status` reads every cited key in the configured tracker, read-only, and reports a
+  key whose issue is closed (`closed-key`: the gap may be fixed, so the case, the claim or the
+  workaround is revisited) or that the tracker does not have (`unknown-key`). A key counts when it
+  matches qa-config `tracker.key_pattern` on its own, outside code spans, code blocks and HTML
+  comments.
+- The gates run it with `--offline`: it checks a tracker kept in the repository (`local`) and skips
+  one that needs the network, which `qa-run` checks instead.
+- A closed key is never fixed by deleting it. The known-gap lane shows whether the case now passes;
+  the case, the contract and the arm then change through `qa-design` and `qa-automate`.
+
 ## Journeys
 
 A journey is what a user does from end to end across features: sign in, find a product, buy it,
