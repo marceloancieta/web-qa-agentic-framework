@@ -7,6 +7,9 @@
   "bin": {
     "create-web-qa": "index.mjs"
   },
+  "scripts": {
+    "prepublishOnly": "node prepublish.mjs"
+  },
   "files": [
     "index.mjs",
     "template/"

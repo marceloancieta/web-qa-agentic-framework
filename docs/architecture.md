@@ -235,7 +235,9 @@ web-qa-agentic-framework/
   no safe fix yet, each with a reason and an expiry ([`audit-known.json`](../audit-known.json));
   CodeQL scans the sources ([`.github/workflows/codeql.yml`](../.github/workflows/codeql.yml)).
   The gates scan the whole history for secrets, denylisted terms and the wording of every commit
-  message.
+  message. `create-web-qa` is published from a release tag by
+  [`.github/workflows/publish.yml`](../.github/workflows/publish.yml) with npm trusted publishing
+  and provenance, after the owner approves it, and the job installs no dependency.
 - Advisory review: on each pull request with the `ANTHROPIC_API_KEY` secret, Claude reads the diff
   against [`.github/pr-review-rubric.md`](../.github/pr-review-rubric.md), which leaves out what the
   gates check, and posts one comment (`npm run review:pr`,

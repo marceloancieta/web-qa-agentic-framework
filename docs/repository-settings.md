@@ -63,7 +63,7 @@ reports to code scanning, where its alerts are reviewed.
 
 - **Workflow permissions**: **Read repository contents and packages permissions**. Each workflow
   asks for more only where it needs it (CodeQL's `security-events: write`, the advisory review's
-  `pull-requests: write` to post its comment).
+  `pull-requests: write` to post its comment, the publish job's OIDC token).
 - **Allow GitHub Actions to create and approve pull requests**: off.
 
 **Settings → Secrets and variables → Actions → New repository secret**
@@ -74,6 +74,30 @@ reports to code scanning, where its alerts are reviewed.
   and nothing else changes; it is never a required check. A pull request from a fork gets no secrets,
   so it is skipped too. The model is `claude-opus-5-5` unless the job sets `QA_REVIEW_MODEL`.
   Nothing else in the workflows needs a secret.
+
+## Publishing
+
+[`publish.yml`](../.github/workflows/publish.yml) publishes `create-web-qa` when a `vX.Y.Z` tag is
+pushed ([releasing](../CONTRIBUTING.md#releasing)). It uses npm trusted publishing: npm trusts that
+workflow file through GitHub's OIDC token, so no npm token is stored, and each version carries a
+provenance statement naming the repository, the workflow and the tagged commit. Set up once:
+
+- **On GitHub**, **Settings → Environments → New environment** `npm`: the owner as required
+  reviewer, and a deployment rule that allows only tags matching `v*`. Approving the deployment is
+  the moment of publishing.
+- **On npm**, in the package's settings, **Trusted publishing**: a publisher of type GitHub Actions
+  with this repository's owner and name, the workflow `publish.yml` and the environment `npm`. Tick
+  **Allow npm publish**; without it the publisher may only stage a version, and the job fails with
+  `403 ... OIDC permission denied for this action`. Leave **Allow npm dist-tag** unticked.
+- npm configures a trusted publisher only on a package that exists, so its first version is published
+  by hand by the owner. Once a version has been published by the workflow, set the package's
+  publishing access to require two-factor authentication and disallow tokens.
+- The job installs a pinned npm (trusted publishing needs 11.5.1 or later; Node 22 bundles 10).
+  Dependabot does not read that pin: update it by hand to a release at least two weeks old, with the
+  command the test in `scripts/__tests__/create-publish.test.mjs` expects.
+
+A repository created from the framework keeps the workflow, but the job runs only in the repository
+the package names, so a copy's tags skip it and GitHub never creates the environment there.
 
 ## After applying them
 
