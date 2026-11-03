@@ -1,0 +1,55 @@
+{
+  "pack": "shop",
+  "app_version": "1.1.0",
+  "routes": [
+    {
+      "route": "/#/register",
+      "title": "Shop",
+      "landmarks": ["main"],
+      "headings": ["h1 User Registration"],
+      "interactive": ["textbox \"Password\"", "textbox \"Email\"", "button \"Register\""],
+      "fields": [
+        {
+          "tag": "input",
+          "type": "password",
+          "label": "Password",
+          "constraints": { "maxlength": "40", "minlength": "5", "required": true }
+        },
+        {
+          "tag": "input",
+          "type": "email",
+          "label": "Email",
+          "constraints": { "autocomplete": "email", "required": true }
+        }
+      ],
+      "api_calls": [],
+      "links": ["/#/login", "/#/privacy"]
+    },
+    {
+      "route": "/#/about",
+      "title": "Shop",
+      "landmarks": ["main"],
+      "headings": ["h1 About Us"],
+      "interactive": ["link \"Terms of Use\""],
+      "fields": [],
+      "api_calls": ["GET /api/Feedbacks/", "GET /rest/languages"],
+      "links": ["/#/"]
+    },
+    {
+      "route": "/#/",
+      "title": "Shop",
+      "landmarks": ["navigation \"Main\"", "main", "banner"],
+      "headings": ["h2 Juices", "h1 All Products"],
+      "interactive": [
+        "textbox \"\"",
+        "link \"Basket\"",
+        "button \"Open search\"",
+        "button \"Add to Basket\" x9"
+      ],
+      "fields": [{ "tag": "input", "type": "text", "label": "", "constraints": {} }],
+      "api_calls": ["GET /api/Products/"],
+      "links": ["/#/about", "/#/login", "/#/product/:id", "/#/product/:id/reviews"]
+    }
+  ],
+  "blocked_writes": []
+}

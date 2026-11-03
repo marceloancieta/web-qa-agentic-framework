@@ -67,6 +67,30 @@ How each lane is built is described at the top of [`scripts/lanes.mjs`](../../sc
 Baselines are design, not execution: only the automate phase rewrites them, with
 `npm run lanes:visual -- --phase automate --update`, and the diff images are shown at its gate.
 
+## App map drift
+
+```sh
+npm run app:drift                          # every pack of the environment QA_ENV names
+npm run app:drift -- --pack juice-shop     # one pack
+npm run app:map:check -- --pack juice-shop --actor customer   # one signed-in map, same rules
+```
+
+`app:drift` walks each pack again, read-only, and compares the result with its tracked
+`apps/<pack>/docs/app-map.json`. It fails on a route added or removed, a changed title, a landmark,
+heading or interactive element whose role or accessible name changed, and a form field whose type or
+HTML constraints changed. It ignores what changes between two walks of the same application: the
+order of entries, how many times an element repeats (it follows the data), the endpoints a page
+called and its links. The full list, with the reasons, is at the top of
+[`scripts/lib/app-map-drift.mjs`](../../scripts/lib/app-map-drift.mjs).
+
+The tracked maps are never written: each live map goes to `reports/app-map-drift/<pack>.json`, with
+`summary.md` beside it. A pack that does not answer is named with what to check, and the others are
+still compared. [`app-map-drift.yml`](../../.github/workflows/app-map-drift.yml) runs it every
+Monday and on demand in the `ci` environment, writes the summary to the run's page and keeps the live
+maps as an artifact; it is not a check of any change. A drift that is expected is taken into the map
+in a design phase (`npm run app:map -- --pack <pack> --write`), then into the contracts and specs it
+touches.
+
 ## Reports
 
 | Output | Where | Open it with |
@@ -146,7 +170,7 @@ What `act` does not reproduce:
 | `report`, and `required`, which needs it | without the artifacts there is nothing to merge; run `npm run ci:merge` and the quality gate on the host after the shards ([sharding](#sharding-as-ci-does)) |
 | the visual lane | its container mounts the repository from the host's Docker, which does not see the copy inside the job; run `npm run lanes:visual` on the host, which uses the same pinned image |
 | `codeql.yml` | needs GitHub code scanning to receive the results |
-| `schedule` triggers | the flake lane runs with `act workflow_dispatch -j flake` |
+| `schedule` triggers | the flake lane runs with `act workflow_dispatch -j flake`, the drift check with `act workflow_dispatch -W .github/workflows/app-map-drift.yml` |
 
 The jobs share the one Juice Shop of the host, while on GitHub each job starts its own: the
 destructive lane restarts it, and the next job sees a fresh one. A failure seen only under `act`

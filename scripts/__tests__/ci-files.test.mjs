@@ -292,6 +292,34 @@ test('the required job depends on every other job of the change', () => {
   assert.match(jobs.required.if, /always\(\)/, 'it reports even when a job it needs failed');
 });
 
+// App map drift (FUT-11) only reads: a weekly or requested walk of each pack of an environment
+// qa-config names, with no secret, no write permission and no part in the checks of a change.
+test('the app map drift workflow reads only, on a schedule, in an environment qa-config names', () => {
+  const text = readFileSync(join(WORKFLOWS, 'app-map-drift.yml'), 'utf8');
+  const flow = parse(text);
+  assert.deepEqual(Object.keys(flow.on).sort(), ['schedule', 'workflow_dispatch']);
+  assert.deepEqual(flow.permissions, {});
+  for (const [name, job] of Object.entries(flow.jobs)) {
+    assert.deepEqual(job.permissions, { contents: 'read' }, name);
+  }
+  assert.doesNotMatch(text, /\$\{\{\s*secrets\./);
+  const environments = JSON.parse(readFileSync(join(REPO_ROOT, 'qa-config.example.json'), 'utf8'))
+    .app.environments;
+  const environment = environments[flow.env.QA_ENV];
+  assert.ok(environment, `qa-config names the environment ${flow.env.QA_ENV}`);
+  const commands = Object.values(flow.jobs).flatMap((job) =>
+    (job.steps ?? []).filter((step) => typeof step.run === 'string').map((step) => step.run.trim()),
+  );
+  assert.ok(commands.includes('npm run app:drift'));
+  // Every local pack of the environment is started before the walk; a public one needs nothing.
+  for (const [pack, entry] of Object.entries(environment.packs)) {
+    if (/^https?:\/\/localhost[:/]/.test(entry.base_url)) {
+      const up = commands.indexOf(`npm run ${pack}:up`);
+      assert.ok(up >= 0 && up < commands.indexOf('npm run app:drift'), `${pack} is started first`);
+    }
+  }
+});
+
 // The workflows on the local machine (CI-05): `act` runs each job in a container of the image
 // `.actrc` maps to its runner label, on the compose network, where Juice Shop answers by its service
 // name; and it sets ACT, which skips the artifact steps its artifact server cannot serve.

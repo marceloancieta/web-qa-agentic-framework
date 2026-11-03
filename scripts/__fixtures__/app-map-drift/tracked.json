@@ -1,0 +1,55 @@
+{
+  "pack": "shop",
+  "app_version": "1.0.0",
+  "routes": [
+    {
+      "route": "/#/",
+      "title": "Shop",
+      "landmarks": ["banner", "main", "navigation \"Main\""],
+      "headings": ["h1 All Products", "h2 Juices"],
+      "interactive": [
+        "button \"Add to Basket\" x12",
+        "button \"Open search\"",
+        "link \"Basket\"",
+        "textbox \"\""
+      ],
+      "fields": [{ "tag": "input", "type": "text", "label": "", "constraints": {} }],
+      "api_calls": ["GET /api/Products/", "GET /socket.io/", "POST /socket.io/"],
+      "links": ["/#/about", "/#/login", "/#/product/:id"]
+    },
+    {
+      "route": "/#/about",
+      "title": "Shop",
+      "landmarks": ["main"],
+      "headings": ["h1 About Us"],
+      "interactive": ["link \"Terms of Use\""],
+      "fields": [],
+      "api_calls": ["GET /api/Feedbacks/"],
+      "links": ["/#/"]
+    },
+    {
+      "route": "/#/register",
+      "title": "Shop",
+      "landmarks": ["main"],
+      "headings": ["h1 User Registration"],
+      "interactive": ["button \"Register\"", "textbox \"Email\"", "textbox \"Password\""],
+      "fields": [
+        {
+          "tag": "input",
+          "type": "email",
+          "label": "Email",
+          "constraints": { "required": true, "autocomplete": "email" }
+        },
+        {
+          "tag": "input",
+          "type": "password",
+          "label": "Password",
+          "constraints": { "required": true, "minlength": "5", "maxlength": "40" }
+        }
+      ],
+      "api_calls": ["GET /api/SecurityQuestions/"],
+      "links": ["/#/login"]
+    }
+  ],
+  "blocked_writes": ["POST /socket.io/"]
+}

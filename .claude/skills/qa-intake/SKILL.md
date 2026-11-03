@@ -35,7 +35,9 @@ with an account that is there before the session; never submit another form or c
 3. **Refresh the map when it is stale or misses a route**:
    `npm run app:map -- --pack <pack> --write`, and with `--actor <role>` for the signed-in routes
    (`docs/app-map.<role>.json`), which walks with the state an actor fixture wrote during a spec
-   run. `npm run app:map:check`, with the same `--actor`, shows what changed since the tracked copy.
+   run. `npm run app:map:check`, with the same `--actor`, shows what changed since the tracked copy
+   (what counts is `scripts/lib/app-map-drift.mjs`); `npm run app:drift` checks every pack of the
+   environment, and runs weekly in CI.
 4. **Read the pages.** For each route take, from the map and from the live page through a browser
    tool: the elements by role and accessible name, the form constraints (`required`, `maxlength`,
    `pattern`, `type`), what each state shows (empty, loading, error, success) where reading can

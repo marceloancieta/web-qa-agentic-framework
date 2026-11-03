@@ -223,7 +223,8 @@ web-qa-agentic-framework/
   these scripts: [`.github/workflows/ci.yml`](../.github/workflows/ci.yml) (primary) and the
   [`Jenkinsfile`](../Jenkinsfile) ([Jenkins](guides/jenkins.md): the same steps on one agent,
   Windows or Linux), checked by `scripts/__tests__/ci-files.test.mjs`. The flake lane runs
-  weekly and on demand, outside the pipeline of each change. `act` runs the GitHub jobs on a
+  weekly and on demand, outside the pipeline of each change, and so does the app map drift check
+  ([`app-map-drift.yml`](../.github/workflows/app-map-drift.yml)). `act` runs the GitHub jobs on a
   local machine before a workflow change is pushed
   ([the workflows on your machine](guides/running-tests.md#the-workflows-on-your-machine)).
 - Jobs: gates → local packs in compose (pinned by digest) → project matrix with `--shard=i/n` and the
@@ -298,7 +299,9 @@ submits forms).
   application read-only (same origin, no form submission, login allowed) and records routes,
   landmarks, a summarized accessibility tree, forms with their HTML constraints (`required`,
   `maxlength`, `pattern`, `type`) and the endpoints seen on the network. It is tracked; its drift
-  against the live application is a lane.
+  against the live application (a route, role, accessible name or form constraint that changed) is
+  checked weekly by `npm run app:drift`
+  ([app map drift](guides/running-tests.md#app-map-drift)).
 - **Modes for a UI:** design navigates and reads, plus the pack's login. Submitting forms or signing
   up in design is forbidden outside a spec run.
 - **Feature contract doc for a UI:** source, routes, roles and entry state, elements by accessible

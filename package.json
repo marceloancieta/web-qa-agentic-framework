@@ -31,6 +31,7 @@
     "scaffold:app": "node scripts/scaffold-app.mjs",
     "app:map": "node scripts/app-map.mjs",
     "app:map:check": "node scripts/app-map.mjs --check",
+    "app:drift": "node scripts/app-map-drift.mjs",
     "lint:layers": "node scripts/lint-layers.mjs",
     "lint:harness": "node scripts/lint-harness.mjs",
     "lint:docs": "node scripts/lint-docs.mjs",

@@ -6,13 +6,13 @@ import { tmpdir } from 'node:os';
 import { dirname, join } from 'node:path';
 import {
   actorSession,
-  drift,
   mapFile,
   normalizePath,
   summarizeSnapshot,
   walk,
   walkStart,
 } from '../app-map.mjs';
+import { mapDrift } from '../lib/app-map-drift.mjs';
 import { latestStatePath, readState, statePath } from '../lib/auth-state.mjs';
 
 const PAGES = {
@@ -153,7 +153,10 @@ test('the walk maps every reachable route read-only, and never leaves the origin
         constraints: { required: true, minlength: '8', maxlength: '40' },
       },
     ]);
-    assert.deepEqual(drift(map, map), []);
+    assert.deepEqual(mapDrift(map, map), []);
+    // A second walk of the unchanged application is no drift.
+    const again = await walk({ baseUrl: app.url, start: ['/'], exclude: ['^/logout$'] });
+    assert.deepEqual(mapDrift(map, again), []);
   } finally {
     app.close();
   }
@@ -172,20 +175,4 @@ test("the walk carries the pack's cookies and the actor's session storage", asyn
   } finally {
     app.close();
   }
-});
-
-test('drift names added, changed and removed routes', () => {
-  const tracked = {
-    routes: [
-      { route: '/a', title: 'A' },
-      { route: '/b', title: 'B' },
-    ],
-  };
-  const live = {
-    routes: [
-      { route: '/a', title: 'A2' },
-      { route: '/c', title: 'C' },
-    ],
-  };
-  assert.deepEqual(drift(tracked, live), ['changed  /a', 'removed  /b', 'added    /c']);
 });

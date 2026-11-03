@@ -9,6 +9,9 @@
  *   ... --write    writes apps/<pack>/docs/app-map.json, or docs/app-map.<role>.json with --actor
  *   ... --check    compares the live map with the tracked one; exit 1 on drift
  *
+ * What counts as drift is scripts/lib/app-map-drift.mjs; `npm run app:drift` checks every pack of
+ * the environment at once and keeps the live maps for review.
+ *
  * The walk is read-only by construction: every request that is not a GET, HEAD or OPTIONS is
  * aborted (and listed under `blocked_writes`), every request to another origin is aborted, and the
  * walk only navigates; it never clicks, types or submits. Every context gets the pack's app.json
@@ -34,6 +37,7 @@ import { dirname, join, resolve } from 'node:path';
 import { parseArgs } from 'node:util';
 import { pathToFileURL } from 'node:url';
 import { chromium } from '@playwright/test';
+import { driftLines, mapDrift } from './lib/app-map-drift.mjs';
 import { latestStatePath, readState } from './lib/auth-state.mjs';
 import { REPO_ROOT } from './lib/cli.mjs';
 import { packEntry } from './lib/qa-config.mjs';
@@ -240,20 +244,6 @@ export async function walk({
   return { routes, blocked_writes: [...blockedWrites].sort() };
 }
 
-/** The routes whose entry differs between two maps, plus routes only in one of them. */
-export function drift(tracked, live) {
-  const index = (map) => new Map(map.routes.map((entry) => [entry.route, JSON.stringify(entry)]));
-  const before = index(tracked);
-  const after = index(live);
-  const changes = [];
-  for (const [route, entry] of after) {
-    if (!before.has(route)) changes.push(`added    ${route}`);
-    else if (before.get(route) !== entry) changes.push(`changed  ${route}`);
-  }
-  for (const route of before.keys()) if (!after.has(route)) changes.push(`removed  ${route}`);
-  return changes.sort((a, b) => a.slice(9).localeCompare(b.slice(9)));
-}
-
 const ROLE = /^[a-z][a-z0-9-]*$/;
 
 /** The tracked map of a pack, relative to the pack: one for anonymous visitors, one per actor. */
@@ -286,6 +276,34 @@ export function actorSession(root, environment, pack, actor) {
   return readState(file);
 }
 
+/**
+ * Walk one pack of the active environment and return `{ baseUrl, map }`. The map has the shape of
+ * the tracked file; nothing is written.
+ */
+export async function mapPack({ root = REPO_ROOT, pack, actor, state, maxPages = 25, log }) {
+  const appFile = join(root, 'apps', pack, 'app.json');
+  if (!existsSync(appFile)) throw new Error(`no app pack "${pack}" (missing ${appFile}).`);
+  const app = JSON.parse(readFileSync(appFile, 'utf8'));
+  const { baseUrl, environment } = packEntry(pack, root);
+  let session = null;
+  if (actor) session = actorSession(root, environment, pack, actor);
+  else if (state) session = readState(resolve(state));
+  const as = actor ? ` as ${actor}` : '';
+  console.error(`app-map: walking ${pack} at ${baseUrl}${as} (read-only)`);
+  const walked = await walk({
+    baseUrl,
+    start: walkStart(app, actor),
+    exclude: app.app_map?.exclude ?? [],
+    maxPages,
+    state: session?.storageState,
+    sessionStorage: session?.sessionStorage,
+    cookies: app.cookies ?? {},
+    log,
+  });
+  const map = { pack, app_version: app.version, ...(actor ? { actor } : {}), ...walked };
+  return { baseUrl, map };
+}
+
 async function main() {
   let values;
   try {
@@ -308,34 +326,17 @@ async function main() {
     console.error(`app-map: ${error.message}`);
     process.exit(2);
   }
-  const appFile = join(REPO_ROOT, 'apps', values.pack, 'app.json');
-  if (!existsSync(appFile)) {
-    console.error(`app-map: no app pack "${values.pack}" (missing ${appFile}).`);
+  if (!existsSync(join(REPO_ROOT, 'apps', values.pack, 'app.json'))) {
+    console.error(`app-map: no app pack "${values.pack}".`);
     process.exit(2);
   }
-  const app = JSON.parse(readFileSync(appFile, 'utf8'));
-  const { baseUrl, environment } = packEntry(values.pack, REPO_ROOT);
-  let session = null;
-  if (values.actor) session = actorSession(REPO_ROOT, environment, values.pack, values.actor);
-  else if (values.state) session = readState(resolve(values.state));
-  const as = values.actor ? ` as ${values.actor}` : '';
-  console.error(`app-map: walking ${values.pack} at ${baseUrl}${as} (read-only)`);
-  const walked = await walk({
-    baseUrl,
-    start: walkStart(app, values.actor),
-    exclude: app.app_map?.exclude ?? [],
+  const { map } = await mapPack({
+    pack: values.pack,
+    actor: values.actor,
+    state: values.state,
     maxPages: Number(values['max-pages']),
-    state: session?.storageState,
-    sessionStorage: session?.sessionStorage,
-    cookies: app.cookies ?? {},
     log: (line) => console.error(line),
   });
-  const map = {
-    pack: values.pack,
-    app_version: app.version,
-    ...(values.actor ? { actor: values.actor } : {}),
-    ...walked,
-  };
   const text = `${JSON.stringify(map, null, 2)}\n`;
   const target = join(REPO_ROOT, 'apps', values.pack, mapFile(values.actor));
   if (values.check) {
@@ -343,13 +344,13 @@ async function main() {
       console.error(`app-map: no tracked map at ${target}; write one with --write.`);
       process.exit(1);
     }
-    const changes = drift(JSON.parse(readFileSync(target, 'utf8')), map);
+    const changes = mapDrift(JSON.parse(readFileSync(target, 'utf8')), map);
     if (changes.length === 0) {
       console.log(`app-map: ${values.pack} matches its tracked map (${map.routes.length} routes).`);
       return;
     }
     console.error(`app-map: ${values.pack} drifted from its tracked map:`);
-    for (const change of changes) console.error(`  ${change}`);
+    for (const line of driftLines(changes)) console.error(line);
     process.exit(1);
   }
   if (values.write) {
