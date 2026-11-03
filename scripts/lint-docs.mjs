@@ -40,6 +40,7 @@ import { REPO_ROOT } from './lib/cli.mjs';
 import { gitEnv } from './lib/git.mjs';
 import { finding, report, selfTest } from './lib/lint.mjs';
 import { describeExit, spawnFailure } from './lib/spawn.mjs';
+import { withoutHtmlComments } from './lib/text.mjs';
 
 export const TOOL = 'lint-docs';
 export const FIXTURES = join(import.meta.dirname, '__fixtures__', 'lint-docs');
@@ -265,7 +266,7 @@ export function closingCommits(markdown) {
       return;
     }
     if (!inDone) return;
-    const cells = tableCells(line.replace(/<!--.*?-->/g, ''));
+    const cells = tableCells(withoutHtmlComments(line));
     if (column === -1) {
       column = cells.findIndex((cell) => cell.toLowerCase() === CLOSED_BY);
       return;
