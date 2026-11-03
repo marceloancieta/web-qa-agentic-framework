@@ -186,3 +186,14 @@ test('a folder that holds files is refused, an empty one is used, and a name is 
   assert.equal(projectName('/tmp/My Tests!'), 'my-tests');
   assert.equal(projectName('/tmp/___'), 'web-qa-project');
 });
+
+test('a package name trims its ends, and a long run of hyphens costs linear time', () => {
+  assert.equal(projectName('/tmp/--My Tests--'), 'my-tests');
+  assert.equal(projectName('/tmp/._x.-'), 'x.');
+  assert.equal(projectName('/tmp/a--b'), 'a--b');
+  const run = '-'.repeat(50_000);
+  const started = performance.now();
+  assert.equal(projectName(`/tmp/a${run}b`), `a${run}b`);
+  // Retrying from every hyphen would take seconds here; the trim by position takes milliseconds.
+  assert.ok(performance.now() - started < 500, 'trimming a long hyphen run is not quadratic');
+});

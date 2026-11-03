@@ -38,16 +38,41 @@ export function lostPlaceholders(source, renderedText) {
   return wanted.filter((token) => !renderedText.includes(token));
 }
 
+const COMMENT_OPEN = '<!--';
+const COMMENT_CLOSE = '-->';
+
+/**
+ * One line of Markdown without its HTML comments: each `<!--` up to the first `-->` after it goes;
+ * a `<!--` that is never closed stays. Comments are found by position rather than by a pattern, so
+ * the time is linear in the line whatever it holds. Nothing here makes text safe for a browser: the
+ * result is parsed, never rendered.
+ */
+export function withoutHtmlComments(line) {
+  let kept = '';
+  let rest = String(line);
+  for (;;) {
+    const open = rest.indexOf(COMMENT_OPEN);
+    const close = open === -1 ? -1 : rest.indexOf(COMMENT_CLOSE, open + COMMENT_OPEN.length);
+    if (close === -1) return kept + rest;
+    kept += rest.slice(0, open);
+    rest = rest.slice(close + COMMENT_CLOSE.length);
+  }
+}
+
+/** A line without the HTML comment that ends it, and the spaces before that comment. */
+function withoutTrailingComment(line) {
+  if (!line.endsWith(COMMENT_CLOSE)) return line;
+  const open = line.indexOf(COMMENT_OPEN);
+  if (open === -1 || open + COMMENT_OPEN.length > line.length - COMMENT_CLOSE.length) return line;
+  return line.slice(0, open).trimEnd();
+}
+
 /**
  * The cells of a Markdown table row: `| a | b |` -> ['a', 'b']. An escaped pipe stays inside its
  * cell, and an HTML comment after the last pipe is a reviewer's note, not a cell.
  */
 export function tableCells(line) {
-  const inner = String(line)
-    .trim()
-    .replace(/\s*<!--.*?-->$/, '')
-    .replace(/^\|/, '')
-    .replace(/\|$/, '');
+  const inner = withoutTrailingComment(String(line).trim()).replace(/^\|/, '').replace(/\|$/, '');
   return inner.split(/(?<!\\)\|/).map((cell) => cell.trim().replace(/\\\|/g, '|'));
 }
 

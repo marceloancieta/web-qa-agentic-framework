@@ -26,13 +26,19 @@ const TEMPLATE = new URL('./template/', import.meta.url);
 /** npm leaves `.gitignore` out of a package, so the template carries it under this name. */
 export const GITIGNORE = 'gitignore';
 
-/** A package name from a folder name: lower case, with anything else turned into hyphens. */
+/**
+ * A package name from a folder name: lower case, with anything else turned into hyphens, and no
+ * hyphen, dot or underscore at the start or hyphen at the end. The trailing hyphens are cut by
+ * position: a pattern anchored at the end would be retried from every hyphen of a long run.
+ */
 export function projectName(dir) {
   const name = basename(resolve(dir))
     .toLowerCase()
     .replace(/[^a-z0-9._-]+/g, '-')
-    .replace(/^[-._]+|-+$/g, '');
-  return name || 'web-qa-project';
+    .replace(/^[-._]+/, '');
+  let end = name.length;
+  while (end > 0 && name[end - 1] === '-') end -= 1;
+  return name.slice(0, end) || 'web-qa-project';
 }
 
 /**
