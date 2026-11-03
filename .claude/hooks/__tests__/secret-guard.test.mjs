@@ -210,6 +210,47 @@ for (const [name, text] of [
   });
 }
 
+// Encoded media: masking a run inside the bytes corrupts the file instead of hiding text. The run
+// below is one the guard masks in text, so each case would fail if the bytes were redacted.
+const readOf = (file) => ({
+  hook_event_name: 'PostToolUse',
+  tool_name: 'Read',
+  tool_input: { file_path: 'shot.png' },
+  tool_response: file,
+});
+
+test('PostToolUse: the base64 of an image the Read tool returns is left whole', async () => {
+  const image = { type: 'image', file: { base64: `iVBOR${FAKE.randomToken}`, type: 'image/png' } };
+  const r = await runHook('secret-guard.mjs', readOf(image));
+  assert.equal(r.verdict, 'allow', r.stdout);
+});
+
+test('PostToolUse: the data of an MCP image block with a mimeType is left whole', async () => {
+  const block = { content: [{ type: 'image', data: FAKE.randomToken, mimeType: 'image/png' }] };
+  const r = await runHook('secret-guard.mjs', post(block));
+  assert.equal(r.verdict, 'allow', r.stdout);
+});
+
+for (const [name, response, field] of [
+  [
+    'a text file the Read tool returns',
+    { type: 'text', file: { content: `token=${FAKE.github}` } },
+    (u) => u.file.content,
+  ],
+  ['a data field without a mimeType', { data: `session=${FAKE.randomToken}` }, (u) => u.data],
+  [
+    'a text field beside encoded media',
+    { type: 'image', file: { base64: 'iVBORw0KGgo', note: `token ${FAKE.github}` } },
+    (u) => u.file.note,
+  ],
+]) {
+  test(`PostToolUse: a credential in ${name} is still masked`, async () => {
+    const r = await runHook('secret-guard.mjs', readOf(response));
+    assert.equal(r.verdict, 'output', r.stdout);
+    assert.match(field(r.output.hookSpecificOutput.updatedToolOutput), /\[masked secret\]/);
+  });
+}
+
 test('malformed payload is blocked (the guard must not be bypassable)', async () => {
   const r = await runHook('secret-guard.mjs', 'not json');
   assert.equal(r.verdict, 'block');

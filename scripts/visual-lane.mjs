@@ -53,6 +53,21 @@ export function planLane(args) {
 }
 
 /**
+ * The arguments after Playwright's CLI script. The update mode is written out: `--update-snapshots`
+ * takes an optional value, so on its own it would read a forwarded spec file as its mode and refuse
+ * it. `changed` is the mode Playwright uses when none is given.
+ */
+export function playwrightArgs(plan) {
+  return [
+    'test',
+    '--grep',
+    '@visual',
+    ...(plan.update ? ['--update-snapshots=changed'] : []),
+    ...plan.forwarded,
+  ];
+}
+
+/**
  * The environment of the Playwright run: the lane variable, host addresses for the container, and
  * the lane's own JSON report (reports/lanes/visual.json unless QA_JSON_REPORT names one), which
  * the quality gate reads beside the suite's.
@@ -89,14 +104,7 @@ function main() {
     process.exit(2);
   }
   const cli = join(REPO_ROOT, 'node_modules', '@playwright', 'test', 'cli.js');
-  const args = [
-    cli,
-    'test',
-    '--grep',
-    '@visual',
-    ...(plan.update ? ['--update-snapshots'] : []),
-    ...plan.forwarded,
-  ];
+  const args = [cli, ...playwrightArgs(plan)];
   console.log(`visual-lane: ${plan.phase} phase${plan.update ? ', writing baselines' : ''}`);
   const result = spawnSync(process.execPath, args, {
     cwd: REPO_ROOT,

@@ -55,6 +55,7 @@ Every item of v0.1.0 is done; each is in **Done**.
 | FUT-09 | Extract a shared core with the sibling API framework once both are stable. | plan | todo |
 | FUT-11 | App map drift: a scheduled job maps each pack again and compares the result with the tracked `app-map.json`, so a changed route, role, name or form constraint is reported before the specs fail on it. | plan | todo |
 | FUT-12 | Publishing `create-web-qa` from a `v<x.y.z>` tag through npm trusted publishing (OIDC, no token) with provenance, then a read-back with `npm create` outside the repository. | practice | todo |
+| CORE-20 | TC-BASKET-20 stops failing now and then in the visual lane: the basket title holds a new account's email, so it wrapped onto a second line on some runs and moved every row below it; the pack's `visual.css` keeps it to one line and the five baselines that had it wrapped are rendered again. The visual lane narrows an update to one spec file (`--update-snapshots=changed`). `secret-guard` leaves encoded media in tool output whole, so the agent can read images again. | practice | in-progress |
 | FUT-16 | `cited-status`: the known gaps, waiting claims and workarounds the registries and contracts cite are checked against the tracker, and a closed or unknown key is reported. | plan | todo |
 
 ---
