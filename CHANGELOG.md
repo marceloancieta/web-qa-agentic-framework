@@ -5,6 +5,33 @@ All notable changes to this project are recorded here. The format follows
 [Semantic Versioning](https://semver.org/spec/v2.0.0.html), and each section is generated from the
 commit history by `scripts/changelog.mjs`.
 
+## [0.2.0] - 2026-11-03
+
+### Features
+
+- **ci:** advisory AI review of pull requests (FUT-14) `449a21a`
+- **core:** pairwise over browser, form factor and role (FUT-10) `1c18553`
+- **core:** the a11y sweep follows the pairwise set (FUT-10) `eadca61`
+- **gate:** mutation testing of the libraries, judged by the quality gate (FUT-15) `925c596`
+- **template:** adopting the framework from the template, updates and pack removal (FUT-13) `6b3c1dd`
+- **template:** the create-web-qa package (FUT-02) `a15f23e`
+
+### Fixes
+
+- **ci:** CodeQL has no open alert (#5) (CI-07) `c623788`
+- **template:** the update tests keep their line endings on Windows (FUT-13) `16f8d87`
+- **template:** the package tests let mutation testing start (FUT-02) `de045b1`
+- **visual:** the basket title stays on one line in visual comparisons (#4) (CORE-20) `2b24c58`
+
+### Other
+
+- **ci(deps):** Node's typings stay on the Node major the project supports (#6) (CI-08) `cd40a34`
+- **ci(release):** create-web-qa is published from a release tag with npm trusted publishing (#7) (FUT-12) `99bd43f`
+- **docs(backlog):** the advisory AI review is done (FUT-14) `d895bdf`
+- **docs(backlog):** the done row cites the sweep commit (FUT-10) `a9d9c80`
+- **docs(backlog):** the changelog and the v0.1.0 tag are done (DOC-03) `c16cd09`
+- **docs(backlog):** GitHub Flow on the public repository is done (#3) (DOC-05) `a11cd0c`
+
 ## [0.1.0] - 2026-11-02
 
 ### Features
