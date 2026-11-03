@@ -10,6 +10,10 @@
 //   kind: journey                             optional; `feature` (the default) or `journey`, whose
 //                                               cases cross features end to end and carry @e2e
 //   actors: [anonymous, customer]             optional; the roles the cases act as
+//   pairwise:                                 optional; the runs the cases were designed for, as
+//     - desktop-firefox as customer             `<device project> as <role>`, covering every pair
+//     - tablet as anonymous                     of browser, form factor and role (lint-suite
+//                                               pairwise-gap, scripts/lib/run-matrix.mjs)
 //   dimensions:                               every UI quality dimension, `applies` or `n/a: <why>`
 //     responsive: applies
 //     perf: 'n/a: no loading state on these routes'
@@ -34,6 +38,7 @@ import { existsSync, readdirSync, readFileSync } from 'node:fs';
 import { join, relative } from 'node:path';
 import { parse as parseYaml } from 'yaml';
 import { parseContractRules } from './contract.mjs';
+import { parseRun } from './run-matrix.mjs';
 import {
   DESKTOP_ONLY_TAG,
   DIMENSIONS,
@@ -79,6 +84,7 @@ export const HEADER_KEYS = [
   'contract',
   'kind',
   'actors',
+  'pairwise',
   'dimensions',
   'requirements',
   'test_data',
@@ -147,6 +153,15 @@ function headerProblems(meta, problem, at) {
     problem(
       at('actors'),
       'front matter `actors` must list role names, such as [anonymous, customer]',
+    );
+  }
+  if (
+    meta.pairwise !== undefined &&
+    !(Array.isArray(meta.pairwise) && meta.pairwise.length > 0 && meta.pairwise.every(parseRun))
+  ) {
+    problem(
+      at('pairwise'),
+      'front matter `pairwise` must list runs as `<device project> as <role>`, such as [desktop-firefox as customer]',
     );
   }
   const dimensions = meta.dimensions && typeof meta.dimensions === 'object' ? meta.dimensions : {};

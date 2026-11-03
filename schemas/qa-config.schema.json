@@ -303,6 +303,20 @@
               "minimum": 0
             }
           }
+        },
+        "mutation": {
+          "description": "Mutation score of `npm run mutation` over scripts/lib and .claude/hooks/lib, in percent: detected mutants (killed or timed out) over every mutant that ran or that no test covers. Judged only when a mutation report is passed (`--mutation`).",
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["fail_below_pct"],
+          "properties": {
+            "fail_below_pct": {
+              "$ref": "#/$defs/percent"
+            },
+            "review_below_pct": {
+              "$ref": "#/$defs/percent"
+            }
+          }
         }
       }
     }
@@ -350,6 +364,10 @@
           "items": {
             "$ref": "#/$defs/device"
           }
+        },
+        "pairwise": {
+          "description": "The environment stands for the whole device catalog through pairwise coverage: its projects must realize every browser x form factor pair of the catalog (config:check), and `npm run pairwise` gives each project the roles that cover every pair with each pack's roles.",
+          "type": "boolean"
         },
         "packs": {
           "type": "object",

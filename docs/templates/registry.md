@@ -15,7 +15,8 @@ Copy the example below and replace its content. A test parses this example, so i
 - **Cases.** One row per case, with every column, even the empty ones. Exactly one layer tag. Devices
   is `all` unless the contract records a real difference. New cases start as `draft`.
 - **Notes.** Free text may follow the table: the techniques used and why, the partitions and
-  boundaries, the pairwise set of devices, open questions for the reviewer.
+  boundaries, why the pairwise runs are enough, open questions for the reviewer. The runs
+  themselves go in the front matter, under `pairwise` (the registry rule).
 
 ```markdown
 ---

@@ -21,8 +21,9 @@ QA_JUICE_SHOP_BASE_URL=http://localhost:3001 npx playwright test --project='juic
 ## Choosing projects and cases
 
 Projects are named `<pack>-<device>`; the devices are defined in
-[`helpers/devices.ts`](../../helpers/devices.ts) and each environment picks its own. A `unit` project
-runs the core's own tests.
+[`helpers/device-projects.json`](../../helpers/device-projects.json) and each environment picks its
+own. A `unit` project runs the core's own tests. `npm run pairwise -- --env ci` prints which roles
+each project needs so that every pair of browser, form factor and role is covered once.
 
 ```sh
 npx playwright test --project='juice-shop-*'                       # one pack, every device
@@ -55,7 +56,7 @@ Playwright options (`--project`, a spec file, a narrower `--grep`) and writes it
 | Lane | Runs | Notes |
 |---|---|---|
 | `npm run lanes:visual` | the `@visual` cases | in the pinned Playwright container, so screenshots match the baselines; it refuses `--update-snapshots` ([ADR 0009](../adr/0009-container-lanes.md)) |
-| `npm run lanes:a11y` | an accessibility sweep over every route of the app maps, per role | new violations fail; known ones are in the pack's `a11y-known.json` with a tracker key and an expiry |
+| `npm run lanes:a11y` | an accessibility sweep over every route of the app maps, per role; in a `pairwise` environment (`ci`) each project sweeps only the roles `npm run pairwise` gives it | new violations fail; known ones are in the pack's `a11y-known.json` with a tracker key and an expiry |
 | `npm run lanes:mocked` | the `@mocked` cases | answers come from route mocks, not the application |
 | `npm run lanes:known-gap` | the `@known-gap` cases | then a summary of which gaps still fail as armed and which now pass |
 | `npm run lanes:destructive` | the `@destructive` cases | one worker, then each selected pack's recovery; refused for a pack without one |
@@ -82,6 +83,25 @@ The quality gate gives a run one verdict, PASS, REVIEW or FAIL, from the pass ra
 accessibility violations by impact and failed visual cases; its thresholds are qa-config
 `quality_gate`. `npm run tm:report` sends a run's results to the configured test-management tool
 ([test management](../test-management.md)).
+
+## Mutation testing
+
+`npm run mutation` measures how well the unit tests of the framework's own libraries
+(`scripts/lib` and `.claude/hooks/lib`) catch a change: Stryker changes one expression at a time,
+runs the `node:test` suites against it, and counts the changes no test noticed. It takes about half
+an hour, so it runs on demand and never inside `npm run gates`. There is one run per library, each
+writing an HTML report (each surviving mutant, in its source) and a JSON report under
+`reports/mutation/`: `scripts-lib` and `hooks-lib`. The quality gate then judges both JSON reports
+as one score against qa-config `quality_gate.mutation` (verdict in
+`reports/mutation/quality-gate.md`). To judge the reports again without running Stryker:
+
+```sh
+npm run mutation:gate
+```
+
+Settings are in [`stryker.config.mjs`](../../stryker.config.mjs), which also says why the hooks
+library runs differently ([`stryker.hooks.config.mjs`](../../stryker.hooks.config.mjs)). The suites
+that open a browser need the Playwright browsers installed, as for `npm run gates`.
 
 ## Sharding, as CI does
 

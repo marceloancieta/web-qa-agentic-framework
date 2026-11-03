@@ -68,4 +68,5 @@ are settled by the first run of TC-SIGNUP-07 and TC-SIGNUP-08 in automate.
 - **Without a requirement.** TC-SIGNUP-18 covers the layout dimension (the visual case the contract
   names).
 - **Devices.** Every case runs on every device project of the environment; the contract records no
-  difference in the form. A pairwise reduction for the full CI set waits for FUT-10.
+  difference in the form. No case is pairwise: each runs on every project, and the `ci` projects
+  cover every browser and form factor pair (`npm run pairwise`).

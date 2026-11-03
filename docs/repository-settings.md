@@ -5,6 +5,12 @@ rely on. They live in GitHub, not in a file, so this page records what they must
 the repository applies them. Rulesets and private vulnerability reporting need a public repository
 (or a paid plan on a private one), so they are applied when the repository becomes public.
 
+## Template
+
+**Settings → General → Template repository**: turn it on once the repository is public, so a team
+can start its own project with **Use this template** ([adopting the framework](guides/adopting.md)).
+The copies take later releases from the `v<x.y.z>` tags, so every release is tagged.
+
 ## Pull requests
 
 **Settings → General → Pull Requests**
@@ -56,8 +62,18 @@ reports to code scanning, where its alerts are reviewed.
 **Settings → Actions → General**
 
 - **Workflow permissions**: **Read repository contents and packages permissions**. Each workflow
-  asks for more only where it needs it (CodeQL's `security-events: write`).
+  asks for more only where it needs it (CodeQL's `security-events: write`, the advisory review's
+  `pull-requests: write` to post its comment).
 - **Allow GitHub Actions to create and approve pull requests**: off.
+
+**Settings → Secrets and variables → Actions → New repository secret**
+
+- `ANTHROPIC_API_KEY`, optional: the key the advisory AI review of pull requests uses
+  ([`pr-review.yml`](../.github/workflows/pr-review.yml), rubric in
+  [`.github/pr-review-rubric.md`](../.github/pr-review-rubric.md)). Without it the review is skipped
+  and nothing else changes; it is never a required check. A pull request from a fork gets no secrets,
+  so it is skipped too. The model is `claude-opus-5-5` unless the job sets `QA_REVIEW_MODEL`.
+  Nothing else in the workflows needs a secret.
 
 ## After applying them
 

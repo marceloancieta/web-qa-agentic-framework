@@ -9,15 +9,19 @@
  *   accessibility  new violations (not in the pack's baseline) per axe impact, read from the
  *                  `axe <route>` attachments the a11y fixture writes.
  *   visual         failed @visual cases.
+ *   mutation       the mutation score of `npm run mutation` (Stryker's JSON reports, one per run,
+ *                  taken together), in percent: detected mutants (killed or timed out) over every
+ *                  mutant that ran or that no test covers.
  *
  *   node scripts/quality-gate.mjs [--report <playwright.json>]... [--results <allure-results>]
- *                                 [--summary <file.md>] [--root <dir>]
+ *                                 [--mutation <mutation.json>]... [--summary <file.md>] [--root <dir>]
  *
  * The report defaults to $QA_JSON_REPORT, then reports/playwright.json, which every suite run
  * writes. Several `--report`s are read as one run: in CI, the sharded matrix merged by
  * `npm run ci:merge` and the reports of the lanes, all with one QA_RUN_ID. A report is refused when
- * it is not of the latest run (`staleReasons`). Exit codes: 0 PASS or REVIEW; 1 FAIL, no report or
- * a refused report; 2 usage error.
+ * it is not of the latest run (`staleReasons`). `--mutation` alone judges only the mutation score,
+ * with no run report: mutation testing runs on demand, apart from the suite. Exit codes: 0 PASS or
+ * REVIEW; 1 FAIL, no report or a refused report; 2 usage error.
  */
 
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
@@ -137,8 +141,58 @@ export function newestPackResultStart(resultsDir) {
   return starts.length ? Math.max(...starts) : null;
 }
 
-/** The checks of the gate for a parsed report: `[{ name, verdict, detail }]` and the overall. */
-export function evaluate(report, gate, reportDir = '.') {
+/** Mutant statuses of Stryker's report (mutation-testing-report-schema) that enter the score. */
+const DETECTED = ['Killed', 'Timeout'];
+const UNDETECTED = ['Survived', 'NoCoverage'];
+
+/**
+ * The mutation score of Stryker JSON reports, taken together:
+ * `{ score, detected, valid, survived, noCoverage }`, the score in percent with one decimal, or
+ * null when no mutant entered it. Compile and runtime errors, ignored and pending mutants are left
+ * out, as Stryker leaves them out.
+ */
+export function mutationScore(reports) {
+  const counts = {};
+  for (const report of reports) {
+    for (const file of Object.values(report?.files ?? {})) {
+      for (const mutant of file.mutants ?? [])
+        counts[mutant.status] = (counts[mutant.status] ?? 0) + 1;
+    }
+  }
+  const sum = (statuses) => statuses.reduce((total, status) => total + (counts[status] ?? 0), 0);
+  const detected = sum(DETECTED);
+  const valid = detected + sum(UNDETECTED);
+  return {
+    score: valid === 0 ? null : Math.round((detected / valid) * 1000) / 10,
+    detected,
+    valid,
+    survived: counts.Survived ?? 0,
+    noCoverage: counts.NoCoverage ?? 0,
+  };
+}
+
+function mutationCheck(mutation, threshold) {
+  if (mutation.length === 0)
+    return {
+      name: 'mutation',
+      verdict: 'SKIPPED',
+      detail: 'no mutation report (npm run mutation)',
+    };
+  const { score, detected, valid, survived, noCoverage } = mutationScore(mutation);
+  if (score === null)
+    return { name: 'mutation', verdict: 'SKIPPED', detail: 'the mutation reports have no mutant' };
+  return {
+    name: 'mutation',
+    verdict: bandBelow(score, threshold),
+    detail: `${score}% (${detected}/${valid} detected; ${survived} survived, ${noCoverage} not covered)`,
+  };
+}
+
+/**
+ * The checks of the gate for a parsed report: `[{ name, verdict, detail }]` and the overall.
+ * `mutation` is Stryker's parsed JSON reports, one per run, judged as one score.
+ */
+export function evaluate(report, gate, reportDir = '.', { mutation = [] } = {}) {
   const tests = reportTests(report);
   const checks = [];
   if (gate.pass_rate) {
@@ -194,6 +248,7 @@ export function evaluate(report, gate, reportDir = '.') {
           },
     );
   }
+  if (gate.mutation) checks.push(mutationCheck(mutation, gate.mutation));
   const overall = checks.reduce(
     (worst, check) => (RANK[check.verdict] > RANK[worst] ? check.verdict : worst),
     'PASS',
@@ -213,6 +268,7 @@ function main() {
       options: {
         report: { type: 'string', multiple: true },
         results: { type: 'string' },
+        mutation: { type: 'string', multiple: true },
         summary: { type: 'string' },
         root: { type: 'string' },
       },
@@ -222,6 +278,16 @@ function main() {
     process.exit(2);
   }
   const root = resolve(values.root ?? REPO_ROOT);
+  const gate = readConfig(root).config.quality_gate ?? {};
+  const mutation = (values.mutation ?? []).map(readMutation);
+  if (mutation.length > 0 && !values.report) {
+    if (!gate.mutation) {
+      console.error('quality-gate: --mutation needs qa-config quality_gate.mutation.');
+      process.exit(2);
+    }
+    finish(evaluate({ suites: [] }, { mutation: gate.mutation }, '.', { mutation }), values);
+    return;
+  }
   const reportFiles = (
     values.report ?? [process.env.QA_JSON_REPORT || join(root, 'reports', 'playwright.json')]
   ).map((file) => resolve(file));
@@ -241,10 +307,25 @@ function main() {
     for (const reason of stale) console.error(`quality-gate: report refused: ${reason}`);
     process.exit(1);
   }
-  const gate = readConfig(root).config.quality_gate ?? {};
   // Attachments are recorded with absolute paths, so the reports' suites can be read as one.
   const combined = { suites: reports.flatMap((report) => report.suites ?? []) };
-  const result = evaluate(combined, gate, dirname(reportFiles[0]));
+  finish(evaluate(combined, gate, dirname(reportFiles[0]), { mutation }), values);
+}
+
+/** Stryker's JSON report at `file`; a missing or unreadable one ends the gate with exit 1. */
+function readMutation(file) {
+  try {
+    return JSON.parse(readFileSync(resolve(file), 'utf8'));
+  } catch (error) {
+    console.error(
+      `quality-gate: cannot read the mutation report ${file} (${error.message}); run npm run mutation first.`,
+    );
+    process.exit(1);
+  }
+}
+
+/** Print the checks, write the summary when asked, and set the exit code from the overall. */
+function finish(result, values) {
   for (const check of result.checks)
     console.log(
       `quality-gate: ${check.name.padEnd(13)} ${check.verdict.padEnd(7)} ${check.detail}`,

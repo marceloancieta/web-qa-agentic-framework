@@ -5,6 +5,7 @@ import { REPO_ROOT } from '../config';
 import {
   DEFAULT_DEVICES,
   DEVICE_PROJECTS,
+  FORM_FACTORS,
   deviceUse,
   isDeviceName,
   type DeviceName,
@@ -23,6 +24,7 @@ test('every project resolves to a Playwright device whose shape matches its form
   for (const name of names) {
     const use = deviceUse(name);
     const { formFactor } = DEVICE_PROJECTS[name];
+    expect(FORM_FACTORS, name).toContain(formFactor);
     expect(use.isMobile, name).toBe(formFactor !== 'desktop');
     expect(use.hasTouch, name).toBe(formFactor !== 'desktop');
     const landscape = use.viewport.width > use.viewport.height;

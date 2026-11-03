@@ -132,16 +132,20 @@ web-qa-agentic-framework/
   `recovery{command, ready_timeout_s}`, `actors{<role>: {account, ...}}` and `default_actor`
 - `test_management` and `tracker`: the adapter each one uses, with its options; `policies`: the
   commit rules `git-policy` applies
-- `quality_gate`: `pass_rate`, new accessibility violations per impact, visual differences; web
-  vitals in v0.2
+- `quality_gate`: `pass_rate`, new accessibility violations per impact, visual differences, and the
+  `mutation` score of `npm run mutation`; web vitals in v0.2
 
 ## 2. Devices and selectors
 
 - **Projects from qa-config:** `desktop-chromium`, `desktop-webkit`, `desktop-firefox`, `tablet`
   (iPad, WebKit), `mobile-chrome` (Pixel 7), `mobile-safari` (iPhone 14, WebKit), and `-landscape`
   variants for orientation. `playwright.config.ts` builds them; each environment picks which run
-  (`local`: desktop Chromium and mobile Chrome; `ci`: six device projects). Reducing the full
-  product with pairwise is FUT-10.
+  (`local`: desktop Chromium and mobile Chrome; `ci`: six device projects). The catalog is
+  `helpers/device-projects.json`. An environment marked `pairwise` (`ci`) stands for the whole
+  catalog: config:check proves its projects realize every browser × form factor pair, and
+  `npm run pairwise` spreads each pack's roles over them (`scripts/lib/run-matrix.mjs`). The a11y
+  sweep follows that set there: each project sweeps the routes of the roles it is given
+  (`pairwiseSkip` in `helpers/a11y-sweep.ts`), and the others are skipped with the reason.
 - **Locator policy**, in the generation rule and in the linter: `getByRole` and `getByLabel`, then
   `getByTestId` (attribute set per pack in `app.json`; SauceDemo uses `data-test`), then `getByText`
   with a deliberate `exact`, then CSS only with a comment that says why. XPath and `nth-child` are
@@ -153,7 +157,9 @@ web-qa-agentic-framework/
 - **Real differences in behaviour** are written in the feature contract doc and tagged
   `@desktop-only` or `@mobile-only`; each project filters them out with `grepInvert`, and the linter
   requires the registry case to state the reason.
-- **Design:** pairwise over browser × device × role instead of the full product.
+- **Design:** pairwise over browser × device × role instead of the full product: a registry lists
+  the runs of its pairwise cases under `pairwise`, and `lint-suite` pairwise-gap names a pair they
+  leave out.
 
 ## 3. Visual regression and accessibility
 
@@ -230,6 +236,11 @@ web-qa-agentic-framework/
   CodeQL scans the sources ([`.github/workflows/codeql.yml`](../.github/workflows/codeql.yml)).
   The gates scan the whole history for secrets, denylisted terms and the wording of every commit
   message.
+- Advisory review: on each pull request with the `ANTHROPIC_API_KEY` secret, Claude reads the diff
+  against [`.github/pr-review-rubric.md`](../.github/pr-review-rubric.md), which leaves out what the
+  gates check, and posts one comment (`npm run review:pr`,
+  [`.github/workflows/pr-review.yml`](../.github/workflows/pr-review.yml)). It is not a required
+  check and decides nothing.
 - `workers` per pack in `app.json`: some systems under test do not tolerate parallel runs.
 - The visual lane runs in the container both locally and in CI.
 

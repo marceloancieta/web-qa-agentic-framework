@@ -74,4 +74,5 @@ catalogue the application ships with.
   TC-SEARCH-24 checks that a signed-in customer, who lands here after the login, gets the same list.
   One case is enough, since the contract records no difference between the roles.
 - **Devices.** Every case runs on every device project of the environment; the contract records no
-  difference in behaviour. A pairwise reduction for the full CI set waits for FUT-10.
+  difference in behaviour. No case is pairwise: each runs on every project, and the `ci` projects
+  cover every browser and form factor pair (`npm run pairwise`).

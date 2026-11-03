@@ -1,0 +1,14 @@
+{
+  "default": ["desktop-chromium", "mobile-chrome"],
+  "projects": {
+    "desktop-chromium": { "descriptor": "Desktop Chrome", "formFactor": "desktop" },
+    "desktop-firefox": { "descriptor": "Desktop Firefox", "formFactor": "desktop" },
+    "desktop-webkit": { "descriptor": "Desktop Safari", "formFactor": "desktop" },
+    "tablet": { "descriptor": "iPad (gen 7)", "formFactor": "tablet" },
+    "tablet-landscape": { "descriptor": "iPad (gen 7) landscape", "formFactor": "tablet" },
+    "mobile-chrome": { "descriptor": "Pixel 7", "formFactor": "mobile" },
+    "mobile-chrome-landscape": { "descriptor": "Pixel 7 landscape", "formFactor": "mobile" },
+    "mobile-safari": { "descriptor": "iPhone 14", "formFactor": "mobile" },
+    "mobile-safari-landscape": { "descriptor": "iPhone 14 landscape", "formFactor": "mobile" }
+  }
+}

@@ -26,6 +26,10 @@
 //                      with @e2e in a feature's registry.
 //   journey-chain      a rule of a journey's contract whose Source cites no feature rule, or cites
 //                      one that no other contract of its pack has.
+//   pairwise-gap       the registry's `pairwise` runs name a device project that does not exist
+//                      or a role its `actors` do not list, or leave a pair of browser, form factor
+//                      and role uncovered (scripts/lib/run-matrix.mjs); or a pairwise case sits in
+//                      a registry without `pairwise` runs.
 //
 // Usage:
 //   node scripts/lint-suite.mjs [--root <dir>]   the repository, or another tree
@@ -40,6 +44,8 @@ import { REPO_ROOT } from './lib/cli.mjs';
 import { specCases } from './lib/corpus.mjs';
 import { parseContractRules } from './lib/contract.mjs';
 import { parseDecisionTable } from './lib/decision-table.mjs';
+import { deviceProjects } from './lib/devices.mjs';
+import { ANONYMOUS_ROLE, parseRun, runGaps } from './lib/run-matrix.mjs';
 import { finding, report, selfTest } from './lib/lint.mjs';
 import { applyingDimensions, isJourney, loadRegistries } from './lib/registry.mjs';
 import { DIMENSIONS, E2E_TAG } from './lib/tags.mjs';
@@ -61,6 +67,7 @@ export const RULES = [
   'case-without-table',
   'journey-tag',
   'journey-chain',
+  'pairwise-gap',
 ];
 
 const RULE_REF = /\bREQ-[A-Z][A-Z0-9]{1,9}-\d{2,3}\b/g;
@@ -111,10 +118,50 @@ function loadContracts(root) {
 const sameSet = (a, b) =>
   a.length === b.length && [...a].sort().join(' ') === [...b].sort().join(' ');
 
+/**
+ * The pairwise runs of a registry against the device catalog and its roles (`actors`, or anonymous
+ * alone). A malformed list is a registry-shape problem, reported by the registry parser.
+ */
+function pairwiseFindings(registry, catalog, add) {
+  const line = registry.keyLines?.get('pairwise') ?? 1;
+  const runs = Array.isArray(registry.meta.pairwise) ? registry.meta.pairwise.map(parseRun) : [];
+  if (runs.length === 0 || runs.some((run) => run === null)) {
+    const pairwiseCase = registry.cases.find((row) => row.technique === 'pairwise');
+    if (pairwiseCase && registry.meta.pairwise === undefined)
+      add(
+        'pairwise-gap',
+        registry.file,
+        pairwiseCase.line,
+        `${pairwiseCase.id} is a pairwise case; list the runs it covers under the front matter key pairwise`,
+      );
+    return;
+  }
+  const roles = Array.isArray(registry.meta.actors) ? registry.meta.actors : [ANONYMOUS_ROLE];
+  const { unknown, missing } = runGaps(runs, catalog, roles);
+  for (const run of unknown)
+    add(
+      'pairwise-gap',
+      registry.file,
+      line,
+      catalog.some((project) => project.name === run.project)
+        ? `pairwise run "${run.project} as ${run.role}": ${run.role} is not one of the actors (${roles.join(', ')})`
+        : `pairwise run "${run.project} as ${run.role}": ${run.project} is not a device project`,
+    );
+  if (missing.length)
+    add(
+      'pairwise-gap',
+      registry.file,
+      line,
+      `the pairwise runs leave ${missing.length} pair(s) uncovered: ${missing.join('; ')}`,
+    );
+}
+
 export function lintSuite(root = REPO_ROOT) {
   const findings = [];
   const add = (rule, file, line, message) => findings.push(finding(rule, file, line, message));
   const registries = loadRegistries(root);
+  // The catalog is the framework's, also when another tree is linted (the fixtures).
+  const catalog = deviceProjects(REPO_ROOT);
   const tests = specCases(root);
 
   const casesByPack = new Map();
@@ -167,6 +214,7 @@ export function lintSuite(root = REPO_ROOT) {
         }
       }
     }
+    pairwiseFindings(registry, catalog, add);
     for (const name of applyingDimensions(registry)) {
       const tag = DIMENSIONS[name];
       if (!registry.cases.some((row) => row.tagList.includes(tag))) {

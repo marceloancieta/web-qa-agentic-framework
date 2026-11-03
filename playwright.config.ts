@@ -46,12 +46,15 @@ const extraReporters: ReporterDescription[] = [
     : []),
 ];
 
-// Copies of this checkout that must not be collected: worktrees made for parallel agent work, and
-// generated output.
+// Copies of this checkout that must not be collected: worktrees made for parallel agent work,
+// Stryker's sandboxes during `npm run mutation`, and generated output.
 const escapedRoot = __dirname.replace(/[.*+?^${}()|[\]\\]/g, '\\$&').replace(/\\\\|\//g, '[\\\\/]');
-const notThisCheckout = ['\\.claude[\\\\/]worktrees', 'reports', 'scripts[\\\\/]__fixtures__'].map(
-  (dir) => new RegExp(`^${escapedRoot}[\\\\/]${dir}[\\\\/]`),
-);
+const notThisCheckout = [
+  '\\.claude[\\\\/]worktrees',
+  '\\.stryker-tmp',
+  'reports',
+  'scripts[\\\\/]__fixtures__',
+].map((dir) => new RegExp(`^${escapedRoot}[\\\\/]${dir}[\\\\/]`));
 
 // Retries hide flakiness, so they are off unless a lane asks for them.
 function retries(): number {
