@@ -32,7 +32,7 @@ Each fact has one owner. Other files link to it or name it; they never restate i
 | Cookies every context of a pack starts with | `apps/<pack>/app.json` `cookies` |
 | Where an application departs from what it shows | `apps/<pack>/docs/app-notes.md` |
 | The security header and cookie rules | `helpers/security-headers.ts`; the decision in ADR 0011 |
-| Which hosts the ZAP lane may scan | `targetProblem` in `scripts/zap-lane.mjs` |
+| Which packs the ZAP lane may scan, and that it scans only their disposable copy | `targetProblem` and `scanServiceOf` in `scripts/zap-lane.mjs` |
 | Counts of cases by status and dimension | `npm run coverage:status` |
 | Which requirements and rules are covered | `npm run traceability` |
 | Whether the tracker keys the registries and contracts cite are still open | `npm run cited-status`; meaning in `.claude/rules/registry.md` |

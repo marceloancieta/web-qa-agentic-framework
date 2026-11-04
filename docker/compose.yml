@@ -4,10 +4,10 @@ name: web-qa-agentic-framework
 
 services:
   juice-shop:
-    image: bkimminich/juice-shop:v20.3.0@sha256:cea5a4af4aacee498c491491af0408934ec81d004035c0a02ef3e54395e3bf27
+    image: &juice-shop-image bkimminich/juice-shop:v20.3.0@sha256:cea5a4af4aacee498c491491af0408934ec81d004035c0a02ef3e54395e3bf27
     ports:
       - '127.0.0.1:3000:3000'
-    healthcheck:
+    healthcheck: &juice-shop-health
       test:
         [
           'CMD',
@@ -44,12 +44,20 @@ services:
     ipc: host
 
   # The ZAP baseline lane (ADR 0011): ZAP 2.17.0, the build of 2026-08-07, pinned by digest.
-  # `npm run lanes:zap` runs zap-baseline.py in it, against a local pack only, and reads the reports
-  # it writes to reports/zap/.
+  # `npm run lanes:zap` starts it and the disposable copy below in a compose project of their own
+  # (web-qa-zap-<pack>), runs the plan it writes to reports/zap/, and removes both afterwards.
   zap:
-    profiles: ['lanes']
+    profiles: ['zap']
     image: zaproxy/zap-stable:2.17.0@sha256:781a2bdaea47324e7bab583e2263f21d257b0aee61ed51521a5be45f5f5081ef
     volumes:
       - ../reports/zap:/zap/wrk:rw
-    extra_hosts:
-      - 'host.docker.internal:host-gateway'
+
+  # The ZAP lane's target: a disposable Juice Shop, the image of the service above, reachable on its
+  # project's network only. The spider changes Juice Shop's state (it solves challenges), so it never
+  # scans the one other work uses.
+  juice-shop-scan:
+    profiles: ['zap']
+    image: *juice-shop-image
+    expose:
+      - '3000'
+    healthcheck: *juice-shop-health

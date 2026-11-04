@@ -61,14 +61,15 @@ Playwright options (`--project`, a spec file, a narrower `--grep`) and writes it
 | `npm run lanes:known-gap` | the `@known-gap` cases | then a summary of which gaps still fail as armed and which now pass |
 | `npm run lanes:destructive` | the `@destructive` cases | one worker, then each selected pack's recovery; refused for a pack without one |
 | `npm run lanes:flake` | the `@quarantine` cases, ten times each, without retries | weekly in CI |
-| `npm run lanes:zap -- --pack <pack>` | OWASP ZAP's baseline scan (a spider, then the passive scan) of one pack, in the ZAP image pinned in `docker/compose.yml` | local packs only: it refuses a host that is not a loopback address or an application of `docker/compose.yml`. New alerts of risk Low or above fail; known ones are in the pack's `zap-known.json` with a tracker key, an expiry and a reason. Reports in `reports/zap/` ([ADR 0011](../adr/0011-security-headers-and-zap-lane.md)) |
+| `npm run lanes:zap -- --pack <pack>` | OWASP ZAP's baseline scan (a spider that submits no form, then the passive scan) of a disposable copy of one pack's application, in the ZAP image pinned in `docker/compose.yml` | local packs only: it refuses a pack whose base URL is not a loopback address or an application of `docker/compose.yml`, and one without a `<pack>-scan` service. It starts that copy in a compose project of its own, scans it and removes it, also on failure. New alerts of risk Low or above fail, and so does any request but GET, HEAD or OPTIONS; known alerts are in the pack's `zap-known.json` with a tracker key, an expiry and a reason. Reports in `reports/zap/` ([ADR 0011](../adr/0011-security-headers-and-zap-lane.md)) |
 
 How each lane is built is described at the top of [`scripts/lanes.mjs`](../../scripts/lanes.mjs),
 and the ZAP lane at the top of [`scripts/zap-lane.mjs`](../../scripts/zap-lane.mjs).
 
-Against Juice Shop, run the ZAP lane after the lanes that open pages, or against a Juice Shop of its
-own; the [Juice Shop skill](../../.claude/skills/juice-shop-ui/SKILL.md) says why, under Run. In CI
-it has a job and a Juice Shop of its own.
+The ZAP spider changes an application's state (in Juice Shop it solves challenges; the
+[Juice Shop skill](../../.claude/skills/juice-shop-ui/SKILL.md) says how, under Run), which is why it
+never scans the instance at the pack's base URL, and why the ZAP lane may run beside the others. In CI
+it is a job of its own.
 
 The security headers of each pack's documents are checked in every run, not in a lane: the sweep in
 `apps/<pack>/specs/security/headers.spec.ts` opens one route per document of the app maps and fails

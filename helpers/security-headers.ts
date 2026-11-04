@@ -302,7 +302,7 @@ export function compareWithKnownGaps(
   return result;
 }
 
-/** The failure message for new gaps, or null when there are none. */
+/** What a check with new gaps fails with; null for a check without any. */
 export function headerReport(comparison: HeaderComparison, baselineFile: string): string | null {
   if (comparison.new.length === 0) return null;
   const lines = comparison.new.map((gap) => {

@@ -27,8 +27,9 @@ description: >-
    - `npm run lanes:flake -- --repeat <n>`: the `@quarantine` cases `n` times each (10), without
      retries, then the failed repetitions per case;
    - `npm run lanes:zap -- --pack <pack>`: a ZAP baseline scan of a local pack, judged against its
-     `zap-known.json`. It refuses any host that is not on this machine. Against Juice Shop, run it
-     after the lanes that open pages (the `juice-shop-ui` skill says why).
+     `zap-known.json`. It scans a disposable copy of the application that it starts and removes
+     (`<pack>-scan` in `docker/compose.yml`), never the one the other lanes use, so it may run
+     beside them; it refuses a pack whose base URL is not on this machine.
 
    Every run also sweeps the security headers of each pack's documents (`specs/security/`,
    `@security`) against its `headers-known.json`; a new gap fails like a new violation.

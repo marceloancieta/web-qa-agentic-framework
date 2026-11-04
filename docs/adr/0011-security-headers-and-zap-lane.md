@@ -33,18 +33,31 @@ reach.
   only: a known missing policy never hides another header going missing, a weaker value of a header
   is its own finding, and an expired entry fails again. An entry whose subject was checked and passed
   is reported as gone.
-- **ZAP in a lane, for local packs only.** `npm run lanes:zap -- --pack <pack>` runs ZAP's baseline
-  scan (a spider, then the passive scan) from `zaproxy/zap-stable` pinned by digest in
-  `docker/compose.yml`. The target is the pack's base URL; the lane refuses, before Docker starts,
-  any host that is not a loopback address or an application of `docker/compose.yml`. There is no
-  option to name another target.
+- **ZAP in a lane, for local packs only.** `npm run lanes:zap -- --pack <pack>` runs the jobs of
+  ZAP's baseline scan (a spider, then the passive scan) from `zaproxy/zap-stable` pinned by digest
+  in `docker/compose.yml`, as an Automation Framework plan the lane writes. It refuses, before
+  Docker starts, a pack whose base URL is not a loopback address or an application of
+  `docker/compose.yml`. There is no option to name a target.
+- **Never the shared instance.** The spider changes state: in Juice Shop the files `robots.txt`
+  lists solve challenges, which the shop announces on every open page. The lane scans only a
+  disposable copy, the compose service `<pack>-scan` (the application's image and health check, no
+  host port), which it starts in a compose project of its own, `web-qa-zap-<pack>`, and removes
+  afterwards, also when the scan fails. A pack without that service is refused.
+- **A spider that only reads.** The spider submits no form, `postForm` and `processForm` both off:
+  a form is how a page writes, and a GET form would only matter on a server-rendered page. ZAP
+  exports every message it sent as HAR, and a request with a method other than GET, HEAD or
+  OPTIONS, or an empty record, fails the lane.
+- **The image's rules only.** ZAP starts with `-silent`: no update check and no add-on download, so
+  a scan today and next month run the same rules. ZAP's own `zap-baseline.py` wrapper installs the
+  latest beta passive rules at start; the lane does not, and the alerts only those rules raise
+  (cross-origin isolation, dangerous JavaScript functions, the retired Feature-Policy) are not
+  reported.
 - **Known alerts with a reason.** The lane judges the alerts itself rather than through ZAP's rule
   file: `apps/<pack>/zap-known.json` lists each accepted alert by plugin id, with a tracker key, an
   expiry and the reason it is accepted. A new alert of risk Low or above fails the lane;
   Informational alerts are listed only.
 - **In CI on every change.** The scan takes about two minutes, less than a shard of the suite, so it
-  is a job of its own beside the shards, with its own Juice Shop, and the required check waits for
-  it. It writes no Playwright report, so the quality gate does not read it; its exit code is its
+  is a job of its own beside the shards, and the required check waits for it. It writes no Playwright report, so the quality gate does not read it; its exit code is its
   verdict.
 
 ## Consequences
@@ -53,9 +66,10 @@ reach.
   the rule and the route in the message.
 - An entry covers every instance of its ZAP alert: a new page with an alert of a known kind does not
   fail. The lane prints the count of instances, and the alert's first address, beside each one.
-- The spider opens what `robots.txt` lists, and in Juice Shop that can solve challenges, which the
-  shop announces on the pages open at the time. Locally the lane runs after the lanes that open pages, or
-  against a Juice Shop of its own; in CI it has one.
+- The ZAP lane may run beside every other lane, locally and in CI: what its spider changes lives
+  and dies with the disposable copy. A pack it scans needs a `<pack>-scan` service.
+- Pages reachable only through a form are not spidered, and the beta passive rules are not run.
+  Running them would mean an image with those rules installed, pinned in its turn.
 - A CSP set in a `<meta>` element and a cookie written by a page script are not seen by the header
   check; the ZAP scan and the security cases cover what it cannot.
 - A new pack gets a headers sweep from `scaffold-app`; a public pack is never scanned by ZAP.

@@ -7,31 +7,10 @@
     "reason": "Juice Shop sends no CSP by design; the headers sweep keeps the same gap in headers-known.json."
   },
   {
-    "plugin": "10063",
-    "name": "Deprecated Feature Policy Header Set",
-    "key": "LOCAL-31",
-    "expires": "2027-02-03",
-    "reason": "Juice Shop sends Feature-Policy instead of Permissions-Policy; the same issue covers both."
-  },
-  {
-    "plugin": "90004",
-    "name": "Cross-Origin-Embedder-Policy Header Missing or Invalid",
-    "key": "LOCAL-31",
-    "expires": "2027-02-03",
-    "reason": "One of the isolation headers the shop does not send, filed with its other missing headers."
-  },
-  {
     "plugin": "10098",
     "name": "Cross-Domain Misconfiguration",
     "key": "LOCAL-32",
     "expires": "2027-02-03",
     "reason": "Access-Control-Allow-Origin: * on every response; it does not apply to credentialed requests."
-  },
-  {
-    "plugin": "10110",
-    "name": "Dangerous JS Functions",
-    "key": "LOCAL-2",
-    "expires": "2027-02-03",
-    "reason": "bypassSecurityTrustHtml in the bundles is how the search term reaches the page as markup."
   }
 ]
