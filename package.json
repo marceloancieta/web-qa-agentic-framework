@@ -40,6 +40,7 @@
     "lint:qa": "npm run lint:layers && npm run lint:harness && npm run lint:docs && npm run lint:suite && npm run lint:self-test",
     "coverage:status": "node scripts/coverage-status.mjs",
     "traceability": "node scripts/traceability.mjs",
+    "cited-status": "node scripts/cited-status.mjs",
     "quality:gate": "node scripts/quality-gate.mjs --summary reports/quality-gate.md",
     "pairwise": "node scripts/pairwise.mjs",
     "framework:update": "node scripts/framework-update.mjs",
@@ -69,7 +70,7 @@
     "changelog": "node scripts/changelog.mjs --next",
     "changelog:write": "node scripts/changelog.mjs --next --write",
     "release:check": "node scripts/release-check.mjs",
-    "gates": "npm run lint && npm run format:check && npm run types:check && npm run config:check && npm run test:hooks && npm run test:scripts && npm run lint:qa && npm run coverage:status && npm run traceability && npm run test:unit && npm run scan:denylist:self-test && npm run scan:denylist && npm run scan:denylist:history && npm run lint:docs:history && npm run scan:secrets"
+    "gates": "npm run lint && npm run format:check && npm run types:check && npm run config:check && npm run test:hooks && npm run test:scripts && npm run lint:qa && npm run coverage:status && npm run traceability && npm run cited-status -- --offline && npm run test:unit && npm run scan:denylist:self-test && npm run scan:denylist && npm run scan:denylist:history && npm run lint:docs:history && npm run scan:secrets"
   },
   "devDependencies": {
     "@anthropic-ai/sdk": "^0.135.0",

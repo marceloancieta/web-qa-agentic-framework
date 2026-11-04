@@ -1,0 +1,29 @@
+{
+  "next": 4,
+  "issues": {
+    "BUG-1": {
+      "title": "Basket: the total ignores the second product",
+      "body": "Still reproduced.",
+      "labels": ["ui"],
+      "status": "open",
+      "category": "open",
+      "comments": []
+    },
+    "BUG-2": {
+      "title": "Basket: the empty basket has no message",
+      "body": "Fixed in the last release.",
+      "labels": ["ui"],
+      "status": "done",
+      "category": "done",
+      "comments": []
+    },
+    "BUG-3": {
+      "title": "Basket: the quantity field takes letters",
+      "body": "A fix is being written.",
+      "labels": ["ui"],
+      "status": "in-progress",
+      "category": "in-progress",
+      "comments": []
+    }
+  }
+}

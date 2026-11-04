@@ -70,7 +70,7 @@ govern.
 | [`modes`](.claude/rules/modes.md) | design versus execution, what counts as reading, the gates |
 | [`reachability`](.claude/rules/reachability.md) | stopping when a system does not answer, never substituting |
 | [`app-packs`](.claude/rules/app-packs.md) | which pack and environment, what a pack holds, a new pack |
-| [`registry`](.claude/rules/registry.md) | case ids, the registry format, the cited status of contract rules, statuses |
+| [`registry`](.claude/rules/registry.md) | case ids, the registry format, the cited status of contract rules, the tracker keys cases and contracts cite, statuses |
 | [`generation`](.claude/rules/generation.md) | from an approved case to a spec: layers, locators, every case, data |
 | [`tagging`](.claude/rules/tagging.md) | layer, dimension and handling tags |
 | [`reporting`](.claude/rules/reporting.md) | identity, what a result holds, runs |

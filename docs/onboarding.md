@@ -71,7 +71,8 @@ npm run gates
 ```
 
 Lint, format, types, configuration, the unit tests of the hooks, scripts and core, the QA linters
-with their self-tests, coverage and traceability, and the scans of the whole history. The
+with their self-tests, coverage and traceability, the tracker keys the registries cite, and the
+scans of the whole history. The
 `pre-push` hook runs it, so a push never carries a red gate. [`AGENTS.md`](../AGENTS.md#rules-that-apply-to-every-change)
 lists what it checks.
 

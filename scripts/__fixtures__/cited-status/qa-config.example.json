@@ -1,0 +1,8 @@
+{
+  "tracker": {
+    "provider": "local",
+    "options": { "dir": "tracker" },
+    "key_pattern": "BUG-\\d+",
+    "issue_url": "tracker/issues.json#{key}"
+  }
+}
