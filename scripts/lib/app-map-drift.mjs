@@ -136,7 +136,7 @@ export function driftLines(changes) {
 
 const plural = (count, noun) => `${count} ${noun}${count === 1 ? '' : 's'}`;
 
-const cell = (text) => text.replace(/\|/g, '\\|').replace(/`/g, "'");
+const cell = (text) => text.replace(/[\\|]/g, '\\$&').replace(/`/g, "'");
 
 /**
  * One pack's section of a Markdown summary, such as the one a GitHub job writes to

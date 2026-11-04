@@ -111,6 +111,14 @@ test('the drift reads as aligned lines and as a Markdown section', () => {
   });
   assert.match(piped, /1 difference from the tracked map:/);
   assert.match(piped, /\| `\/a\\\|b` \| element added: link "x \\\| y" \|/);
+  // A backslash before a pipe would otherwise cancel the pipe's escape and split the cell.
+  const slashed = driftMarkdown({
+    pack: 'shop',
+    baseUrl: 'http://shop.test',
+    routes: 1,
+    changes: [{ route: '/a', change: 'element added: link "x \\| y"' }],
+  });
+  assert.ok(slashed.includes('link "x \\\\\\| y" |'), slashed);
   assert.match(
     driftMarkdown({ pack: 'shop', baseUrl: 'http://shop.test', routes: 3, changes: [] }),
     /No drift: 3 routes match the tracked map\./,
