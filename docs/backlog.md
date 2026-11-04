@@ -53,7 +53,7 @@ Every item of v0.1.0 is done; each is in **Done**.
 | FUT-09 | Extract a shared core with the sibling API framework once both are stable. | plan | todo |
 | FUT-17 | `cited-status` also reads the keys cited in specs (`knownGap`), `app-notes.md` and `a11y-known.json`, and a scheduled CI run covers a tracker reached over the network. | plan | todo |
 | CI-09 | Staged publishing for `create-web-qa`: the trusted publisher may only stage a version (`npm stage publish`, npm 11.15.0 or later), so a version reaches the registry only after the owner approves it on npm with two-factor authentication, beside the approval of the `npm` environment; the read-back waits for that approval or reads the version back by hand. | exp | todo |
-| CI-11 | The `apt` packages of `npm run ci:browsers` took 14 minutes on one runner of a pull request, against 4 to 11 seconds on the others of the same run (114 MB at 132 kB/s from the Ubuntu mirror), and over 20 minutes on another. The job limit of CI-10 bounds it; if it happens again, cache the packages or install them another way. A cache of the browsers would not help: they take about 13 seconds. | exp | todo |
+| CI-11 | The 181 `apt` packages (114 MB) `npm run ci:browsers` installs take seconds on most runners and from 8 minutes to over 30 on some: about one attempt in five had such a job over the 30 runs from 2026-11-03, while other jobs of the same run took under a minute. The browsers themselves take about 13 seconds, so a cache of them would not help: cache the packages. | exp | in-progress |
 
 ---
 
