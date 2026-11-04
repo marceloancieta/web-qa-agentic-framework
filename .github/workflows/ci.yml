@@ -9,6 +9,7 @@
 #         → zap lane: a ZAP baseline scan of a disposable Juice Shop the lane starts, judged by itself
 #   required: one verdict over all of the above, the check branch protection requires
 #   flake lane: weekly and on demand only
+#   performance: the web vitals and Lighthouse lanes, weekly and on demand only
 #
 # Under act, which sets ACT (docs/guides/running-tests.md), the artifact steps are skipped: its
 # artifact server does not speak the protocol of upload-artifact v7, so the reports stay in the job's
@@ -21,7 +22,7 @@ on:
   pull_request:
   workflow_dispatch:
   schedule:
-    - cron: '0 6 * * 1' # Mondays 06:00 UTC: the flake lane
+    - cron: '0 6 * * 1' # Mondays 06:00 UTC: the flake and performance lanes
 
 permissions:
   contents: read
@@ -215,4 +216,31 @@ jobs:
         with:
           name: lane-flake
           path: reports/lanes/
+          retention-days: 30
+
+  # The performance lanes (ADR 0012): web vitals against the ci budgets of qa-config, then
+  # Lighthouse. Weekly and on demand, outside the required check: timings on a shared runner vary
+  # from run to run, and a budget is calibrated on what this job reports before it gates a change.
+  performance:
+    if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm run ci:browsers
+      - run: npm run juice-shop:up
+      - run: npm run lanes:web-vitals -- --project='juice-shop-*'
+      - if: ${{ !cancelled() }}
+        run: npm run lanes:lighthouse -- --pack juice-shop
+      - if: ${{ always() && !env.ACT }}
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: lane-performance
+          path: |
+            reports/lanes/
+            reports/lighthouse/
           retention-days: 30

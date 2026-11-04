@@ -39,7 +39,7 @@ test('only the WebKit projects leave out @not-webkit', () => {
 test('a plain run leaves out destructive, quarantined, visual and sweep tests, and keeps the rest', () => {
   const filter = projectTagFilter('desktop', {});
   assert.equal(filter.grep, undefined);
-  for (const tag of ['@destructive', '@quarantine', '@visual', '@a11y-sweep']) {
+  for (const tag of ['@destructive', '@quarantine', '@visual', '@a11y-sweep', '@web-vitals']) {
     assert.equal(runs(filter, `case ${tag}`), false, tag);
   }
   for (const title of [
@@ -73,6 +73,15 @@ test('the a11y lane selects only the sweep, not the @a11y cases', () => {
   assert.equal(runs(filter, 'a11y sweep @a11y-sweep @quarantine'), false);
   assert.equal(runs(filter, 'a11y sweep @a11y-sweep @desktop-only'), false);
   assert.equal(runs(projectTagFilter('desktop', {}), 'axe on the form @a11y'), true);
+});
+
+test('the web vitals lane selects only the vitals measurements, not the @perf cases', () => {
+  const filter = projectTagFilter('mobile', { QA_WEB_VITALS: '1' });
+  assert.equal(runs(filter, 'web vitals /#/search @regression @web-vitals'), true);
+  assert.equal(runs(filter, 'TC-SEARCH-07 spinner while loading @regression @perf'), false);
+  assert.equal(runs(filter, 'web vitals @web-vitals @quarantine'), false);
+  assert.equal(runs(filter, 'web vitals @web-vitals @desktop-only'), false);
+  assert.equal(runs(filter, 'a11y sweep @a11y-sweep'), false);
 });
 
 test('the flake lane keeps quarantined cases', () => {

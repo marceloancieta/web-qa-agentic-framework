@@ -28,6 +28,8 @@
     "lanes:flake": "node scripts/lanes.mjs flake",
     "lanes:a11y": "node scripts/lanes.mjs a11y",
     "lanes:zap": "node scripts/zap-lane.mjs",
+    "lanes:web-vitals": "node scripts/lanes.mjs web-vitals",
+    "lanes:lighthouse": "node scripts/lighthouse-lane.mjs",
     "test:smoke": "playwright test --grep @smoke",
     "scaffold:app": "node scripts/scaffold-app.mjs",
     "app:map": "node scripts/app-map.mjs",
@@ -89,6 +91,7 @@
     "eslint": "^10.12.0",
     "eslint-config-prettier": "^10.1.8",
     "globals": "^17.13.0",
+    "lighthouse": "13.5.0",
     "prettier": "^3.9.9",
     "typescript": "^6.0.3",
     "typescript-eslint": "^8.71.0"

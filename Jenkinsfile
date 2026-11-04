@@ -19,7 +19,10 @@ def shell(Map options = [:], String command) {
   return bat(options + [script: "@${command}"])
 }
 
-/** A build the weekly timer started, or one asked for with FLAKE_LANE, runs only the flake lane. */
+/**
+ * A build the weekly timer started, or one asked for with FLAKE_LANE, runs only the weekly lanes:
+ * flake, then the performance lanes.
+ */
 def flakeBuild() {
   return params.FLAKE_LANE ||
     !currentBuild.getBuildCauses('hudson.triggers.TimerTrigger$TimerTriggerCause').isEmpty()
@@ -77,14 +80,14 @@ pipeline {
     string(name: 'SHARDS', defaultValue: '4', description: 'How many shards the suite is split into; they run one after another.')
     string(name: 'WORKERS', defaultValue: '', description: 'Playwright workers of each run; empty means the Playwright default. Fewer suit an agent whose browsers are slow.')
     booleanParam(name: 'BROWSER_DEPS', defaultValue: false, description: 'Also install the system packages the browsers need. It needs administrator rights on the agent; once per agent is enough.')
-    booleanParam(name: 'FLAKE_LANE', defaultValue: false, description: 'Run only the flake lane.')
+    booleanParam(name: 'FLAKE_LANE', defaultValue: false, description: 'Run only the weekly lanes: flake, then the performance lanes.')
     string(name: 'ALLURE_TOKEN_CREDENTIALS_ID', defaultValue: '', description: 'Secret-text credential with an Allure TestOps API token. Set: the run is reported to TestOps instead of the tool in qa-config.')
     string(name: 'ALLURE_ENDPOINT', defaultValue: '', description: 'Allure TestOps instance URL, with ALLURE_TOKEN_CREDENTIALS_ID.')
     string(name: 'ALLURE_PROJECT_ID', defaultValue: '', description: 'Allure TestOps project id, with ALLURE_TOKEN_CREDENTIALS_ID.')
   }
 
   triggers {
-    cron('H 6 * * 1') // weekly: the flake lane (see flakeBuild)
+    cron('H 6 * * 1') // weekly: the flake and performance lanes (see flakeBuild)
   }
 
   options {
@@ -232,6 +235,22 @@ pipeline {
         shell 'npm run juice-shop:up'
         withEnv([junitOf('flake')]) {
           shell "npm run lanes:flake -- ${playwrightOptions()}"
+        }
+      }
+    }
+
+    // The performance lanes (ADR 0012) in the same weekly build: web vitals on one worker, then
+    // Lighthouse, each failing the build without stopping the other.
+    stage('Performance lanes') {
+      when { expression { flakeBuild() } }
+      steps {
+        withEnv([junitOf('web-vitals')]) {
+          catchError(buildResult: 'FAILURE', stageResult: 'FAILURE') {
+            shell "npm run lanes:web-vitals -- ${playwrightOptions(false)}"
+          }
+        }
+        catchError(buildResult: 'FAILURE', stageResult: 'FAILURE') {
+          shell 'npm run lanes:lighthouse -- --pack juice-shop'
         }
       }
     }

@@ -73,6 +73,10 @@ const test = createTest(provider).extend<object, { fakeApp: FakeApp & { close():
           baseUrl: fakeApp.url,
           allowWrites: true,
           recovery: null,
+          // The unit project has no device, so its own name keys the budget.
+          performance: {
+            web_vitals: { samples: 3, budgets: { unit: { lcp_ms: 2500, cls: 0.1, inp_ms: 200 } } },
+          },
           actors: {
             customer: { account: 'provisioned' },
             admin: { account: 'existing', username_env: ADMIN_USER, password_env: ADMIN_PASS },
@@ -240,6 +244,23 @@ test('the redaction policy has learned the session secrets', async ({ actor, red
   const customer = await actor();
   expect(redaction.knownSecrets).toContain(customer.account?.password);
   expect(redaction.knownSecrets.length).toBeGreaterThanOrEqual(2);
+});
+
+test('web vitals: every visit in a new context of the role, the medians judged and attached', async ({
+  vitals,
+  fakeApp,
+}, testInfo) => {
+  const before = fakeApp.hits.filter((hit) => hit === 'GET /').length;
+  const { budget, medians } = await vitals.expectWithinBudget('/', async (page) => {
+    await page.goto('/');
+    await expect(page.getByText('Signed out')).toBeVisible();
+    await page.getByRole('heading', { name: 'Account' }).click();
+  });
+  expect(budget).toEqual({ lcp_ms: 2500, cls: 0.1, inp_ms: 200 });
+  expect(medians.lcpMs).not.toBeNull();
+  expect(medians.inpMs).not.toBeNull();
+  expect(fakeApp.hits.filter((hit) => hit === 'GET /').length - before).toBe(3);
+  expect(testInfo.attachments.map((a) => a.name)).toContain('web vitals /');
 });
 
 test.describe('the page health guard', () => {

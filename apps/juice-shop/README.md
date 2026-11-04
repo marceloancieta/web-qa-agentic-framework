@@ -50,6 +50,7 @@ banners and fix the language. Accounts are not removed; the [application notes](
 | `specs/login/`, `specs/signup/`, `specs/basket/`, `specs/search/` | each feature's automated cases |
 | `specs/journeys/`, `specs/checkout/` | the journeys (`@e2e`) and the checkout cases |
 | `specs/a11y/` | the accessibility sweep (`@a11y-sweep`): every route of the app maps, as each map's role, against `a11y-known.json`; only `QA_A11Y_SWEEP=1` selects it (`helpers/a11y-sweep.ts`) |
+| `specs/perf/` | the web vitals (`@web-vitals`) of the product list and the login page, against the environment's budget; only `npm run lanes:web-vitals` selects them (ADR 0012) |
 | `specs/visual/`, `visual/` | the visual cases and their baselines, one per device project, rendered in the pinned image: `npm run lanes:visual` compares, `npm run lanes:visual -- --phase automate --update` rewrites them (ADR 0009) |
 | `visual.css` | parts hidden in every visual comparison because they change between starts, such as the cards' stock ribbons (`app.json` `visual.stylePath`) |
 | `docs/app-map.json` | the app map: `npm run app:map -- --pack juice-shop --write` walks the routes of `app.json` `app_map` read-only; `npm run app:map:check -- --pack juice-shop` reports drift |

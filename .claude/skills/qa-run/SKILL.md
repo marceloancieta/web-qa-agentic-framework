@@ -30,13 +30,16 @@ description: >-
      `zap-known.json`. It scans a disposable copy of the application that it starts and removes
      (`<pack>-scan` in `docker/compose.yml`), never the one the other lanes use, so it may run
      beside them; it refuses a pack whose base URL is not on this machine.
+   - `npm run lanes:web-vitals`: the `@web-vitals` tests on one worker, medians of LCP, CLS and INP
+     against the environment's budget; `npm run lanes:lighthouse`: Lighthouse scores of the routes
+     qa-config lists, reported in `reports/lighthouse/` only (ADR 0012).
 
    Every run also sweeps the security headers of each pack's documents (`specs/security/`,
    `@security`) against its `headers-known.json`; a new gap fails like a new violation.
 
-   The lanes other than the visual one are `scripts/lanes.mjs`; a lane with no case says so and
-   runs nothing. If `--list` shows no test, say so and stop; never widen the selection on your own. `@visual`, `@destructive`, `@quarantine`
-   and `@a11y-sweep` tests are excluded from the device projects, and `@desktop-only`,
+   The lanes other than the visual and Lighthouse ones are `scripts/lanes.mjs`; a lane with no case says so and
+   runs nothing. If `--list` shows no test, say so and stop; never widen the selection on your own. `@visual`, `@destructive`, `@quarantine`,
+   `@a11y-sweep` and `@web-vitals` tests are excluded from the device projects, and `@desktop-only`,
    `@mobile-only` and `@not-webkit` cases from the projects they do not apply to (`projectTagFilter`
    in `scripts/lib/tags.mjs`); report them as left out, never as missing.
 2. **Check the environment**: `QA_ENV`, the pack's entry in it (`base_url`, `allow_writes`, the

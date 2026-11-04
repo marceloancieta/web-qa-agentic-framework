@@ -287,7 +287,10 @@ test('every required check of the repository settings is a job that runs on pull
 
 test('the required job depends on every other job of the change', () => {
   const { jobs } = workflow;
-  const others = Object.keys(jobs).filter((name) => !['required', 'flake'].includes(name));
+  // The weekly jobs (flake, performance) run on the schedule and on demand, never for a change.
+  const weekly = (name) => /^github\.event_name == 'schedule' \|\|/.test(jobs[name].if ?? '');
+  assert.ok(weekly('flake') && weekly('performance'));
+  const others = Object.keys(jobs).filter((name) => name !== 'required' && !weekly(name));
   assert.deepEqual([...jobs.required.needs].sort(), others.sort());
   assert.match(jobs.required.if, /always\(\)/, 'it reports even when a job it needs failed');
 });

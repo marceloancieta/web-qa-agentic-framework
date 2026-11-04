@@ -45,6 +45,7 @@ A registry declares which dimensions apply, and each one that applies needs a ca
 |---|---|
 | `@visual` | compares screenshots; only the visual lane, in the pinned container, selects it |
 | `@a11y-sweep` | a test of the accessibility sweep, one per route of the app maps and role (`helpers/a11y-sweep.ts`), not a designed case; only the a11y lane (`QA_A11Y_SWEEP=1`) selects it |
+| `@web-vitals` | a web vitals measurement of a pack's page against the environment's budget (`vitals.expectWithinBudget`, `helpers/web-vitals.ts`), several timed visits, not a designed case; only the web vitals lane (`QA_WEB_VITALS=1`, one worker) selects it |
 | `@i18n` | depends on a locale project (v0.2) |
 | `@mocked` | the answer the case depends on comes from a mock; traceability refuses a requirement covered only by such cases |
 | `@known-gap` | armed with `knownGap(key, why)` because an open issue keeps it red |

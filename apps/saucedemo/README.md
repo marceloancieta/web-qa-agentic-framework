@@ -30,6 +30,7 @@ or the local `.env`; `.env.example` says where their values come from.
 | `pages/` | `home-page.ts`, `inventory-page.ts` |
 | `specs/smoke/` | the home page smoke and the sign-in smoke of the harness (no case ids) |
 | `specs/a11y/` | the accessibility sweep over the app maps |
+| `specs/perf/` | the web vitals (`@web-vitals`) of the login page, a few anonymous visits; only `npm run lanes:web-vitals` selects them (ADR 0012) |
 | `docs/app-map.json`, `docs/app-map.standard.json` | the app map, anonymous and as `standard` |
 | `docs/app-notes.md` | where the application departs from what its pages show |
 

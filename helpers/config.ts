@@ -6,6 +6,7 @@
 import { readFileSync } from 'node:fs';
 import { join, resolve } from 'node:path';
 import { DEFAULT_DEVICES, isDeviceName, type DeviceName } from './devices';
+import type { WebVitalsConfig } from './web-vitals';
 
 export const REPO_ROOT = resolve(__dirname, '..');
 
@@ -18,10 +19,24 @@ export interface RecoveryConfig {
   ready_timeout_s?: number;
 }
 
+/**
+ * The performance budgets of a pack in one environment: the web vitals lane's
+ * (`helpers/web-vitals.ts`) and the Lighthouse lane's (`scripts/lighthouse-lane.mjs`).
+ */
+export interface PerformanceConfig {
+  web_vitals?: WebVitalsConfig;
+  lighthouse?: {
+    routes: string[];
+    runs?: number;
+    min_scores: Partial<Record<'desktop' | 'mobile', Record<string, number>>>;
+  };
+}
+
 interface PackEntry {
   base_url: string;
   allow_writes?: boolean;
   recovery?: RecoveryConfig;
+  performance?: PerformanceConfig;
   actors: Record<string, ActorConfig>;
   default_actor?: string;
 }
@@ -61,6 +76,7 @@ export interface QaRuntime extends QaSettings {
   baseUrl: string;
   allowWrites: boolean;
   recovery: RecoveryConfig | null;
+  performance: PerformanceConfig | null;
   actors: Record<string, ActorConfig>;
   defaultActor: string;
 }
@@ -165,6 +181,7 @@ export function loadRuntime(
     baseUrl: (env[packVariable(pack, 'BASE_URL')] || entry.base_url).replace(/\/+$/, ''),
     allowWrites: entry.allow_writes ?? false,
     recovery: entry.recovery ?? null,
+    performance: entry.performance ?? null,
     actors: entry.actors ?? {},
     defaultActor: entry.default_actor ?? actorNames[0] ?? ANONYMOUS_ACTOR,
   };

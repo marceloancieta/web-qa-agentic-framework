@@ -9,8 +9,11 @@
  *                                                                worker, then each pack's recovery
  *   npm run lanes:flake -- [--repeat <n>] [playwright options]   the @quarantine cases <n> times
  *                                                                each (10), without retries
+ *   npm run lanes:web-vitals -- [playwright options]             the @web-vitals measurements on
+ *                                                                one worker
  *
  * The visual lane has a script of its own (`scripts/visual-lane.mjs`): it runs in the pinned image.
+ * So has the Lighthouse lane (`scripts/lighthouse-lane.mjs`), which runs no Playwright test.
  *
  * A lane lists its selection first: with no case in it, it says so and runs nothing. Playwright
  * options pass through (`--project=juice-shop-*`, a spec file, a `--grep` that narrows the lane's
@@ -46,6 +49,8 @@ import {
   MOCKED_TAG,
   QUARANTINE_TAG,
   VISUAL_LANE_ENV,
+  WEB_VITALS_LANE_ENV,
+  WEB_VITALS_TAG,
 } from './lib/tags.mjs';
 import { appPacks } from './tm/manifest.mjs';
 
@@ -73,13 +78,21 @@ export const LANES = {
   },
   // The accessibility sweep over the app maps (helpers/a11y-sweep.ts): one test per route and role.
   a11y: { tag: A11Y_SWEEP_TAG, env: { [A11Y_SWEEP_LANE_ENV]: '1' } },
+  // Web vitals against each pack's budget (helpers/web-vitals.ts): one worker, so no other browser
+  // competes for the CPU while a visit is timed.
+  'web-vitals': {
+    tag: WEB_VITALS_TAG,
+    env: { [WEB_VITALS_LANE_ENV]: '1' },
+    args: ['--workers=1'],
+  },
   // A new lane is one more entry, plus `"lanes:<name>": "node scripts/lanes.mjs <name>"` in
   // package.json.
 };
 
 export const USAGE =
   'usage: node scripts/lanes.mjs <lane> [--repeat <n>] [playwright options]\n' +
-  `lanes: ${Object.keys(LANES).join(', ')} (npm run lanes:<lane>); the visual lane is npm run lanes:visual`;
+  `lanes: ${Object.keys(LANES).join(', ')} (npm run lanes:<lane>); the visual lane is npm run lanes:visual, ` +
+  'the Lighthouse lane npm run lanes:lighthouse';
 
 const ALIASES = { '-g': '--grep', '-j': '--workers', '-u': '--update-snapshots' };
 

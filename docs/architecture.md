@@ -131,11 +131,13 @@ web-qa-agentic-framework/
 - `app.default_environment`, and `app.accessibility.tags` for axe
 - `app.environments.<env>.projects`: the device projects the environment runs
 - `app.environments.<env>.packs.<pack>`: `base_url`, `allow_writes`,
-  `recovery{command, ready_timeout_s}`, `actors{<role>: {account, ...}}` and `default_actor`
+  `recovery{command, ready_timeout_s}`, `actors{<role>: {account, ...}}`, `default_actor`, and
+  `performance{web_vitals, lighthouse}`, the budgets of the performance lanes
+  ([ADR 0012](adr/0012-performance-lanes.md))
 - `test_management` and `tracker`: the adapter each one uses, with its options; `policies`: the
   commit rules `git-policy` applies
 - `quality_gate`: `pass_rate`, new accessibility violations per impact, visual differences, and the
-  `mutation` score of `npm run mutation`; web vitals in v0.2
+  `mutation` score of `npm run mutation`
 
 ## 2. Devices and selectors
 
@@ -221,10 +223,12 @@ web-qa-agentic-framework/
 ## 5. CI that does not depend on a vendor, and the browser matrix
 
 - **The contract is npm plus Docker:** `npm run gates`, `npm test -- --project=...`, the lanes
-  (`visual`, `a11y`, `known-gap`, `destructive`, `flake`, `zap`), `npm run tm:report`. CI files only call
+  (`visual`, `a11y`, `known-gap`, `destructive`, `flake`, `zap`, `web-vitals`, `lighthouse`),
+  `npm run tm:report`. CI files only call
   these scripts: [`.github/workflows/ci.yml`](../.github/workflows/ci.yml) (primary) and the
   [`Jenkinsfile`](../Jenkinsfile) ([Jenkins](guides/jenkins.md): the same steps on one agent,
-  Windows or Linux), checked by `scripts/__tests__/ci-files.test.mjs`. The flake lane runs
+  Windows or Linux), checked by `scripts/__tests__/ci-files.test.mjs`. The flake lane and the
+  performance lanes (web vitals and Lighthouse, [ADR 0012](adr/0012-performance-lanes.md)) run
   weekly and on demand, outside the pipeline of each change, and so does the app map drift check
   ([`app-map-drift.yml`](../.github/workflows/app-map-drift.yml)). `act` runs the GitHub jobs on a
   local machine before a workflow change is pushed

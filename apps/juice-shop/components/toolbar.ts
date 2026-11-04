@@ -32,6 +32,11 @@ export class Toolbar {
     await this.searchBox().press('Enter');
   }
 
+  /** Open the side navigation: a read-only interaction on every page and device. */
+  async openSideNav(): Promise<void> {
+    await this.page.getByRole('button', { name: 'Open Sidenav' }).click();
+  }
+
   async openSearch(): Promise<void> {
     await this.page.getByRole('button', { name: 'Open search' }).click();
   }

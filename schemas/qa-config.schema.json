@@ -446,6 +446,118 @@
           "description": "The actor a test gets when it names none. Default: the first actor listed.",
           "type": "string",
           "pattern": "^[a-z][a-z0-9-]*$"
+        },
+        "performance": {
+          "description": "The pack's performance budgets in this environment. Measured numbers depend on the machine and the network, so each environment sets its own; a pack without them is skipped by the web vitals lane and left out by the Lighthouse lane, with the reason. Never set them for a production host.",
+          "type": "object",
+          "additionalProperties": false,
+          "minProperties": 1,
+          "properties": {
+            "web_vitals": {
+              "description": "The web vitals lane (npm run lanes:web-vitals, helpers/web-vitals.ts): each @web-vitals test visits its page `samples` times and fails when a median is over the budget of its device project.",
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["budgets"],
+              "properties": {
+                "samples": {
+                  "description": "Visits per test; the median of each metric is judged. An odd number gives a median that one visit measured.",
+                  "type": "integer",
+                  "minimum": 1,
+                  "maximum": 15,
+                  "default": 5
+                },
+                "budgets": {
+                  "description": "`default` for every device project, and a device project's name for what differs on it (merged over the default).",
+                  "type": "object",
+                  "minProperties": 1,
+                  "propertyNames": {
+                    "anyOf": [{ "const": "default" }, { "$ref": "#/$defs/device" }]
+                  },
+                  "additionalProperties": {
+                    "$ref": "#/$defs/vitalsBudget"
+                  }
+                }
+              }
+            },
+            "lighthouse": {
+              "description": "The Lighthouse lane (npm run lanes:lighthouse, scripts/lighthouse-lane.mjs): each route is audited `runs` times per form factor in `min_scores`, and the median score of each category must reach its minimum.",
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["routes", "min_scores"],
+              "properties": {
+                "routes": {
+                  "description": "Paths under base_url, such as \"/#/search\". Keep the list short on a host someone else runs.",
+                  "type": "array",
+                  "minItems": 1,
+                  "uniqueItems": true,
+                  "items": {
+                    "type": "string",
+                    "pattern": "^/"
+                  }
+                },
+                "runs": {
+                  "description": "Audits per route and form factor; the median score is judged.",
+                  "type": "integer",
+                  "minimum": 1,
+                  "maximum": 9,
+                  "default": 3
+                },
+                "min_scores": {
+                  "description": "Per form factor Lighthouse emulates, the lowest score (0-100) each category may have.",
+                  "type": "object",
+                  "additionalProperties": false,
+                  "minProperties": 1,
+                  "properties": {
+                    "desktop": {
+                      "$ref": "#/$defs/lighthouseScores"
+                    },
+                    "mobile": {
+                      "$ref": "#/$defs/lighthouseScores"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "vitalsBudget": {
+      "description": "The highest median each metric may reach; a metric left out is not judged.",
+      "type": "object",
+      "additionalProperties": false,
+      "minProperties": 1,
+      "properties": {
+        "lcp_ms": {
+          "description": "Largest Contentful Paint, in milliseconds.",
+          "type": "number",
+          "exclusiveMinimum": 0
+        },
+        "cls": {
+          "description": "Cumulative Layout Shift, unitless.",
+          "type": "number",
+          "minimum": 0
+        },
+        "inp_ms": {
+          "description": "Interaction to Next Paint, in milliseconds.",
+          "type": "number",
+          "exclusiveMinimum": 0
+        }
+      }
+    },
+    "lighthouseScores": {
+      "type": "object",
+      "additionalProperties": false,
+      "minProperties": 1,
+      "properties": {
+        "performance": {
+          "$ref": "#/$defs/percent"
+        },
+        "accessibility": {
+          "$ref": "#/$defs/percent"
+        },
+        "best-practices": {
+          "$ref": "#/$defs/percent"
         }
       }
     },
