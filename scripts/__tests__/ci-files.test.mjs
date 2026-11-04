@@ -285,6 +285,15 @@ test('every required check of the repository settings is a job that runs on pull
   }
 });
 
+test('every job of the GitHub workflow has a time limit', () => {
+  // Without one, a step that hangs holds its job until GitHub's six-hour limit.
+  for (const [name, job] of Object.entries(workflow.jobs)) {
+    const minutes = job['timeout-minutes'];
+    assert.ok(Number.isInteger(minutes) && minutes > 0, `job ${name} has no timeout-minutes`);
+    assert.ok(minutes <= 60, `job ${name}: ${minutes} minutes is more than an hour`);
+  }
+});
+
 test('the required job depends on every other job of the change', () => {
   const { jobs } = workflow;
   // The weekly jobs (flake, performance) run on the schedule and on demand, never for a change.
