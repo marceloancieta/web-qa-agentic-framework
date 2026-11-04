@@ -11,7 +11,7 @@ machine ([running tests](running-tests.md)).
 | Install | `npm ci`, then the browsers: `npm run ci:browsers:no-deps`, or `npm run ci:browsers` with `BROWSER_DEPS` |
 | Gates | `npm run gates` |
 | Suite | Juice Shop, then the suite in `SHARDS` shards, one after another, each adding its blob report |
-| Lanes | the accessibility, visual and destructive lanes, the destructive one last, since it restarts Juice Shop |
+| Lanes | the accessibility, visual, ZAP and destructive lanes, the destructive one last, since it restarts Juice Shop |
 | Report | `npm run ci:merge`, the quality gate over the suite and the lanes, then `npm run tm:report`, to Allure TestOps when the build names its token ([below](#reporting-to-allure-testops)) |
 | Flake lane | instead of the stages above, in a build the weekly timer starts or one with `FLAKE_LANE` |
 

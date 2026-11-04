@@ -61,8 +61,18 @@ Playwright options (`--project`, a spec file, a narrower `--grep`) and writes it
 | `npm run lanes:known-gap` | the `@known-gap` cases | then a summary of which gaps still fail as armed and which now pass |
 | `npm run lanes:destructive` | the `@destructive` cases | one worker, then each selected pack's recovery; refused for a pack without one |
 | `npm run lanes:flake` | the `@quarantine` cases, ten times each, without retries | weekly in CI |
+| `npm run lanes:zap -- --pack <pack>` | OWASP ZAP's baseline scan (a spider, then the passive scan) of one pack, in the ZAP image pinned in `docker/compose.yml` | local packs only: it refuses a host that is not a loopback address or an application of `docker/compose.yml`. New alerts of risk Low or above fail; known ones are in the pack's `zap-known.json` with a tracker key, an expiry and a reason. Reports in `reports/zap/` ([ADR 0011](../adr/0011-security-headers-and-zap-lane.md)) |
 
-How each lane is built is described at the top of [`scripts/lanes.mjs`](../../scripts/lanes.mjs).
+How each lane is built is described at the top of [`scripts/lanes.mjs`](../../scripts/lanes.mjs),
+and the ZAP lane at the top of [`scripts/zap-lane.mjs`](../../scripts/zap-lane.mjs).
+
+Against Juice Shop, run the ZAP lane after the lanes that open pages, or against a Juice Shop of its
+own; the [Juice Shop skill](../../.claude/skills/juice-shop-ui/SKILL.md) says why, under Run. In CI
+it has a job and a Juice Shop of its own.
+
+The security headers of each pack's documents are checked in every run, not in a lane: the sweep in
+`apps/<pack>/specs/security/headers.spec.ts` opens one route per document of the app maps and fails
+on a gap its `headers-known.json` does not list (`helpers/security-headers.ts` names the rules).
 
 Baselines are design, not execution: only the automate phase rewrites them, with
 `npm run lanes:visual -- --phase automate --update`, and the diff images are shown at its gate.

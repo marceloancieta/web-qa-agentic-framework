@@ -15,6 +15,9 @@
 //   page        test     Playwright's page, watched by the page health guard
 //   pageHealth  option   test.use({ pageHealth: { off: '<why>' } }) switches the guard off
 //   a11y        test     a11y.expectNoNewViolations(page) against the pack's baseline
+//   securityHeaders test securityHeaders.expectNoNewGaps(page) checks the responses of the pack's
+//                        origin the page received against headers-known.json; every page the
+//                        fixtures open is recorded from its first navigation
 //   visual      test     visual.expectToMatch(target, name, mask, { wholePage }) with the pack's settings,
 //                        and expectNotToMatch for a view that must differ from a baseline
 
@@ -65,6 +68,15 @@ import {
   type PageHealthOptions,
 } from '../helpers/page-health';
 import type { RedactionPolicy } from '../helpers/redact';
+import {
+  compareWithKnownGaps,
+  evaluate,
+  headerReport,
+  loadHeaderBaseline,
+  recordedResponses,
+  recordResponses,
+  type HeaderComparison,
+} from '../helpers/security-headers';
 import { newApiContext } from '../helpers/api-context';
 import { applyCaseMeta } from '../helpers/case-meta';
 import { rememberSecret } from '../helpers/run-secrets';
@@ -97,6 +109,14 @@ export interface CoreTestFixtures {
       page: Page,
       options?: { include?: string[]; exclude?: string[] },
     ): Promise<BaselineComparison>;
+  };
+  securityHeaders: {
+    /**
+     * Check the responses of the pack's origin this page received since it opened (documents, and
+     * the cookies documents and XHR or fetch answers set) against the pack's known gaps. Fails on a
+     * new gap, and when the page loaded no document of the pack.
+     */
+    expectNoNewGaps(page: Page): Promise<HeaderComparison>;
   };
   visual: {
     /**
@@ -297,9 +317,10 @@ export function createTest(provider: ActorProvider) {
       await provider.prepareContext?.(context, qa);
       await use(context);
     },
-    page: async ({ page, pageHealth }, use, testInfo) => {
+    page: async ({ page, pageHealth, qa }, use, testInfo) => {
       checkOptions(pageHealth);
       const guard = watchPageHealth(page, pageHealth);
+      recordResponses(page, qa.baseUrl);
       await use(page);
       await verifyHealth(guard, pageHealth, testInfo);
     },
@@ -334,6 +355,7 @@ export function createTest(provider: ActorProvider) {
         }
         const page = await context.newPage();
         const guard = watchPageHealth(page, pageHealth);
+        recordResponses(page, qa.baseUrl);
         const api = await newApiContext(playwright, {
           baseURL: `${qa.baseUrl}/`,
           storageState: session?.signedIn.storageState,
@@ -364,6 +386,32 @@ export function createTest(provider: ActorProvider) {
           const comparison = compareWithBaseline(violations, baseline, route);
           await attachJson(testInfo, `axe ${route}`, { comparison, results }, redaction);
           const report = violationReport(comparison, baselineFile);
+          if (report) throw new Error(report);
+          return comparison;
+        },
+      });
+    },
+
+    securityHeaders: async ({ qa, app, redaction }, use, testInfo) => {
+      const baselineFile = join(app.dir, 'headers-known.json');
+      const baseline = loadHeaderBaseline(baselineFile);
+      await use({
+        async expectNoNewGaps(page) {
+          const responses = await recordedResponses(page);
+          if (responses === null) {
+            throw new Error(
+              'securityHeaders: this page is not recorded; use the page of the fixtures or an actor.',
+            );
+          }
+          if (!responses.some((response) => response.kind === 'document')) {
+            throw new Error(
+              `securityHeaders: the page loaded no document of ${qa.baseUrl} yet; open a route first.`,
+            );
+          }
+          const comparison = compareWithKnownGaps(evaluate(responses), baseline);
+          // The comparison names rules, routes and cookies, never a header's or a cookie's value.
+          await attachJson(testInfo, 'security headers', comparison, redaction);
+          const report = headerReport(comparison, baselineFile);
           if (report) throw new Error(report);
           return comparison;
         },

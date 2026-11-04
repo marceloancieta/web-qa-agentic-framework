@@ -20,6 +20,7 @@ the locator order in ADR 0007; `apps/juice-shop/` is the worked example.
 | A business task used by two or more specs | `flows/` | calls the flow; a flow does not assert |
 | Combinations of conditions | `rules/<case id>.yaml` decision tables | iterates `loadDecisionTable` (`scripts/lib/decision-table.mjs`), one step per combination |
 | Accessibility | the `a11y` fixture: `a11y.expectNoNewViolations(page)` against `a11y-known.json` | scans the state the case is about, after it settles |
+| Security headers | the `securityHeaders` fixture: `securityHeaders.expectNoNewGaps(page)` against `headers-known.json`, over every response of the pack's origin the page received; each pack's `specs/security/headers.spec.ts` already sweeps its documents | checks the page after the step whose answer the case is about |
 | Visual | the `visual` fixture: `visual.expectToMatch(target, name, mask, { wholePage })`; masks belong to the page object; `wholePage` when the case claims more than the first screen; `visual.expectNotToMatch` with the same arguments when the case claims a view differs from a baseline another step wrote | carries `@visual`; runs only in the visual lane |
 | Keyboard, overflow, time, files | `helpers/keyboard.ts`, `helpers/layout.ts`, `helpers/time.ts`, `helpers/files.ts` | asserts on what they return |
 

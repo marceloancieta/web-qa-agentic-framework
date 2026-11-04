@@ -25,7 +25,13 @@ description: >-
    - `npm run lanes:destructive`: the `@destructive` cases on one worker, then the `recovery` of
      every pack it selected, whatever the run did. It writes: step 3 waits for "go";
    - `npm run lanes:flake -- --repeat <n>`: the `@quarantine` cases `n` times each (10), without
-     retries, then the failed repetitions per case.
+     retries, then the failed repetitions per case;
+   - `npm run lanes:zap -- --pack <pack>`: a ZAP baseline scan of a local pack, judged against its
+     `zap-known.json`. It refuses any host that is not on this machine. Against Juice Shop, run it
+     after the lanes that open pages (the `juice-shop-ui` skill says why).
+
+   Every run also sweeps the security headers of each pack's documents (`specs/security/`,
+   `@security`) against its `headers-known.json`; a new gap fails like a new violation.
 
    The lanes other than the visual one are `scripts/lanes.mjs`; a lane with no case says so and
    runs nothing. If `--list` shows no test, say so and stop; never widen the selection on your own. `@visual`, `@destructive`, `@quarantine`

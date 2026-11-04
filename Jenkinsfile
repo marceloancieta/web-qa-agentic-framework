@@ -174,7 +174,7 @@ pipeline {
     stage('Lanes') {
       when { expression { !flakeBuild() } }
       steps {
-        // One Juice Shop for the three lanes, so the destructive one, which restarts it, goes last.
+        // One Juice Shop for the four lanes, so the destructive one, which restarts it, goes last.
         // A failing lane marks the build failed; the next lanes and the report still run.
         withEnv([junitOf('a11y')]) {
           catchError(buildResult: 'FAILURE', stageResult: 'FAILURE') {
@@ -186,6 +186,13 @@ pipeline {
         withEnv([junitOf('visual'), 'QA_JUICE_SHOP_BASE_URL=http://juice-shop:3000']) {
           catchError(buildResult: 'FAILURE', stageResult: 'FAILURE') {
             shell "npm run lanes:visual -- ${playwrightOptions()}"
+          }
+        }
+        // The ZAP baseline lane, after the lanes that open pages: its spider can solve Juice Shop's
+        // challenges, whose notifications would show on them. It reaches Juice Shop the same way.
+        withEnv(['QA_JUICE_SHOP_BASE_URL=http://juice-shop:3000']) {
+          catchError(buildResult: 'FAILURE', stageResult: 'FAILURE') {
+            shell 'npm run lanes:zap -- --pack juice-shop'
           }
         }
         withEnv([junitOf('destructive')]) {

@@ -30,7 +30,7 @@ the same commit.
 |---|---|---|
 | `@responsive` | responsiveness | a breakpoint's layout, no horizontal scroll, orientation |
 | `@perf` | perceived performance | a loading indicator appears and goes away, no flash of empty content |
-| `@security` | security in the UI | password fields, generic errors, protected routes, logout and Back, nothing sensitive in the URL or storage, injected text rendered as text |
+| `@security` | security in the UI | password fields, generic errors, protected routes, logout and Back, nothing sensitive in the URL or storage, injected text rendered as text, the security headers and cookies of the responses |
 | `@layout` | layout and design | alignment and overflow, broken images, the page health guard's findings as the subject of the case |
 | `@navigation` | navigation and interaction | disabled and focused states, Back and Forward, deep links, reload, a session across tabs |
 | `@a11y` | accessibility | axe against the baseline, keyboard order and focus, ARIA snapshots |

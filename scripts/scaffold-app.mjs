@@ -10,8 +10,9 @@
  *       writes the pack. Refuses when apps/<pack>/ already exists: a pack is never overwritten.
  *
  * The skeleton runs at once: a provider that knows no accounts yet (anonymous only), a home page
- * object, a smoke spec that opens the home page under the page health guard, and the accessibility
- * sweep over the app maps, which the a11y lane runs once `npm run app:map` has written one.
+ * object, a smoke spec that opens the home page under the page health guard, the accessibility
+ * sweep over the app maps, which the a11y lane runs once `npm run app:map` has written one, and the
+ * security headers sweep, which checks the root until there is a map.
  * Accounts, pages and cases come later, through the phases. The pack's skill,
  * .claude/skills/<pack>-ui/SKILL.md, is the example of docs/templates/pack-skill.md with the pack's
  * name and title filled in.
@@ -178,6 +179,50 @@ test.describe('a11y sweep', { tag: ['@regression', '@a11y-sweep'] }, () => {
 });
 `;
 
+// The same thin spec in every pack: helpers/security-headers.ts plans the documents and checks them.
+const headersSpec = (
+  plan,
+) => `// The security headers sweep: every document the app maps open, as the role each map was walked
+// as, checked against headers-known.json (helpers/security-headers.ts). Not registry cases, so the
+// titles carry no case id; a designed case checks its own pages with
+// securityHeaders.expectNoNewGaps(page). In a pairwise environment each project checks only the
+// roles the pairwise set gives it.
+
+import { pairwiseSkip } from '../../../../helpers/a11y-sweep';
+import { headerTargets } from '../../../../helpers/security-headers';
+import { test } from '../../fixtures';
+
+const plan = headerTargets('${plan.name}');
+
+test.describe('security headers', { tag: ['@regression', '@security'] }, () => {
+  // The sweep's subject is what the server sends. What the page health guard finds on a route
+  // opened directly belongs to the cases of that route's feature, which run with the guard on.
+  test.use({
+    pageHealth: {
+      off: 'the sweep checks response headers; page health belongs to the feature cases',
+    },
+  });
+  for (const problem of plan.problems) {
+    test(\`cannot plan: \${problem}\`, () => {
+      throw new Error(problem);
+    });
+  }
+
+  for (const target of plan.targets) {
+    test(\`headers \${target.role} \${target.document}\`, async ({
+      actor,
+      securityHeaders,
+    }, testInfo) => {
+      const skip = pairwiseSkip(target, testInfo.project);
+      test.skip(skip !== null, skip ?? '');
+      const { page } = await actor(target.role);
+      await page.goto(target.route);
+      await securityHeaders.expectNoNewGaps(page);
+    });
+  }
+});
+`;
+
 const PACK_SKILL_TEMPLATE = join(REPO_ROOT, 'docs', 'templates', 'pack-skill.md');
 
 /** The pack's skill: the fenced example of the pack skill template, with the pack filled in. */
@@ -240,10 +285,12 @@ export function scaffoldFiles(plan) {
     [`${dir}/README.md`, readme(plan)],
     [`${dir}/docs/app-notes.md`, appNotes(plan)],
     [`${dir}/a11y-known.json`, '[]\n'],
+    [`${dir}/headers-known.json`, '[]\n'],
     [`${dir}/fixtures.ts`, fixtures(plan)],
     [`${dir}/pages/home-page.ts`, homePage()],
     [`${dir}/specs/smoke/home.spec.ts`, smokeSpec(plan)],
     [`${dir}/specs/a11y/sweep.spec.ts`, sweepSpec(plan)],
+    [`${dir}/specs/security/headers.spec.ts`, headersSpec(plan)],
     [`.claude/skills/${plan.name}-ui/SKILL.md`, packSkill(plan)],
   ];
 }
