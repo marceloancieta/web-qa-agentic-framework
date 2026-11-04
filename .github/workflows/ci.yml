@@ -58,7 +58,15 @@ jobs:
       - run: npm ci
       # Outside the gates: it needs the registry, and a new advisory changes its outcome.
       - run: npm run audit:deps
+      - if: ${{ !env.ACT }}
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: ~/.cache/qa-apt-packages
+          key: apt-packages-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
+          restore-keys: apt-packages-${{ runner.os }}-
       - run: npm run ci:browsers
+        env:
+          QA_APT_CACHE: '1'
       - run: npm run gates
 
   suite:
@@ -78,7 +86,15 @@ jobs:
           node-version: 22
           cache: npm
       - run: npm ci
+      - if: ${{ !env.ACT }}
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: ~/.cache/qa-apt-packages
+          key: apt-packages-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
+          restore-keys: apt-packages-${{ runner.os }}-
       - run: npm run ci:browsers
+        env:
+          QA_APT_CACHE: '1'
       - run: npm run juice-shop:up
       - name: Run shard ${{ matrix.shard }} of ${{ matrix.total }}
         run: npm test -- --project='juice-shop-*' --shard=${{ matrix.shard }}/${{ matrix.total }}
@@ -108,7 +124,15 @@ jobs:
           node-version: 22
           cache: npm
       - run: npm ci
+      - if: ${{ !env.ACT }}
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: ~/.cache/qa-apt-packages
+          key: apt-packages-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
+          restore-keys: apt-packages-${{ runner.os }}-
       - run: npm run ci:browsers
+        env:
+          QA_APT_CACHE: '1'
       - run: npm run juice-shop:up
       - name: Run the ${{ matrix.lane }} lane
         if: matrix.lane != 'visual'
@@ -215,7 +239,15 @@ jobs:
           node-version: 22
           cache: npm
       - run: npm ci
+      - if: ${{ !env.ACT }}
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: ~/.cache/qa-apt-packages
+          key: apt-packages-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
+          restore-keys: apt-packages-${{ runner.os }}-
       - run: npm run ci:browsers
+        env:
+          QA_APT_CACHE: '1'
       - run: npm run juice-shop:up
       - run: npm run lanes:flake -- --project='juice-shop-*'
       - if: ${{ always() && !env.ACT }}
@@ -239,7 +271,15 @@ jobs:
           node-version: 22
           cache: npm
       - run: npm ci
+      - if: ${{ !env.ACT }}
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: ~/.cache/qa-apt-packages
+          key: apt-packages-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
+          restore-keys: apt-packages-${{ runner.os }}-
       - run: npm run ci:browsers
+        env:
+          QA_APT_CACHE: '1'
       - run: npm run juice-shop:up
       - run: npm run lanes:web-vitals -- --project='juice-shop-*'
       - if: ${{ !cancelled() }}

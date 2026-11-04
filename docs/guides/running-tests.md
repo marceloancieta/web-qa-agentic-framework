@@ -183,6 +183,7 @@ What `act` does not reproduce:
 | `report`, and `required`, which needs it | without the artifacts there is nothing to merge; run `npm run ci:merge` and the quality gate on the host after the shards ([sharding](#sharding-as-ci-does)) |
 | the visual lane | its container mounts the repository from the host's Docker, which does not see the copy inside the job; run `npm run lanes:visual` on the host, which uses the same pinned image |
 | `codeql.yml` | needs GitHub code scanning to receive the results |
+| the cache of the `apt` packages | the step is skipped, so `npm run ci:browsers` fetches them all |
 | `schedule` triggers | the flake lane runs with `act workflow_dispatch -j flake`, the drift check with `act workflow_dispatch -W .github/workflows/app-map-drift.yml` |
 
 The jobs share the one Juice Shop of the host, while on GitHub each job starts its own: the

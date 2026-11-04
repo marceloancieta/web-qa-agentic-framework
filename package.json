@@ -57,7 +57,7 @@
     "mutation:gate": "node scripts/quality-gate.mjs --mutation reports/mutation/scripts-lib.json --mutation reports/mutation/hooks-lib.json --summary reports/mutation/quality-gate.md",
     "ci:merge": "node scripts/ci-merge.mjs",
     "ci:needs": "node scripts/ci-needs.mjs",
-    "ci:browsers": "playwright install --with-deps chromium firefox webkit",
+    "ci:browsers": "node scripts/ci-browsers.mjs",
     "ci:browsers:no-deps": "playwright install chromium firefox webkit",
     "tm:manifest": "node scripts/tm/manifest.mjs",
     "tm:publish": "node scripts/tm/run.mjs publish",
