@@ -251,10 +251,12 @@ test('web vitals: every visit in a new context of the role, the medians judged a
   fakeApp,
 }, testInfo) => {
   const before = fakeApp.hits.filter((hit) => hit === 'GET /').length;
-  const { budget, medians } = await vitals.expectWithinBudget('/', async (page) => {
-    await page.goto('/');
-    await expect(page.getByText('Signed out')).toBeVisible();
-    await page.getByRole('heading', { name: 'Account' }).click();
+  const { budget, medians } = await vitals.expectWithinBudget('/', {
+    async load(page) {
+      await page.goto('/');
+      await expect(page.getByText('Signed out')).toBeVisible();
+    },
+    interact: (page) => page.getByRole('heading', { name: 'Account' }).click(),
   });
   expect(budget).toEqual({ lcp_ms: 2500, cls: 0.1, inp_ms: 200 });
   expect(medians.lcpMs).not.toBeNull();

@@ -3,7 +3,7 @@
 // budgets are far from what each page produces, so a loaded machine does not change the outcome:
 // the healthy page needs well under a second for each metric, the broken ones cross by design.
 
-import { expect, test, type Browser, type Page } from '@playwright/test';
+import { expect, test, type Browser } from '@playwright/test';
 import {
   budgetFindings,
   budgetFor,
@@ -13,6 +13,7 @@ import {
   median,
   medians,
   vitalsReport,
+  type Visit,
   type VitalsBudget,
   type VitalsSample,
 } from '../web-vitals';
@@ -55,6 +56,14 @@ const PAGES: Record<string, string> = {
        const until = performance.now() + 400; while (performance.now() < until) {}
        document.querySelector('nav').hidden = false; });`,
   ),
+  // An empty field first, which is no LCP candidate; the text arrives a second later, as text held
+  // back until its web font loads does.
+  '/text-after-field': page(
+    `<input aria-label="Username">`,
+    `setTimeout(() => { const main = document.createElement('main');
+     main.innerHTML = '<h1>Welcome</h1><p>Credentials for the demo accounts are listed here.</p>';
+     document.body.append(main); }, 1000);`,
+  ),
 };
 
 const BUDGET: VitalsBudget = { lcp_ms: 1000, cls: 0.1, inp_ms: 200 };
@@ -75,12 +84,16 @@ function opener(browser: Browser, init?: () => void) {
 }
 
 /** Load a seeded page, wait for its main content, then open the menu: a read-only interaction. */
-const visitAndOpenMenu = (path: string, ready: string) => async (visited: Page) => {
-  await visited.goto(`${ORIGIN}${path}`);
-  await expect(visited.getByText(ready)).toBeVisible();
-  await visited.getByRole('button', { name: 'Menu' }).click();
-  await expect(visited.getByRole('navigation')).toBeVisible();
-};
+const visitAndOpenMenu = (path: string, ready: string): Visit => ({
+  async load(visited) {
+    await visited.goto(`${ORIGIN}${path}`);
+    await expect(visited.getByText(ready)).toBeVisible();
+  },
+  async interact(visited) {
+    await visited.getByRole('button', { name: 'Menu' }).click();
+    await expect(visited.getByRole('navigation')).toBeVisible();
+  },
+});
 
 async function measure(browser: Browser, path: string, ready: string, samples = 3) {
   const outcome = await measureVisits(opener(browser), visitAndOpenMenu(path, ready), {
@@ -132,12 +145,44 @@ test.describe('web vitals on seeded pages', () => {
     ]);
   });
 
+  test('the interaction waits for the largest paint when it comes after the ready control', async ({
+    browser,
+  }) => {
+    // The field the visit waits for is no LCP candidate, and the text that is arrives a second
+    // later: clicking at once ends LCP observation before any candidate was reported.
+    const visit: Visit = {
+      async load(visited) {
+        await visited.goto(`${ORIGIN}/text-after-field`);
+        await expect(visited.getByRole('textbox', { name: 'Username' })).toBeVisible();
+      },
+      interact: (visited) => visited.getByRole('textbox', { name: 'Username' }).click(),
+    };
+    const settled = await measureVisits(opener(browser), visit, { samples: 2, interaction: true });
+    if ('missing' in settled) throw new Error(`Chromium lacks ${settled.missing.join(', ')}`);
+    for (const sample of settled.samples) {
+      expect(sample.lcpMs).toBeGreaterThanOrEqual(1000);
+      expect(sample.interactions).toBeGreaterThan(0);
+    }
+    // Without the wait, the same visit loses LCP: what the wait is for.
+    const hasty = await measureVisits(
+      opener(browser),
+      visit,
+      { samples: 1, interaction: true },
+      { quietMs: 0, timeoutMs: 0 },
+    );
+    if ('missing' in hasty) throw new Error(`Chromium lacks ${hasty.missing.join(', ')}`);
+    expect(hasty.samples[0]?.lcpMs).toBeNull();
+  });
+
   test('a visit that never interacts fails instead of passing INP on nothing', async ({
     browser,
   }) => {
-    const loadOnly = async (visited: Page) => {
-      await visited.goto(`${ORIGIN}/healthy`);
-      await expect(visited.getByText('Content')).toBeVisible();
+    const loadOnly: Visit = {
+      async load(visited) {
+        await visited.goto(`${ORIGIN}/healthy`);
+        await expect(visited.getByText('Content')).toBeVisible();
+      },
+      async interact() {},
     };
     await expect(
       measureVisits(opener(browser), loadOnly, { samples: 1, interaction: true }),
@@ -152,13 +197,16 @@ test.describe('web vitals on seeded pages', () => {
       Object.defineProperty(PerformanceObserver, 'supportedEntryTypes', {
         get: () => ['largest-contentful-paint'],
       });
-    const outcome = await measureVisits(
-      opener(browser, onlyLcp),
-      async () => {
+    const counting: Visit = {
+      async load() {
         visits += 1;
       },
-      { samples: 3, interaction: true },
-    );
+      async interact() {},
+    };
+    const outcome = await measureVisits(opener(browser, onlyLcp), counting, {
+      samples: 3,
+      interaction: true,
+    });
     expect(outcome).toEqual({ missing: ['layout-shift', 'event', 'first-input'] });
     expect(visits).toBe(0);
   });

@@ -20,7 +20,8 @@
               "web_vitals": {
                 "samples": 5,
                 "budgets": {
-                  "default": { "lcp_ms": 2500, "cls": 0.1, "inp_ms": 200 }
+                  "default": { "lcp_ms": 2500, "cls": 0.1, "inp_ms": 200 },
+                  "mobile-chrome": { "lcp_ms": 3000 }
                 }
               },
               "lighthouse": {
@@ -63,7 +64,7 @@
               "web_vitals": {
                 "samples": 3,
                 "budgets": {
-                  "default": { "lcp_ms": 2500, "cls": 0.1, "inp_ms": 200 }
+                  "default": { "lcp_ms": 2000, "cls": 0.05, "inp_ms": 100 }
                 }
               },
               "lighthouse": {

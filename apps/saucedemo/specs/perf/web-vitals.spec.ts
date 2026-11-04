@@ -16,11 +16,13 @@ test.describe('web vitals', { tag: ['@regression', '@web-vitals'] }, () => {
   });
 
   test('the login page /', async ({ vitals }) => {
-    await vitals.expectWithinBudget('/', async (page) => {
-      const login = new LoginPage(page);
-      await login.open();
-      await expect(login.username()).toBeVisible();
-      await login.focusUsername();
+    await vitals.expectWithinBudget('/', {
+      async load(page) {
+        const login = new LoginPage(page);
+        await login.open();
+        await expect(login.username()).toBeVisible();
+      },
+      interact: (page) => new LoginPage(page).focusUsername(),
     });
   });
 });

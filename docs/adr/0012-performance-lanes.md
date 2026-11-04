@@ -7,7 +7,7 @@
 Perceived performance in v0.1 was checked through what a user sees: a loading indicator appears and
 goes away. Two numbers-based checks were missing: the web vitals a browser reports for a page (LCP,
 CLS, INP) and a Lighthouse audit. Both measure time, and time on a test machine is noisy: the same
-local Juice Shop page gave LCP medians from 600 ms to 2 s between visits, and its Lighthouse mobile
+local Juice Shop page gave an LCP from 1.3 s to 3 s between visits, and its Lighthouse mobile
 performance score moved by 14 points between three audits. A timing check that runs beside the
 suite's other workers measures their load as much as the page.
 
@@ -23,15 +23,20 @@ for every environment is either too loose locally or too tight in CI.
 `web_vitals.budgets` has a `default` and an entry per device project for what differs on it (merged
 over the default); `lighthouse` has the routes, the number of runs and the minimum score of each
 category per form factor. A pack without them is skipped with the reason, never passed. The example
-starts every web vitals budget at the "good" thresholds of the Core Web Vitals (LCP 2.5 s, CLS 0.1,
-INP 200 ms) and sets the Lighthouse minimums below the scores it measured locally.
+starts from the "good" thresholds of the Core Web Vitals (LCP 2.5 s, CLS 0.1, INP 200 ms), lowered
+where a page measures far below them and raised for a device whose medians come close, and sets
+the Lighthouse minimums below the scores it measured locally.
 
 **Web vitals without a library.** A recorder added to the context before the page loads keeps the
 browser's own entries; `helpers/web-vitals.ts` derives LCP (the last candidate before the first
 input), CLS (the largest session window) and INP (the slowest interaction, one in fifty left out).
-A pack's `@web-vitals` test hands the `vitals` fixture a visit that loads a page through its page
-objects and makes one interaction that changes no data (opening a menu, clicking into a field). The
-fixture visits the page several times (`samples`, 5), each in a new context of the role, and judges
+A pack's `@web-vitals` test hands the `vitals` fixture a visit in two parts: `load` opens a page
+through its page objects and waits until it is ready, `interact` makes one interaction that changes
+no data (opening a menu, clicking into a field). Between them the fixture waits until an LCP
+candidate was reported and none followed for half a second: the first input ends LCP, and the
+largest element can paint after the controls a visit waits for (on Swag Labs the largest text
+paints some 150 ms after the Username field shows, and a click on that field left LCP unmeasured).
+The fixture visits the page several times (`samples`, 5), each in a new context of the role, and judges
 the medians. An engine that lacks an entry type skips the test, naming it; a visit that records no
 interaction, or a budgeted metric that a visit did not measure, fails.
 

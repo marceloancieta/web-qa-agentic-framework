@@ -20,8 +20,8 @@
 //                        fixtures open is recorded from its first navigation
 //   visual      test     visual.expectToMatch(target, name, mask, { wholePage }) with the pack's settings,
 //                        and expectNotToMatch for a view that must differ from a baseline
-//   vitals      test     vitals.expectWithinBudget(subject, visit, { role }) measures LCP, CLS and INP
-//                        over several visits against the environment's budget for the pack
+//   vitals      test     vitals.expectWithinBudget(subject, { load, interact }, { role }) measures LCP,
+//                        CLS and INP over several visits against the environment's budget for the pack
 
 import { mkdirSync, writeFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
@@ -94,6 +94,7 @@ import {
   measureVisits,
   medians,
   vitalsReport,
+  type Visit,
   type VitalsBudget,
 } from '../helpers/web-vitals';
 
@@ -155,13 +156,14 @@ export interface CoreTestFixtures {
     /**
      * Visit a page several times, each in a new context of `role` (anonymous by default), and
      * fail when the median LCP, CLS or INP is over the budget qa-config gives the pack for this
-     * device project. `visit` loads the page and, for INP, interacts with it without changing
-     * data (opening a menu, focusing a field). Skips, with the reason, when the environment gives
-     * no budget or the engine lacks an entry type the metrics need.
+     * device project. `visit.load` opens the page and waits until it is ready; once its largest
+     * paint has settled, `visit.interact` acts on it for INP without changing data (opening a
+     * menu, focusing a field). Skips, with the reason, when the environment gives no budget or the
+     * engine lacks an entry type the metrics need.
      */
     expectWithinBudget(
       subject: string,
-      visit: (page: Page) => Promise<void>,
+      visit: Visit,
       options?: { role?: string },
     ): Promise<{ budget: VitalsBudget; medians: ReturnType<typeof medians> }>;
   };

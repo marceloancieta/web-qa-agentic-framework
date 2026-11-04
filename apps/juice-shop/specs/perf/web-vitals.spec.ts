@@ -18,20 +18,24 @@ test.describe('web vitals', { tag: ['@regression', '@web-vitals'] }, () => {
   });
 
   test('the product list /#/search', async ({ vitals }) => {
-    await vitals.expectWithinBudget('/#/search', async (page) => {
-      const search = new SearchPage(page);
-      await search.open();
-      await expect(search.products().first()).toBeVisible();
-      await new Toolbar(page).openSideNav();
+    await vitals.expectWithinBudget('/#/search', {
+      async load(page) {
+        const search = new SearchPage(page);
+        await search.open();
+        await expect(search.products().first()).toBeVisible();
+      },
+      interact: (page) => new Toolbar(page).openSideNav(),
     });
   });
 
   test('the login page /#/login', async ({ vitals }) => {
-    await vitals.expectWithinBudget('/#/login', async (page) => {
-      const login = new LoginPage(page);
-      await login.open();
-      await expect(login.email()).toBeVisible();
-      await new Toolbar(page).openSideNav();
+    await vitals.expectWithinBudget('/#/login', {
+      async load(page) {
+        const login = new LoginPage(page);
+        await login.open();
+        await expect(login.email()).toBeVisible();
+      },
+      interact: (page) => new Toolbar(page).openSideNav(),
     });
   });
 });

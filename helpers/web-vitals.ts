@@ -5,7 +5,9 @@
 // it.
 //
 // - LCP is the start time of the last `largest-contentful-paint` entry. The browser stops reporting
-//   candidates at the first input, so a visit that loads and then interacts reads the load's LCP.
+//   candidates at the first input, and the largest element can paint after the controls a visit
+//   waits for, so the interaction waits until a candidate was reported and none followed for
+//   `LCP_SETTLE.quietMs` (`waitForLargestPaint`).
 // - CLS is the largest session window of `layout-shift` entries without recent input: a window
 //   closes after a gap of 1 s or at 5 s from its first shift.
 // - INP is the slowest interaction of the visit (with 50 or more, one in every 50 is left out as an
@@ -29,6 +31,8 @@ export const VITAL_ENTRY_TYPES = [
 /** The raw entries of one visit, as the recorder in the page keeps them. */
 export interface RecordedVitals {
   lcpMs: number | null;
+  /** How long ago, in ms, the last LCP candidate was reported; null before the first one. */
+  lcpQuietMs: number | null;
   shifts: { startTime: number; value: number }[];
   /** The duration of each interaction, in ms, one per interaction id. */
   interactions: number[];
@@ -69,6 +73,7 @@ export function recordVitals(): void {
   if (scope.__qaVitals || typeof PerformanceObserver === 'undefined') return;
   const supported = PerformanceObserver.supportedEntryTypes ?? [];
   let lcpMs: number | null = null;
+  let lcpSeenAt: number | null = null;
   const shifts: { startTime: number; value: number }[] = [];
   const durations = new Map<number, number>();
   let firstInput: number | null = null;
@@ -90,6 +95,7 @@ export function recordVitals(): void {
   };
   observe('largest-contentful-paint', (entry) => {
     lcpMs = entry.startTime;
+    lcpSeenAt = performance.now();
   });
   observe('layout-shift', (entry) => {
     const shift = entry as PerformanceEntry & { value: number; hadRecentInput: boolean };
@@ -106,7 +112,8 @@ export function recordVitals(): void {
       // A first input without an interaction id stands for an interaction of its own only when no
       // other entry recorded one.
       if (interactions.length === 0 && firstInput !== null) interactions.push(firstInput);
-      return { lcpMs, shifts: [...shifts], interactions };
+      const lcpQuietMs = lcpSeenAt === null ? null : performance.now() - lcpSeenAt;
+      return { lcpMs, lcpQuietMs, shifts: [...shifts], interactions };
     },
   };
 }
@@ -236,17 +243,51 @@ export function budgetFindings(samples: readonly VitalsSample[], budget: VitalsB
 export const INTERACTION_WAIT_MS = 3_000;
 
 /**
+ * When the largest paint counts as settled: a candidate was reported and none followed for
+ * `quietMs`. Past `timeoutMs` without a candidate the visit goes on, and LCP is reported as not
+ * measured.
+ */
+export const LCP_SETTLE = { quietMs: 500, timeoutMs: 10_000 };
+
+/** Wait until the page reported an LCP candidate and no larger one for `settle.quietMs`. */
+export async function waitForLargestPaint(page: Page, settle = LCP_SETTLE): Promise<boolean> {
+  return page.evaluate(
+    ({ quietMs, timeoutMs }) =>
+      new Promise<boolean>((done) => {
+        const recorder = (window as unknown as { __qaVitals?: { read(): RecordedVitals } })
+          .__qaVitals;
+        const deadline = performance.now() + timeoutMs;
+        const check = () => {
+          const { lcpQuietMs } = recorder?.read() ?? { lcpQuietMs: null };
+          if (lcpQuietMs !== null && lcpQuietMs >= quietMs) done(true);
+          else if (performance.now() >= deadline) done(false);
+          else setTimeout(check, 50);
+        };
+        check();
+      }),
+    settle,
+  );
+}
+
+/** A visit: `load` opens the page and waits until it is ready, `interact` acts on it for INP. */
+export interface Visit {
+  load(page: Page): Promise<void>;
+  interact(page: Page): Promise<void>;
+}
+
+/**
  * Measure `samples` visits, each in a context of its own (a cold cache, nothing left over from the
- * visit before), one after the other. `open` gives a new page whose context has not navigated yet,
- * `visit` loads the page and interacts with it. With `interaction`, a visit that recorded no
- * interaction within `INTERACTION_WAIT_MS` fails: the visit forgot its interaction, and INP would
- * otherwise be judged on nothing. `{ missing }` when the engine lacks an entry type; nothing is
- * visited then.
+ * visit before), one after the other. `open` gives a new page whose context has not navigated yet.
+ * Each visit loads the page, waits for its largest paint to settle (`waitForLargestPaint`), then
+ * interacts. With `interaction`, a visit that recorded no interaction within `INTERACTION_WAIT_MS`
+ * fails: the visit forgot its interaction, and INP would otherwise be judged on nothing.
+ * `{ missing }` when the engine lacks an entry type; nothing is visited then.
  */
 export async function measureVisits(
   open: () => Promise<{ page: Page; context: BrowserContext }>,
-  visit: (page: Page) => Promise<void>,
+  visit: Visit,
   { samples, interaction }: { samples: number; interaction: boolean },
+  settle = LCP_SETTLE,
 ): Promise<{ samples: VitalsSample[] } | { missing: string[] }> {
   const measured: VitalsSample[] = [];
   for (let i = 0; i < samples; i += 1) {
@@ -257,7 +298,10 @@ export async function measureVisits(
         if (missing.length > 0) return { missing };
       }
       await context.addInitScript(recordVitals);
-      await visit(page);
+      await visit.load(page);
+      // The first input ends LCP: interacting before the largest paint was reported loses it.
+      await waitForLargestPaint(page, settle);
+      await visit.interact(page);
       let recorded = await readRecorded(page);
       const deadline = Date.now() + INTERACTION_WAIT_MS;
       while (interaction && recorded.interactions.length === 0 && Date.now() < deadline) {
