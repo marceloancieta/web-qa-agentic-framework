@@ -53,7 +53,7 @@ Every item of v0.1.0 is done; each is in **Done**.
 | FUT-09 | Extract a shared core with the sibling API framework once both are stable. | plan | todo |
 | FUT-17 | `cited-status` also reads the keys cited in specs (`knownGap`), `app-notes.md` and `a11y-known.json`, and a scheduled CI run covers a tracker reached over the network. | plan | todo |
 | CI-09 | Staged publishing for `create-web-qa`: the trusted publisher may only stage a version (`npm stage publish`, npm 11.15.0 or later), so a version reaches the registry only after the owner approves it on npm with two-factor authentication, beside the approval of the `npm` environment; the read-back waits for that approval or reads the version back by hand. | exp | todo |
-| CI-10 | Every job of `ci.yml` has a time limit, so a step that hangs fails in minutes instead of holding the run until GitHub's six-hour limit, and a test checks it. | exp | in-progress |
+| CI-11 | The `apt` packages of `npm run ci:browsers` took 14 minutes on one runner of a pull request, against 4 to 11 seconds on the others of the same run (114 MB at 132 kB/s from the Ubuntu mirror), and over 20 minutes on another. The job limit of CI-10 bounds it; if it happens again, cache the packages or install them another way. A cache of the browsers would not help: they take about 13 seconds. | exp | todo |
 
 ---
 
@@ -136,3 +136,4 @@ Every item of v0.1.0 is done; each is in **Done**.
 | FUT-11 | `npm run app:drift` maps each pack again, read-only, and compares the result with its tracked `app-map.json`: routes, titles, landmarks, headings, elements by role and accessible name, and form constraints. `.github/workflows/app-map-drift.yml` runs it on Mondays and on demand, outside the required check, and `app:map:check` uses the same comparison. | `e5353fd` |
 | FUT-06 | Security headers are swept in every run against each pack's `headers-known.json`, a known gap being one rule on one route, and `npm run lanes:zap` runs a ZAP baseline scan of a disposable copy of a local pack, with a spider that submits no form, in a CI job the required check waits for (ADR 0011). | `c9d3f38` |
 | FUT-03 | `npm run lanes:web-vitals` judges the medians of LCP, CLS and INP against budgets per environment, pack and device, and `npm run lanes:lighthouse` judges Lighthouse scores of the routes qa-config lists; both run weekly and on demand, outside the required check and the quality gate (ADR 0012). | `981ec81` |
+| CI-10 | Every job of `ci.yml` has a time limit, so a slow or stuck step fails in minutes instead of holding the run until GitHub's six-hour limit, and a test fails on a job without one. | `377c76e` |
