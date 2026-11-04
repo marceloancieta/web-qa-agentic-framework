@@ -20,6 +20,8 @@
 //                        fixtures open is recorded from its first navigation
 //   visual      test     visual.expectToMatch(target, name, mask, { wholePage }) with the pack's settings,
 //                        and expectNotToMatch for a view that must differ from a baseline
+//   vitals      test     vitals.expectWithinBudget(subject, { load, interact }, { role }) measures LCP,
+//                        CLS and INP over several visits against the environment's budget for the pack
 
 import { mkdirSync, writeFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
@@ -86,6 +88,15 @@ import {
   screenshotOptions,
   WHOLE_PAGE_SCREENSHOT_TIMEOUT_MS,
 } from '../helpers/visual';
+import {
+  budgetFor,
+  DEFAULT_SAMPLES,
+  measureVisits,
+  medians,
+  vitalsReport,
+  type Visit,
+  type VitalsBudget,
+} from '../helpers/web-vitals';
 
 export { expect };
 
@@ -140,6 +151,21 @@ export interface CoreTestFixtures {
       mask?: Locator[],
       options?: { wholePage?: boolean },
     ): Promise<void>;
+  };
+  vitals: {
+    /**
+     * Visit a page several times, each in a new context of `role` (anonymous by default), and
+     * fail when the median LCP, CLS or INP is over the budget qa-config gives the pack for this
+     * device project. `visit.load` opens the page and waits until it is ready; once its largest
+     * paint has settled, `visit.interact` acts on it for INP without changing data (opening a
+     * menu, focusing a field). Skips, with the reason, when the environment gives no budget or the
+     * engine lacks an entry type the metrics need.
+     */
+    expectWithinBudget(
+      subject: string,
+      visit: Visit,
+      options?: { role?: string },
+    ): Promise<{ budget: VitalsBudget; medians: ReturnType<typeof medians> }>;
   };
 }
 
@@ -449,6 +475,46 @@ export function createTest(provider: ActorProvider) {
           compare(target, name, mask, wholePage, false),
         expectNotToMatch: (target, name, mask = [], { wholePage = false } = {}) =>
           compare(target, name, mask, wholePage, true),
+      });
+    },
+
+    vitals: async ({ actor, qa, redaction }, use, testInfo) => {
+      await use({
+        async expectWithinBudget(subject, visit, { role = ANONYMOUS_ACTOR } = {}) {
+          const device = String(testInfo.project.metadata?.device ?? testInfo.project.name);
+          const config = qa.performance?.web_vitals;
+          const at = `${qa.source} app.environments.${qa.environment}.packs.${qa.pack}.performance.web_vitals`;
+          const budget = budgetFor(config, device);
+          if (budget === null) testInfo.skip(true, `no web vitals budget for ${device} in ${at}`);
+          const kept = budget as VitalsBudget;
+          let engine = 'this engine';
+          const outcome = await measureVisits(
+            async () => {
+              const opened = await actor(role);
+              engine = opened.context.browser()?.browserType().name() ?? engine;
+              return opened;
+            },
+            visit,
+            { samples: config?.samples ?? DEFAULT_SAMPLES, interaction: kept.inp_ms !== undefined },
+          );
+          if ('missing' in outcome) {
+            testInfo.skip(
+              true,
+              `${engine} on ${device} has no PerformanceObserver entry type ${outcome.missing.join(', ')}, so it cannot measure LCP, CLS and INP; the Chromium projects measure them`,
+            );
+            throw new Error('unreachable: the test was skipped');
+          }
+          const middle = medians(outcome.samples);
+          await attachJson(
+            testInfo,
+            `web vitals ${subject}`,
+            { device, budget: kept, medians: middle, samples: outcome.samples },
+            redaction,
+          );
+          const report = vitalsReport(`${subject} on ${device}`, outcome.samples, kept);
+          if (report) throw new Error(report);
+          return { budget: kept, medians: middle };
+        },
       });
     },
   });

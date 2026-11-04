@@ -25,7 +25,7 @@ import { REPO_ROOT } from '../lib/cli.mjs';
 import { specCases } from '../lib/corpus.mjs';
 import { createLogger } from '../lib/log.mjs';
 import { loadRegistries } from '../lib/registry.mjs';
-import { A11Y_SWEEP_TAG, KNOWN_GAP_TAG } from '../lib/tags.mjs';
+import { A11Y_SWEEP_TAG, KNOWN_GAP_TAG, WEB_VITALS_TAG } from '../lib/tags.mjs';
 import { groupRuns, lastAttempts, readResultFiles } from '../lib/results.mjs';
 
 export const MANIFEST_VERSION = 1;
@@ -175,16 +175,18 @@ export function collectResults(resultsDir, cases, packs) {
       ? `${result.testCaseId}@${label(result, 'device') ?? ''}`
       : null,
   );
-  const sweep = (result) =>
+  const tagged = (result, tag) =>
     (result.labels ?? []).some(
-      (l) => l.name === 'tag' && `@${String(l.value).replace(/^@/, '')}` === A11Y_SWEEP_TAG,
+      (l) => l.name === 'tag' && `@${String(l.value).replace(/^@/, '')}` === tag,
     );
   const excluded = unkeyed.map((result) => ({
     file: result.file,
     name: result.name ?? '(unnamed)',
-    reason: sweep(result)
+    reason: tagged(result, A11Y_SWEEP_TAG)
       ? `a test of the accessibility sweep (${A11Y_SWEEP_TAG}), one per route and role, not a designed case`
-      : 'no case identity: the title carries no TC id, or the test never started',
+      : tagged(result, WEB_VITALS_TAG)
+        ? `a web vitals measurement (${WEB_VITALS_TAG}) against the pack's budget, not a designed case`
+        : 'no case identity: the title carries no TC id, or the test never started',
   }));
   const byIdentity = new Map();
   for (const [key, attempt] of byKey) {

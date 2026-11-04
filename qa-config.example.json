@@ -15,6 +15,23 @@
             "recovery": { "command": "docker compose -f docker/compose.yml restart juice-shop" },
             "actors": {
               "customer": { "account": "provisioned" }
+            },
+            "performance": {
+              "web_vitals": {
+                "samples": 5,
+                "budgets": {
+                  "default": { "lcp_ms": 2500, "cls": 0.1, "inp_ms": 200 },
+                  "mobile-chrome": { "lcp_ms": 3000 }
+                }
+              },
+              "lighthouse": {
+                "routes": ["/#/search", "/#/login"],
+                "runs": 3,
+                "min_scores": {
+                  "desktop": { "performance": 80, "accessibility": 85, "best-practices": 90 },
+                  "mobile": { "performance": 30, "accessibility": 85, "best-practices": 90 }
+                }
+              }
             }
           },
           "saucedemo": {
@@ -42,7 +59,22 @@
                 "password_env": "SAUCEDEMO_PASSWORD"
               }
             },
-            "default_actor": "standard"
+            "default_actor": "standard",
+            "performance": {
+              "web_vitals": {
+                "samples": 3,
+                "budgets": {
+                  "default": { "lcp_ms": 2000, "cls": 0.05, "inp_ms": 100 }
+                }
+              },
+              "lighthouse": {
+                "routes": ["/"],
+                "runs": 1,
+                "min_scores": {
+                  "desktop": { "performance": 85, "accessibility": 90, "best-practices": 70 }
+                }
+              }
+            }
           }
         }
       },
@@ -63,6 +95,23 @@
             "recovery": { "command": "docker compose -f docker/compose.yml restart juice-shop" },
             "actors": {
               "customer": { "account": "provisioned" }
+            },
+            "performance": {
+              "web_vitals": {
+                "samples": 5,
+                "budgets": {
+                  "default": { "lcp_ms": 2500, "cls": 0.1, "inp_ms": 200 },
+                  "mobile-chrome": { "lcp_ms": 3000 }
+                }
+              },
+              "lighthouse": {
+                "routes": ["/#/search", "/#/login"],
+                "runs": 3,
+                "min_scores": {
+                  "desktop": { "performance": 70, "accessibility": 85, "best-practices": 90 },
+                  "mobile": { "performance": 20, "accessibility": 85, "best-practices": 90 }
+                }
+              }
             }
           }
         }

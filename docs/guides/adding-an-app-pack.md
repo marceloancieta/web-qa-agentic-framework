@@ -54,6 +54,11 @@ health guard, and the skill `.claude/skills/<pack>-ui/SKILL.md` from
 
    The `preflight-<pack>` project names a missing variable or an application that does not answer
    before any case runs.
+5. Optionally, give the pack performance budgets in an environment (`performance` in its entry)
+   and a `specs/perf/web-vitals.spec.ts` that visits its main pages through their page objects, as
+   Juice Shop's does; the web vitals and Lighthouse lanes then cover it
+   ([ADR 0012](../adr/0012-performance-lanes.md)). On a host someone else runs, keep the routes
+   and runs few.
 
 ## 5. Map it
 

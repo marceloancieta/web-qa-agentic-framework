@@ -23,6 +23,11 @@ export class LoginPage {
     return this.page.getByRole('textbox', { name: 'Password' });
   }
 
+  /** Click into the Username field without typing: an interaction that sends nothing. */
+  async focusUsername(): Promise<void> {
+    await this.username().click();
+  }
+
   loginButton(): Locator {
     return this.page.getByRole('button', { name: 'Login' });
   }

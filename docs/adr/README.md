@@ -16,3 +16,4 @@ decision changes through a new ADR that supersedes the old one; accepted ADRs ar
 | [0009](0009-container-lanes.md) | The visual lane runs in one pinned Playwright image | Accepted |
 | [0010](0010-test-management-and-trackers.md) | Test management and trackers behind adapters | Accepted |
 | [0011](0011-security-headers-and-zap-lane.md) | Security headers in every run, and a ZAP baseline lane for local packs only | Accepted |
+| [0012](0012-performance-lanes.md) | Web vitals and Lighthouse run in lanes of their own, against budgets per environment | Accepted |
