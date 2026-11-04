@@ -7,6 +7,7 @@ import { join } from 'node:path';
 import { parse } from 'yaml';
 import { REPO_ROOT } from '../lib/cli.mjs';
 import { DEPENDENCY_UPDATES } from '../changelog.mjs';
+import { APT_CACHE_PATH } from '../ci-browsers.mjs';
 import { titleProblem } from '../commit-title.mjs';
 import { LANES } from '../lanes.mjs';
 
@@ -283,6 +284,42 @@ test('every required check of the repository settings is a job that runs on pull
     assert.equal(job.name ?? check, check, `${check} keeps its id as its check name`);
     assert.equal(job.strategy, undefined, `${check} is not a matrix, so its name has no suffix`);
   }
+});
+
+/** Why a job's steps install the browsers without the apt cache, one line per problem. */
+export function aptCacheProblems(steps) {
+  return steps.flatMap((step, index) => {
+    if (step.run !== 'npm run ci:browsers') return [];
+    const before = steps[index - 1] ?? {};
+    return [
+      ...(String(before.uses).startsWith('actions/cache@') ? [] : ['no cache step before it']),
+      ...(before.with?.path === APT_CACHE_PATH ? [] : [`the cache is not ${APT_CACHE_PATH}`]),
+      ...(step.env?.QA_APT_CACHE ? [] : ['no QA_APT_CACHE']),
+    ];
+  });
+}
+
+test('a browser install without the apt cache is a finding', () => {
+  const cache = { uses: `actions/cache@${'a'.repeat(40)}`, with: { path: APT_CACHE_PATH } };
+  const install = { run: 'npm run ci:browsers', env: { QA_APT_CACHE: '1' } };
+  assert.deepEqual(aptCacheProblems([cache, install]), []);
+  assert.deepEqual(aptCacheProblems([{ run: 'npm ci' }]), []);
+  assert.equal(aptCacheProblems([install]).length, 2);
+  assert.deepEqual(aptCacheProblems([cache, { run: 'npm run ci:browsers' }]), ['no QA_APT_CACHE']);
+  assert.equal(aptCacheProblems([{ ...cache, with: { path: '~/other' } }, install]).length, 1);
+});
+
+test('every job that installs the browsers restores the apt packages first', () => {
+  let installs = 0;
+  for (const name of workflowFiles()) {
+    const jobs = parse(readFileSync(join(WORKFLOWS, name), 'utf8')).jobs;
+    for (const [id, job] of Object.entries(jobs)) {
+      const steps = job.steps ?? [];
+      installs += steps.filter((step) => step.run === 'npm run ci:browsers').length;
+      assert.deepEqual(aptCacheProblems(steps), [], `${name}: ${id}`);
+    }
+  }
+  assert.ok(installs >= 6);
 });
 
 test('every job of the GitHub workflow has a time limit', () => {
