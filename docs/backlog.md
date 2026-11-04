@@ -46,16 +46,14 @@ Every item of v0.1.0 is done; each is in **Done**.
 | Id | Item | Origin | Status |
 |---|---|---|---|
 | FUT-01 | Toolshop pack (Practice Software Testing, local Docker): authorization in the UI by role, `data-test` attributes. | plan | todo |
-| FUT-03 | Web vitals (LCP, CLS, INP) with per-pack budgets, and a Lighthouse lane. | practice | todo |
 | FUT-04 | i18n: projects per `locale` and `timezoneId`, pseudo-localization, right-to-left. | practice | todo |
 | FUT-05 | Design-token checks from the pack's `design-tokens.json`; `prefers-reduced-motion` emulation. | plan | todo |
-| FUT-06 | Security headers per response and a ZAP baseline lane against the UI. | practice | todo |
 | FUT-07 | TOTP two-factor login and a mail-catcher pattern (Mailpit). | plan | todo |
 | FUT-08 | `qa-explore` skill for chartered exploratory sessions, after an ADR decides its mode. | plan | todo |
 | FUT-09 | Extract a shared core with the sibling API framework once both are stable. | plan | todo |
-| FUT-11 | App map drift: a scheduled job maps each pack again and compares the result with the tracked `app-map.json`, so a changed route, role, name or form constraint is reported before the specs fail on it. | plan | todo |
-| FUT-16 | `cited-status`: the known gaps, waiting claims and workarounds the registries and contracts cite are checked against the tracker, and a closed or unknown key is reported. | plan | todo |
+| FUT-17 | `cited-status` also reads the keys cited in specs (`knownGap`), `app-notes.md` and `a11y-known.json`, and a scheduled CI run covers a tracker reached over the network. | plan | todo |
 | CI-09 | Staged publishing for `create-web-qa`: the trusted publisher may only stage a version (`npm stage publish`, npm 11.15.0 or later), so a version reaches the registry only after the owner approves it on npm with two-factor authentication, beside the approval of the `npm` environment; the read-back waits for that approval or reads the version back by hand. | exp | todo |
+| CI-10 | Every job of `ci.yml` has a time limit, so a step that hangs fails in minutes instead of holding the run until GitHub's six-hour limit, and a test checks it. | exp | in-progress |
 
 ---
 
@@ -134,3 +132,7 @@ Every item of v0.1.0 is done; each is in **Done**.
 | CI-07 | CodeQL has no open alert: `create-web-qa` cuts the trailing hyphens of a package name by position instead of a pattern retried from every hyphen (polynomial-redos), and Markdown comments are dropped by position in `lib/text.mjs` and `lint-docs`; the two alerts on test code (a fake renderer and a spec that reads the inner text of its own markup term) are dismissed as used in tests. | `c623788` |
 | CI-08 | Node's typings stay on the lowest Node the project supports: Dependabot ignores major updates of `@types/node` (its first one, to 26, was closed), and a test checks that `.nvmrc`, `engines.node` and `@types/node` name the same major. | `cd40a34` |
 | FUT-12 | `.github/workflows/publish.yml` publishes `create-web-qa` from a `v<x.y.z>` tag through npm trusted publishing (OIDC, no stored token) with provenance, after the owner approves the `npm` environment; `create:pack --tag` builds only from that tag, clean and on `main`, the package refuses a publish without it, and `create:readback` reads the version back with `npm create` outside the repository. `create-web-qa@0.2.0` was the first version published this way. | `99bd43f` |
+| FUT-16 | `npm run cited-status` checks the known gaps, waiting claims and workarounds the registries and contracts cite against the tracker, reports a closed or unknown key, and runs in the gates when the tracker is kept in the repository. | `147dd15` |
+| FUT-11 | `npm run app:drift` maps each pack again, read-only, and compares the result with its tracked `app-map.json`: routes, titles, landmarks, headings, elements by role and accessible name, and form constraints. `.github/workflows/app-map-drift.yml` runs it on Mondays and on demand, outside the required check, and `app:map:check` uses the same comparison. | `e5353fd` |
+| FUT-06 | Security headers are swept in every run against each pack's `headers-known.json`, a known gap being one rule on one route, and `npm run lanes:zap` runs a ZAP baseline scan of a disposable copy of a local pack, with a spider that submits no form, in a CI job the required check waits for (ADR 0011). | `c9d3f38` |
+| FUT-03 | `npm run lanes:web-vitals` judges the medians of LCP, CLS and INP against budgets per environment, pack and device, and `npm run lanes:lighthouse` judges Lighthouse scores of the routes qa-config lists; both run weekly and on demand, outside the required check and the quality gate (ADR 0012). | `981ec81` |

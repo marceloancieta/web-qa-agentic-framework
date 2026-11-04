@@ -78,7 +78,8 @@ A disagreement between two files about a fact this table does not list means the
 | `.claude/rules/generation.md` | `qa-automate`, `spec-author`, `ui-spec-reviewer`, `scripts/scaffold-app.mjs`, `apps/juice-shop/` as the worked example |
 | `.claude/rules/reporting.md` | `helpers/case-meta.ts`, the adapters, `docs/test-management.md`, `qa-publish`, `qa-run` |
 | a phase skill | `CLAUDE.md`, `AGENTS.md` (the process table), the skills before and after it |
-| an agent in `.claude/agents/` | `CLAUDE.md` (the agents table), the skills that launch it, its evaluation fixtures if it has them || a template in `docs/templates/` | the skill that writes from it, and `scaffold-app` for the pack skill |
+| an agent in `.claude/agents/` | `CLAUDE.md` (the agents table), the skills that launch it, its evaluation fixtures if it has them |
+| a template in `docs/templates/` | the skill that writes from it, and `scaffold-app` for the pack skill |
 | `.githooks/`, or when the gates run | `AGENTS.md`, `CLAUDE.md` |
 | a variable in `.env.example` or a qa-config key | `schemas/qa-config.schema.json`, `helpers/config.ts`, the docs that name it |
 
