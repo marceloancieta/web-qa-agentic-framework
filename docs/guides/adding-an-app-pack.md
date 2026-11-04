@@ -64,7 +64,9 @@ npm run app:map -- --pack <pack> --actor <role> --write   # signed in, after a r
 
 The walk only reads: it aborts every request that is not a `GET`, `HEAD` or `OPTIONS` and never
 leaves the application's origin. The map, `apps/<pack>/docs/app-map.json`, is tracked, so a change in
-the application shows up as a diff, and it is the structural source of intake. Once a map exists,
+the application shows up as a diff, and it is the structural source of intake. Once the pack has an
+entry in the `ci` environment, the weekly [app map drift](running-tests.md#app-map-drift) check
+compares it with the live application. Once a map exists,
 the accessibility lane sweeps its routes.
 
 ## 6. Take a feature through the phases

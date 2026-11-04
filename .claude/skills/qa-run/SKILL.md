@@ -61,7 +61,10 @@ description: >-
 7. **Follow-ups are proposals**, not actions: a design change (`qa-design`), a defect
    (`qa-report-bug`), a flaky case, a known gap that started to pass (check that its issue is
    fixed before the arm and the tag go), or a closed or unknown cited key (`qa-design` revisits the
-   case or the claim). When `qa-publish` sent this run for a tool without
+   case or the claim). When failures point at a page that changed,
+   `npm run app:drift -- --pack <pack>` names the routes, roles, names and form constraints that
+   differ from the tracked map; it only reads and writes under `reports/`, and rewriting the map is
+   design work. When `qa-publish` sent this run for a tool without
    definitions, return to its step 6; this skill never moves a registry row.
 
 ## If it stops halfway

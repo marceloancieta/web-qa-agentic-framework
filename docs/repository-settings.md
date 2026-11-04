@@ -44,7 +44,9 @@ The copies take later releases from the `v<x.y.z>` tags, so every release is tag
 
 `required` stands for every other job of `ci.yml`, so a change to the shards or the lanes never
 leaves branch protection naming a check that no longer runs. CodeQL is not a required check: it
-reports to code scanning, where its alerts are reviewed.
+reports to code scanning, where its alerts are reviewed. Neither is the weekly app map drift
+([`app-map-drift.yml`](../.github/workflows/app-map-drift.yml)): the application can change without
+a change to the repository.
 
 ## Security
 

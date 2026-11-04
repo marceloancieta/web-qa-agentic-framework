@@ -1,0 +1,50 @@
+# App map drift (FUT-11): once a week, and on demand, each pack of the `ci` environment is walked
+# again, read-only, and compared with its tracked apps/<pack>/docs/app-map.json (npm run app:drift).
+# A changed route, role, accessible name or form constraint fails the job and is listed in the run's
+# summary before a spec fails on it; the live maps are kept as an artifact for review.
+#
+# It only reads: the job has no secrets and no write permission, files no issue and never rewrites a
+# tracked map. Rewriting one is design work (npm run app:map -- --pack <pack> --write). It is not a
+# required check: the application can change without a change to this repository.
+name: app-map-drift
+
+on:
+  schedule:
+    - cron: '0 7 * * 1' # Mondays 07:00 UTC
+  workflow_dispatch:
+
+permissions: {}
+
+concurrency:
+  group: app-map-drift
+  cancel-in-progress: true
+
+env:
+  CI: '1'
+  QA_ENV: ci
+
+jobs:
+  drift:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm run ci:browsers
+      # The local packs of the `ci` environment; a public pack needs nothing started.
+      - run: npm run juice-shop:up
+      - run: npm run app:drift
+      - if: ${{ always() && !env.ACT }}
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: app-map-drift
+          path: reports/app-map-drift/
+          retention-days: 30
