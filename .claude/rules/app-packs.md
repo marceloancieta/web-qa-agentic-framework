@@ -43,6 +43,8 @@ that does. ADR 0005 gives the layers, ADR 0008 the configuration.
 | `specs/` | Playwright specs |
 | `visual/` | visual baselines, one folder per device project, rendered only in the pinned container |
 | `a11y-known.json` | known accessibility violations, each with a tracker key and an expiry |
+| `headers-known.json` | known security header gaps (rule, route, cookie for a cookie rule), each with a tracker key and an expiry (`helpers/security-headers.ts`) |
+| `zap-known.json` | accepted ZAP alerts of a local pack (plugin id, name), each with a tracker key, an expiry and a reason (`scripts/zap-lane.mjs`); the pack also needs a disposable `<pack>-scan` service in `docker/compose.yml` for the lane to scan |
 | `docs/app-map.json` | the app map (`npm run app:map -- --pack <pack> --write`); tracked, never edited by hand. `docs/app-map.<role>.json` is the same walk signed in as a role (`--actor <role>`) |
 | `docs/features/` | feature contracts written at intake |
 | `docs/app-notes.md` | where the application behaves differently from what its pages suggest, with status; repro steps write `<base_url>` (`lint-docs` host-in-notes) |

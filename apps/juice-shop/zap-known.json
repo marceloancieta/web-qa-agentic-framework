@@ -1,0 +1,16 @@
+[
+  {
+    "plugin": "10038",
+    "name": "Content Security Policy (CSP) Header Not Set",
+    "key": "LOCAL-31",
+    "expires": "2027-02-03",
+    "reason": "Juice Shop sends no CSP by design; the headers sweep keeps the same gap in headers-known.json."
+  },
+  {
+    "plugin": "10098",
+    "name": "Cross-Domain Misconfiguration",
+    "key": "LOCAL-32",
+    "expires": "2027-02-03",
+    "reason": "Access-Control-Allow-Origin: * on every response; it does not apply to credentialed requests."
+  }
+]

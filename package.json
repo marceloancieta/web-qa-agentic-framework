@@ -27,6 +27,7 @@
     "lanes:destructive": "node scripts/lanes.mjs destructive",
     "lanes:flake": "node scripts/lanes.mjs flake",
     "lanes:a11y": "node scripts/lanes.mjs a11y",
+    "lanes:zap": "node scripts/zap-lane.mjs",
     "test:smoke": "playwright test --grep @smoke",
     "scaffold:app": "node scripts/scaffold-app.mjs",
     "app:map": "node scripts/app-map.mjs",

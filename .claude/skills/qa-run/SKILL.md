@@ -25,7 +25,14 @@ description: >-
    - `npm run lanes:destructive`: the `@destructive` cases on one worker, then the `recovery` of
      every pack it selected, whatever the run did. It writes: step 3 waits for "go";
    - `npm run lanes:flake -- --repeat <n>`: the `@quarantine` cases `n` times each (10), without
-     retries, then the failed repetitions per case.
+     retries, then the failed repetitions per case;
+   - `npm run lanes:zap -- --pack <pack>`: a ZAP baseline scan of a local pack, judged against its
+     `zap-known.json`. It scans a disposable copy of the application that it starts and removes
+     (`<pack>-scan` in `docker/compose.yml`), never the one the other lanes use, so it may run
+     beside them; it refuses a pack whose base URL is not on this machine.
+
+   Every run also sweeps the security headers of each pack's documents (`specs/security/`,
+   `@security`) against its `headers-known.json`; a new gap fails like a new violation.
 
    The lanes other than the visual one are `scripts/lanes.mjs`; a lane with no case says so and
    runs nothing. If `--list` shows no test, say so and stop; never widen the selection on your own. `@visual`, `@destructive`, `@quarantine`

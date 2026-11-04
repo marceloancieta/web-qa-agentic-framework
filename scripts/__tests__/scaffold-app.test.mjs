@@ -68,6 +68,31 @@ test('the skeleton sweeps its own app maps, as thin as the worked pack', () => {
   assert.equal(sweep.replace("'book-store'", "'juice-shop'"), worked.replace(/\r\n/g, '\n'));
 });
 
+test('the skeleton checks its security headers from the first run, as the worked pack does', () => {
+  const files = Object.fromEntries(scaffoldFiles(plan));
+  const path = 'apps/book-store/specs/security/headers.spec.ts';
+  const headers = files[path];
+  assert.match(headers, /headerTargets\('book-store'\)/);
+  assert.match(headers, /tag: \['@regression', '@security'\]/);
+  assert.match(headers, /await securityHeaders\.expectNoNewGaps\(page\)/);
+  assert.deepEqual(lintHarness(headers, path), []);
+  assert.deepEqual(JSON.parse(files['apps/book-store/headers-known.json']), []);
+  const worked = readFileSync(
+    join(
+      import.meta.dirname,
+      '..',
+      '..',
+      'apps',
+      'juice-shop',
+      'specs',
+      'security',
+      'headers.spec.ts',
+    ),
+    'utf8',
+  );
+  assert.equal(headers.replace("'book-store'", "'juice-shop'"), worked.replace(/\r\n/g, '\n'));
+});
+
 test('the pack skill is the template example with the pack filled in', () => {
   const skill = Object.fromEntries(scaffoldFiles(plan))['.claude/skills/book-store-ui/SKILL.md'];
   assert.match(skill, /^---\nname: book-store-ui\ndescription: Facts about Book Store /);

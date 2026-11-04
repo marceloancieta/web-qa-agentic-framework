@@ -1,0 +1,38 @@
+[
+  {
+    "rule": "content-security-policy",
+    "route": "*",
+    "key": "LOCAL-33",
+    "expires": "2027-02-03"
+  },
+  {
+    "rule": "frame-ancestors",
+    "route": "*",
+    "key": "LOCAL-33",
+    "expires": "2027-02-03"
+  },
+  {
+    "rule": "strict-transport-security",
+    "route": "*",
+    "key": "LOCAL-33",
+    "expires": "2027-02-03"
+  },
+  {
+    "rule": "x-content-type-options",
+    "route": "*",
+    "key": "LOCAL-33",
+    "expires": "2027-02-03"
+  },
+  {
+    "rule": "referrer-policy",
+    "route": "*",
+    "key": "LOCAL-33",
+    "expires": "2027-02-03"
+  },
+  {
+    "rule": "permissions-policy",
+    "route": "*",
+    "key": "LOCAL-33",
+    "expires": "2027-02-03"
+  }
+]

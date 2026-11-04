@@ -188,6 +188,11 @@ pipeline {
             shell "npm run lanes:visual -- ${playwrightOptions()}"
           }
         }
+        // The ZAP baseline lane scans a disposable Juice Shop it starts and removes in a compose
+        // project of its own, never the build's.
+        catchError(buildResult: 'FAILURE', stageResult: 'FAILURE') {
+          shell 'npm run lanes:zap -- --pack juice-shop'
+        }
         withEnv([junitOf('destructive')]) {
           catchError(buildResult: 'FAILURE', stageResult: 'FAILURE') {
             shell "npm run lanes:destructive -- ${playwrightOptions(false)}"

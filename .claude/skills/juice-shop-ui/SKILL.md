@@ -58,7 +58,12 @@ API, so a spec never branches on the device.
   wrong, so a case checks the generic text. A login through the form lands on `/#/search`; wait for
   that route before the next step.
 - Run: a restart (the pack's `recovery`, or `npm run juice-shop:down` then `juice-shop:up`) empties
-  the database, so data a run needs is created by the run.
+  the database, so data a run needs is created by the run. The ZAP lane's spider opens what
+  `robots.txt` lists (`/ftp` and its files; the scan of 2026-11-03 fetched them), which can solve
+  the shop's challenges, and the shop announces a solved challenge on the pages open at that moment.
+  So `npm run lanes:zap -- --pack juice-shop` never scans the shop at `<base_url>`: it starts the
+  compose service `juice-shop-scan`, a disposable copy on no host port, and removes it afterwards.
+  It may run beside any other lane.
 
 ## Known defects
 
@@ -84,6 +89,8 @@ gaps. The registries' Defect column says which cases cite each key.
 | LOCAL-14 (S3) | the address form refuses mobile numbers from 1000000 to 1111110 (REQ-CHECKOUT-03) |
 | LOCAL-15 (S3) | a failed address save empties the form without saying it failed |
 | LOCAL-16 (S2) | on a phone the Print icon covers Track Your Order in the order history |
+| LOCAL-31 (S3) | the documents carry no Content-Security-Policy, Referrer-Policy or Permissions-Policy (`headers-known.json`; ZAP 10038 in `zap-known.json`) |
+| LOCAL-32 (S3) | every response sends `Access-Control-Allow-Origin: *` (ZAP 10098) |
 
 ## Accessibility baseline
 

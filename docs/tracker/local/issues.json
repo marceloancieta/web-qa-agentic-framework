@@ -1,5 +1,5 @@
 {
-  "next": 31,
+  "next": 34,
   "issues": {
     "LOCAL-1": {
       "title": "Basket: a customer can read another customer's basket by its id",
@@ -331,6 +331,39 @@
       "labels": [
         "ui",
         "severity:S4"
+      ],
+      "status": "open",
+      "category": "open",
+      "comments": []
+    },
+    "LOCAL-31": {
+      "title": "Juice Shop: documents carry no Content-Security-Policy, Referrer-Policy or Permissions-Policy",
+      "body": "**What happens:** the documents Juice Shop serves carry no Content-Security-Policy, no\nReferrer-Policy and no Permissions-Policy header. They send `Feature-Policy: payment 'self'`, the\nretired name of Permissions-Policy, and no Cross-Origin-Embedder-Policy. X-Content-Type-Options\n(`nosniff`) and X-Frame-Options (`SAMEORIGIN`) are present.\n\n**What should happen:** every document carries a Content-Security-Policy, a Referrer-Policy that\nkeeps the path from other origins (`strict-origin-when-cross-origin` or stricter) and a\nPermissions-Policy in place of Feature-Policy.\n\n**Steps:**\n1. Request `<base_url>/` and read the response headers (the browser's network panel, or any HTTP\n   client).\n2. The headers above are missing; `Feature-Policy` is there instead of `Permissions-Policy`.\n\n**Devices:** any; the headers come from the server, desktop Chromium and the ZAP baseline scan both\nshow them.\n\n**Severity:** S3. Juice Shop is insecure on purpose; the missing policies widen what its injection\ndefects (LOCAL-2) can do, and change nothing a user sees.\n\n**Evidence:** the security headers sweep (`apps/juice-shop/specs/security/headers.spec.ts`) fails on\n`/` anonymous and signed in with an empty baseline, 2026-11-03; the ZAP baseline lane reports\nplugins 10038 (CSP header not set), 10063 (deprecated Feature Policy header) and 90004\n(Cross-Origin-Embedder-Policy missing) on the same documents.\n",
+      "labels": [
+        "ui",
+        "severity:S3"
+      ],
+      "status": "open",
+      "category": "open",
+      "comments": []
+    },
+    "LOCAL-32": {
+      "title": "Juice Shop: every response allows any origin (Access-Control-Allow-Origin: *)",
+      "body": "**What happens:** every response of Juice Shop, documents, scripts and REST answers alike, carries\n`Access-Control-Allow-Origin: *`, so any site's scripts may read what the shop answers to a request\nthat carries no credentials.\n\n**What should happen:** the shop names the origins it trusts, or sends no CORS header on responses\nno other origin needs.\n\n**Steps:**\n1. Request `<base_url>/` or `<base_url>/rest/admin/application-version` and read the response\n   headers.\n2. `Access-Control-Allow-Origin: *` is present on both.\n\n**Devices:** any; the header comes from the server.\n\n**Severity:** S3. The wildcard does not apply to requests with cookies, and the shop's REST API\nauthenticates with a bearer token, so a page of another site reads only what an anonymous client\nalready could.\n\n**Evidence:** the ZAP baseline lane reports plugin 10098 (Cross-Domain Misconfiguration) on the\ndocuments and scripts it fetched, 2026-11-03.\n",
+      "labels": [
+        "ui",
+        "severity:S3"
+      ],
+      "status": "open",
+      "category": "open",
+      "comments": []
+    },
+    "LOCAL-33": {
+      "title": "Swag Labs: documents carry none of the security headers, Strict-Transport-Security included",
+      "body": "**What happens:** the documents of Swag Labs carry none of the security headers: no\nContent-Security-Policy, no X-Frame-Options or CSP frame-ancestors, no X-Content-Type-Options, no\nReferrer-Policy, no Permissions-Policy, and no Strict-Transport-Security although the site is served\nover https. Any site can frame the login page.\n\n**What should happen:** every document carries those headers, with Strict-Transport-Security on\nhttps and a framing policy (`frame-ancestors` or `X-Frame-Options: DENY`) on the login page at least.\n\n**Steps:**\n1. Request `<base_url>/` and read the response headers.\n2. None of the headers above is present; the same holds for `<base_url>/inventory.html` and the\n   other pages of the shop.\n\n**Devices:** any; the headers come from the host.\n\n**Severity:** S3. A public demonstration shop without real accounts; the missing framing policy is\nthe one a user could be tricked through.\n\n**Evidence:** the security headers sweep (`apps/saucedemo/specs/security/headers.spec.ts`) fails on\n`/` with six gaps and an empty baseline, 2026-11-03, desktop Chromium. Read-only: the sweep opens\npages and reads their answers; the ZAP lane never scans this host.\n",
+      "labels": [
+        "ui",
+        "severity:S3"
       ],
       "status": "open",
       "category": "open",

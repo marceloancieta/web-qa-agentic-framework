@@ -281,3 +281,37 @@ test.describe('the accessibility check', () => {
     );
   });
 });
+
+test.describe('the security headers check', () => {
+  test('passes a page with every header and fails a seeded page missing one', async ({
+    page,
+    fakeApp,
+    securityHeaders,
+  }) => {
+    await page.goto(`${fakeApp.url}/headers`);
+    const healthy = await securityHeaders.expectNoNewGaps(page);
+    expect(healthy).toEqual({ new: [], known: [], gone: [] });
+    await page.goto(`${fakeApp.url}/headers?omit=content-security-policy`);
+    await expect(securityHeaders.expectNoNewGaps(page)).rejects.toThrow(
+      /^1 new security header gap\(s\):\n {2}content-security-policy on \/headers\?omit=content-security-policy: no Content-Security-Policy header\n/,
+    );
+  });
+
+  test("checks the pages of actors too, and refuses a page that loaded no document of the pack's", async ({
+    actor,
+    securityHeaders,
+  }) => {
+    const customer = await actor();
+    await customer.page.goto('/headers?omit=x-content-type-options');
+    await expect(securityHeaders.expectNoNewGaps(customer.page)).rejects.toThrow(
+      /x-content-type-options on \/headers\?omit=x-content-type-options/,
+    );
+    const blank = await customer.context.newPage();
+    await expect(securityHeaders.expectNoNewGaps(blank)).rejects.toThrow(/is not recorded/);
+    const anonymous = await actor('anonymous');
+    await anonymous.page.setContent('<!doctype html><title>t</title><h1>t</h1>');
+    await expect(securityHeaders.expectNoNewGaps(anonymous.page)).rejects.toThrow(
+      /loaded no document of http:\/\/127\.0\.0\.1:\d+ yet/,
+    );
+  });
+});

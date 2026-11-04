@@ -6,6 +6,9 @@
 //   /products   a list loaded from /api/products, with a loading indicator and error states, and a
 //               script from a third-party host
 //   /broken     a console error, an uncaught exception, a broken image and a 500 response
+//   /headers    a page with every security header and a well-made cookie; `?omit=<header>` leaves
+//               one header out, the seeded gap of the security headers check
+//   /api/cookie sets a cookie without attributes, from a fetch
 //   /api/users  POST creates an account; DELETE /api/users/<name> removes it (needs the token)
 //   /api/login  POST returns { token }; /api/me answers the account of the bearer token
 
@@ -49,6 +52,19 @@ setTimeout(() => { throw new Error('uncaught boom'); }, 0);
 fetch('/api/fail');
 </script></body></html>`;
 
+const HEADERS_PAGE = `<!doctype html><html lang="en"><head><title>Headers</title></head><body><main>
+<h1>Headers</h1></main></body></html>`;
+
+/** What a page that keeps every rule of the security headers check sends. */
+export const SECURITY_HEADERS: Record<string, string> = {
+  'content-security-policy': "default-src 'self'; frame-ancestors 'none'",
+  'x-frame-options': 'DENY',
+  'x-content-type-options': 'nosniff',
+  'referrer-policy': 'strict-origin-when-cross-origin',
+  'permissions-policy': 'camera=(), microphone=()',
+  'set-cookie': 'session=fake; Path=/; HttpOnly; SameSite=Lax',
+};
+
 function readBody(request: IncomingMessage): Promise<Record<string, string>> {
   return new Promise((resolve) => {
     let raw = '';
@@ -82,9 +98,20 @@ export async function startFakeApp(): Promise<FakeApp & { close(): Promise<void>
     tokens.get((request.headers.authorization ?? '').replace(/^Bearer /, ''));
 
   const server = createServer(async (request, response) => {
-    const path = new URL(request.url ?? '/', 'http://x').pathname;
+    const address = new URL(request.url ?? '/', 'http://x');
+    const path = address.pathname;
     hits.push(`${request.method} ${path}`);
     if (path === '/') return send(response, 200, HOME, 'text/html');
+    if (path === '/headers') {
+      const omit = address.searchParams.get('omit');
+      for (const [name, value] of Object.entries(SECURITY_HEADERS))
+        if (name !== omit) response.setHeader(name, value);
+      return send(response, 200, HEADERS_PAGE, 'text/html');
+    }
+    if (path === '/api/cookie') {
+      response.setHeader('set-cookie', 'tracker=fake');
+      return send(response, 200, { ok: true });
+    }
     if (path === '/products') return send(response, 200, PRODUCTS, 'text/html');
     if (path === '/broken') return send(response, 200, BROKEN, 'text/html');
     if (path === '/api/products')

@@ -114,6 +114,8 @@ web-qa-agentic-framework/
     specs/
     visual/                  baselines per project, generated only in the container
     a11y-known.json          known violations with a tracker key and an expiry
+    headers-known.json       known security header gaps, the same way
+    zap-known.json           accepted ZAP alerts with a tracker key, an expiry and a reason
     fixtures.ts
   helpers/  fixtures/        core
   scripts/  lib/ tm/ tracker/ lint-*.mjs app-map.mjs scaffold-app.mjs ...
@@ -219,7 +221,7 @@ web-qa-agentic-framework/
 ## 5. CI that does not depend on a vendor, and the browser matrix
 
 - **The contract is npm plus Docker:** `npm run gates`, `npm test -- --project=...`, the lanes
-  (`visual`, `a11y`, `known-gap`, `destructive`, `flake`), `npm run tm:report`. CI files only call
+  (`visual`, `a11y`, `known-gap`, `destructive`, `flake`, `zap`), `npm run tm:report`. CI files only call
   these scripts: [`.github/workflows/ci.yml`](../.github/workflows/ci.yml) (primary) and the
   [`Jenkinsfile`](../Jenkinsfile) ([Jenkins](guides/jenkins.md): the same steps on one agent,
   Windows or Linux), checked by `scripts/__tests__/ci-files.test.mjs`. The flake lane runs
@@ -272,7 +274,7 @@ say how a case runs rather than which dimension it covers.
 |---|---|---|
 | **Responsiveness** | tablet and landscape projects; a "no horizontal scroll" check per breakpoint (`scrollWidth ≤ clientWidth`); visual per project | — |
 | **Perceived performance** | loading indicators: a mock adds `delay(ms)` and the case checks the spinner appears and goes away; no flash of empty content | web vitals (LCP, CLS, INP) in Chromium with per-pack budgets in qa-config; a Lighthouse lane; `prefers-reduced-motion` emulation (animation smoothness cannot be measured reliably) |
-| **Security in the UI** | password fields use `type=password` and the right `autocomplete`; generic login errors (no user enumeration); protected routes redirect without a session; after logout, Back shows no data; nothing sensitive in the URL or `localStorage`; injection payloads from the builders render as text | security headers (CSP, frame options) per response; a ZAP baseline lane against the UI (container lanes) |
+| **Security in the UI** | password fields use `type=password` and the right `autocomplete`; generic login errors (no user enumeration); protected routes redirect without a session; after logout, Back shows no data; nothing sensitive in the URL or `localStorage`; injection payloads from the builders render as text | security headers (CSP, frame options, transport, cookies) per response, swept in every run against a baseline of known gaps; a ZAP baseline lane against local packs only, in a pinned container ([ADR 0011](adr/0011-security-headers-and-zap-lane.md)) |
 | **Layout and design** | a **page health guard** on every test (opt-out with a reason): broken images, failed same-origin requests, console errors (with the fields of an error object they log), uncaught exceptions; visual regression covers alignment | design-token checks (colour, font, size from the pack's `design-tokens.json`) on key components |
 | **Navigation and interaction** | states through `toBeDisabled` and `toBeFocused`; hover and focus states in visual; Back and Forward, deep links, reload keeps state, a session across tabs | — |
 | **Accessibility** | axe (colour contrast included) with a baseline; a keyboard helper (tab order by accessible name, visible focus, no focus traps); **ARIA snapshots** (`toMatchAriaSnapshot`) as a regression of what a screen reader announces | — |

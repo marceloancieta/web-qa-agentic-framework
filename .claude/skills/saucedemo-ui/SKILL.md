@@ -58,6 +58,10 @@ every other page keeps its elements and order at every width.
 | LOCAL-28 | "Reset App State" leaves the open page showing the old cart until a reload | TC-CART-10 |
 | LOCAL-29 | Logout leaves the cart for the next sign-in on the same browser | TC-CART-12 |
 | LOCAL-30 | the cart button is named "Cart, 1 items" with one product | TC-CART-15 |
+| LOCAL-33 | the documents carry none of the security headers, Strict-Transport-Security included | the headers sweep, through every entry of `apps/saucedemo/headers-known.json` |
+
+The site is public, so the ZAP lane refuses it whatever the environment says; its headers are read
+only by the headers sweep, which opens pages like any case.
 
 The other gaps of the login, product list and cart contracts are recorded in the contracts and not
 filed.

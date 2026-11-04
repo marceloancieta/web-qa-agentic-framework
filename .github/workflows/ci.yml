@@ -6,6 +6,7 @@
 #         → a11y lane       ├→ report: ci:merge → quality:gate over every report → tm:report
 #         → visual lane     │
 #         → destructive lane┘
+#         → zap lane: a ZAP baseline scan of a disposable Juice Shop the lane starts, judged by itself
 #   required: one verdict over all of the above, the check branch protection requires
 #   flake lane: weekly and on demand only
 #
@@ -125,6 +126,29 @@ jobs:
             test-results/
           retention-days: 14
 
+  # The ZAP baseline lane (ADR 0011): a spider and a passive scan, a few minutes beside the suite's
+  # shards. The lane starts its own disposable Juice Shop and removes it. Its verdict is its own exit
+  # code against apps/juice-shop/zap-known.json; it writes no Playwright report, so the quality gate
+  # does not read it.
+  zap:
+    needs: gates
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - name: Run the ZAP baseline lane
+        run: npm run lanes:zap -- --pack juice-shop
+      - if: ${{ always() && !env.ACT }}
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: zap
+          path: reports/zap/
+          retention-days: 14
+
   report:
     needs: [gates, suite, lane]
     # It also runs when a shard or a lane failed, to report the failures; not when the run was
@@ -161,7 +185,7 @@ jobs:
   # only when every job of the change succeeded. It runs even when one failed, since a required
   # check that is skipped counts as passed.
   required:
-    needs: [gates, suite, lane, report]
+    needs: [gates, suite, lane, zap, report]
     if: ${{ always() && github.event_name != 'schedule' }}
     runs-on: ubuntu-24.04
     steps:
