@@ -20,8 +20,8 @@ def shell(Map options = [:], String command) {
 }
 
 /**
- * A build the weekly timer started, or one asked for with FLAKE_LANE, runs only the weekly lanes:
- * flake, then the performance lanes.
+ * A build the weekly timer started, or one asked for with FLAKE_LANE, runs only the weekly work:
+ * the cited keys, the flake lane, then the performance lanes.
  */
 def flakeBuild() {
   return params.FLAKE_LANE ||
@@ -80,14 +80,14 @@ pipeline {
     string(name: 'SHARDS', defaultValue: '4', description: 'How many shards the suite is split into; they run one after another.')
     string(name: 'WORKERS', defaultValue: '', description: 'Playwright workers of each run; empty means the Playwright default. Fewer suit an agent whose browsers are slow.')
     booleanParam(name: 'BROWSER_DEPS', defaultValue: false, description: 'Also install the system packages the browsers need. It needs administrator rights on the agent; once per agent is enough.')
-    booleanParam(name: 'FLAKE_LANE', defaultValue: false, description: 'Run only the weekly lanes: flake, then the performance lanes.')
+    booleanParam(name: 'FLAKE_LANE', defaultValue: false, description: 'Run only the weekly work: the cited keys, the flake lane, then the performance lanes.')
     string(name: 'ALLURE_TOKEN_CREDENTIALS_ID', defaultValue: '', description: 'Secret-text credential with an Allure TestOps API token. Set: the run is reported to TestOps instead of the tool in qa-config.')
     string(name: 'ALLURE_ENDPOINT', defaultValue: '', description: 'Allure TestOps instance URL, with ALLURE_TOKEN_CREDENTIALS_ID.')
     string(name: 'ALLURE_PROJECT_ID', defaultValue: '', description: 'Allure TestOps project id, with ALLURE_TOKEN_CREDENTIALS_ID.')
   }
 
   triggers {
-    cron('H 6 * * 1') // weekly: the flake and performance lanes (see flakeBuild)
+    cron('H 6 * * 1') // weekly: the cited keys, the flake and performance lanes (see flakeBuild)
   }
 
   options {
@@ -222,6 +222,18 @@ pipeline {
               shell 'npm run tm:report'
             }
           }
+        }
+      }
+    }
+
+    // The tracker keys the gates cannot read, since --offline never reaches a network tracker. With
+    // a tracker kept in the repository it says so and skips. A closed key, an unknown one or a
+    // tracker that does not answer fails the build without stopping the lanes.
+    stage('Cited keys') {
+      when { expression { flakeBuild() } }
+      steps {
+        catchError(buildResult: 'FAILURE', stageResult: 'FAILURE') {
+          shell 'npm run cited-status -- --online'
         }
       }
     }

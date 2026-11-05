@@ -41,8 +41,8 @@ Do not report what these already check on every push; a finding they would raise
 - `test:hooks`, `test:scripts`, `test:unit`: the tests of the hooks, scripts and core.
 - `lint:qa`: the QA linters (layers, harness, suite, docs) and their self-tests.
 - `coverage:status`, `traceability`: case counts and requirement coverage.
-- `cited-status`: tracker keys the registries and contracts cite that are closed or unknown, when
-  the tracker is kept in the repository.
+- `cited-status`: tracker keys the packs cite that are closed or unknown, when the tracker is kept
+  in the repository.
 - `scan:denylist:self-test`, `scan:denylist`, `scan:denylist:history`: names and hosts that must
   not appear.
 - `lint:docs:history`: wording in the commit history.

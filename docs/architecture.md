@@ -229,9 +229,10 @@ web-qa-agentic-framework/
   [`Jenkinsfile`](../Jenkinsfile) ([Jenkins](guides/jenkins.md): the same steps on one agent,
   Windows or Linux), checked by `scripts/__tests__/ci-files.test.mjs`. The flake lane and the
   performance lanes (web vitals and Lighthouse, [ADR 0012](adr/0012-performance-lanes.md)) run
-  weekly and on demand, outside the pipeline of each change, and so does the app map drift check
-  ([`app-map-drift.yml`](../.github/workflows/app-map-drift.yml)). `act` runs the GitHub jobs on a
-  local machine before a workflow change is pushed
+  weekly and on demand, outside the pipeline of each change, and so do the app map drift check
+  ([`app-map-drift.yml`](../.github/workflows/app-map-drift.yml)) and the cited keys of a tracker
+  reached over the network ([`cited-status.yml`](../.github/workflows/cited-status.yml)). `act`
+  runs the GitHub jobs on a local machine before a workflow change is pushed
   ([the workflows on your machine](guides/running-tests.md#the-workflows-on-your-machine)).
 - Jobs: gates → local packs in compose (pinned by digest) → project matrix with `--shard=i/n` and the
   `blob` reporter (`QA_BLOB_REPORT=1`) → `npm run ci:merge` → quality gate over the merged report and

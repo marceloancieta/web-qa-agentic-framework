@@ -38,7 +38,7 @@ A request that needs both is split, and each half stops at its own gate.
 - **Gates.** `npm run gates` must pass before a push; the `pre-push` hook runs it (installed by
   `npm run hooks:install`). It runs lint, format, type and configuration checks, the hook, script
   and core unit tests, the QA linters (`lint:layers`, `lint:harness`, `lint:docs`) with their
-  self-tests, the tracker keys the registries and contracts cite (`cited-status`, when the tracker
+  self-tests, the tracker keys the packs cite (`cited-status`, when the tracker
   is kept in the repository), and the denylist, wording and secret scans over the whole history.
   `npm run audit:deps` needs the registry, so CI runs it beside the gates.
 - **No secrets or real data.** Credentials come from the environment or the local `.env`, never from

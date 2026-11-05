@@ -1,0 +1,51 @@
+# Cited keys (FUT-17): once a week, and on demand, the tracker keys the packs cite are read in a
+# tracker reached over the network (npm run cited-status -- --online). The gates run the check with
+# --offline, which reads a tracker kept in the repository and cannot reach any other, so this job is
+# what covers one. With a tracker kept in the repository it says so and skips: the job is green
+# without having read anything, and the gates are what checked the keys.
+#
+# It only reads: no write permission, and nothing is written to the tracker. It is not a required
+# check: an issue can close without a change to this repository. A closed or unknown key fails the
+# job, and so does a tracker that does not answer or a credential that is missing.
+#
+# The credentials are the adapters' default variables. A `github` tracker on this repository uses the
+# run's own token; a `jira` tracker needs the two repository secrets below. No secret is needed while
+# the tracker is kept in the repository, since the check skips before it reads a variable. A tracker
+# with its own `token_env`, or a `github` one on another repository, needs its variable added here.
+name: cited-status
+
+on:
+  schedule:
+    - cron: '0 8 * * 1' # Mondays 08:00 UTC
+  workflow_dispatch:
+
+permissions: {}
+
+concurrency:
+  group: cited-status
+  cancel-in-progress: true
+
+env:
+  CI: '1'
+
+jobs:
+  cited-status:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    permissions:
+      contents: read
+      issues: read
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm run cited-status -- --online
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          JIRA_USER: ${{ secrets.JIRA_USER }}
+          JIRA_TOKEN: ${{ secrets.JIRA_TOKEN }}

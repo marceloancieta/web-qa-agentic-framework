@@ -64,7 +64,8 @@ changed in review.
 6. **The case proves its own result.** Assert on what the case created, and check through `api/`
    what the UI claims to have done when the claim matters: a success toast does not prove the change.
 7. **Known gaps arm right before the action**: `test.fail(true, await knownGap('<KEY>', why))`, with
-   `@known-gap` in the title and no `expect.soft` above the arm (soft-before-arm).
+   `@known-gap` in the title and no `expect.soft` above the arm (soft-before-arm). The key is written
+   in the call, where `cited-status` reads it (dynamic-key).
 8. **The page health guard stays on.** Switching it off takes a reason
    (`test.use({ pageHealth: { off: '<why>' } })`).
 9. **Steps** (`test.step`) are optional; a step's name says what it does to the page.
