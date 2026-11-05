@@ -45,6 +45,7 @@ Every item of v0.1.0 is done; each is in **Done**.
 
 | Id | Item | Origin | Status |
 |---|---|---|---|
+| GATE-12 | A hook checks the browser limits of design in `.claude/rules/modes.md`, which today are a sentence: an agent browser tool in design navigates and reads, and types only into the login. | ADR 0013 | todo |
 | FUT-01 | Toolshop pack (Practice Software Testing, local Docker): authorization in the UI by role, `data-test` attributes. | plan | todo |
 | FUT-04 | i18n: projects per `locale` and `timezoneId`, pseudo-localization, right-to-left. | practice | todo |
 | FUT-05 | Design-token checks from the pack's `design-tokens.json`; `prefers-reduced-motion` emulation. | plan | todo |
