@@ -369,6 +369,40 @@ test('the app map drift workflow reads only, on a schedule, in an environment qa
   }
 });
 
+// Cited keys over the network (FUT-17): the gates cannot reach such a tracker, so a scheduled job
+// does. It only reads, has a time limit, takes the variables the adapters read by default, and no
+// check of a change waits for it.
+test('the cited status workflow reads a network tracker on a schedule, with a time limit', () => {
+  const flow = parse(readFileSync(join(WORKFLOWS, 'cited-status.yml'), 'utf8'));
+  assert.deepEqual(Object.keys(flow.on).sort(), ['schedule', 'workflow_dispatch']);
+  assert.deepEqual(flow.permissions, {});
+  const [job, ...others] = Object.values(flow.jobs);
+  assert.deepEqual(others, []);
+  assert.deepEqual(job.permissions, { contents: 'read', issues: 'read' });
+  assert.ok(Number.isInteger(job['timeout-minutes']) && job['timeout-minutes'] <= 15);
+  const check = job.steps.find((step) => step.run === 'npm run cited-status -- --online');
+  assert.ok(check, 'the step runs the check with --online');
+  assert.deepEqual(Object.keys(check.env).sort(), ['GITHUB_TOKEN', 'JIRA_TOKEN', 'JIRA_USER']);
+  assert.equal(
+    check.env.GITHUB_TOKEN,
+    '${{ github.token }}',
+    'the token of the run, no new secret',
+  );
+  for (const step of job.steps.filter((s) => s !== check)) assert.equal(step.env, undefined);
+});
+
+test('the weekly Jenkins build reads a network tracker without stopping the lanes', () => {
+  const stage = /stage\('Cited keys'\) \{([\s\S]*?)\n {4}\}\n/.exec(jenkinsfile)?.[1] ?? '';
+  assert.match(stage, /when \{ expression \{ flakeBuild\(\) \} \}/);
+  assert.match(
+    stage,
+    /catchError\(buildResult: 'FAILURE', stageResult: 'FAILURE'\) \{\s+shell 'npm run cited-status -- --online'/,
+  );
+  assert.ok(
+    jenkinsfile.indexOf("stage('Cited keys')") < jenkinsfile.indexOf("stage('Flake lane')"),
+  );
+});
+
 // The workflows on the local machine (CI-05): `act` runs each job in a container of the image
 // `.actrc` maps to its runner label, on the compose network, where Juice Shop answers by its service
 // name; and it sets ACT, which skips the artifact steps its artifact server cannot serve.

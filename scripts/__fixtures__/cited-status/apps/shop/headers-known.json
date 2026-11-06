@@ -1,0 +1,3 @@
+[
+  { "rule": "referrer-policy", "route": "*", "key": "BUG-2", "expires": "2099-01-01", "note": "expect-finding: closed-key" }
+]

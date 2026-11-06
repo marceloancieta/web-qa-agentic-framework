@@ -46,7 +46,11 @@ The copies take later releases from the `v<x.y.z>` tags, so every release is tag
 leaves branch protection naming a check that no longer runs. CodeQL is not a required check: it
 reports to code scanning, where its alerts are reviewed. Neither is the weekly app map drift
 ([`app-map-drift.yml`](../.github/workflows/app-map-drift.yml)): the application can change without
-a change to the repository.
+a change to the repository. Nor is the weekly reading of the cited keys
+([`cited-status.yml`](../.github/workflows/cited-status.yml)), for the same reason: an issue can
+close without one. With a `jira` tracker it needs the repository secrets `JIRA_USER` and
+`JIRA_TOKEN`; a tracker kept in the repository, or a `github` one on this repository, needs no
+secret.
 
 ## Security
 

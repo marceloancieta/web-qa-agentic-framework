@@ -1,0 +1,14 @@
+[
+  { "rule": "label", "target": "#total", "route": "*", "key": "BUG-1", "expires": "2099-01-01", "note": "BUG-2 and BUG-9 in another field are not the key of the entry" },
+  { "rule": "label", "target": "#empty", "route": "/basket", "key": "BUG-2", "expires": "2099-01-01", "note": "expect-finding: closed-key" },
+  { "rule": "label", "target": "#remove", "route": "/basket", "key": "BUG-9", "expires": "2099-01-01", "note": "expect-finding: unknown-key" },
+  { "rule": "label", "target": "#quantity", "route": "/basket", "key": "BUG-three", "expires": "2099-01-01", "note": "expect-finding: unknown-key" },
+  {
+    "rule": "image-alt",
+    "target": "#gallery img",
+    "route": "*",
+    "key": "BUG-3",
+    "expires": "2099-01-01"
+  },
+  { "rule": "label", "target": "#no-key", "route": "*", "expires": "2099-01-01", "note": "no key: the fixture that loads the baseline refuses it" }
+]

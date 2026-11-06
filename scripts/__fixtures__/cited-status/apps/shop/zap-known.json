@@ -1,0 +1,4 @@
+[
+  { "plugin": "10038", "name": "Content Security Policy (CSP) Header Not Set", "key": "BUG-1", "expires": "2099-01-01", "reason": "BUG-2 in the reason is not the key of the entry" },
+  { "plugin": "10098", "name": "Cross-Domain Misconfiguration", "key": "BUG-9", "expires": "2099-01-01", "reason": "expect-finding: unknown-key" }
+]

@@ -71,17 +71,30 @@ computes them, and a number typed by hand goes stale.
 
 ## Tracker keys
 
-A key in a registry or a contract stands for something that waits on the tracker: a known gap in
-the Defect column, a gap in the contract's table, a rule "the application breaks", a workaround
-"until `<KEY>` is fixed". When the issue closes, what cites it may no longer be true.
+A key a pack cites stands for something that waits on the tracker: a known gap in the Defect column
+or in a spec's arm, a gap in the contract's table, a rule "the application breaks", a workaround
+"until `<KEY>` is fixed", a departure in the app notes, a known accessibility violation. When the
+issue closes, what cites it may no longer be true.
 
 - `npm run cited-status` reads every cited key in the configured tracker, read-only, and reports a
   key whose issue is closed (`closed-key`: the gap may be fixed, so the case, the claim or the
-  workaround is revisited) or that the tracker does not have (`unknown-key`). A key counts when it
-  matches qa-config `tracker.key_pattern` on its own, outside code spans, code blocks and HTML
-  comments.
+  workaround is revisited) or that the tracker does not have (`unknown-key`). What counts as a
+  citation depends on the file:
+
+  | In each pack | A citation is |
+  |---|---|
+  | `registry/*.md`, `docs/features/*.md`, `docs/app-notes.md` | a match of qa-config `tracker.key_pattern` on its own, outside code spans, code blocks and HTML comments |
+  | `specs/**/*.spec.ts` | the first argument of a `knownGap(...)` call, from the syntax tree; a key in a comment, in a string or in a `test.fail` reason of its own does not count |
+  | `a11y-known.json`, `headers-known.json`, `zap-known.json` | the `key` field of an entry; a key mentioned in another field does not count |
+
+- In a spec and in a baseline the position says the value is a key, so one that does not match the
+  pattern is an `unknown-key` without asking the tracker. A `knownGap` key that comes from an
+  expression cannot be read at all, which is a finding of its own (`dynamic-key`): write it in the
+  call.
 - The gates run it with `--offline`: it checks a tracker kept in the repository (`local`) and skips
-  one that needs the network, which `qa-run` checks instead.
+  one that needs the network. A tracker reached over the network is read with `--online` once a week
+  ([`cited-status.yml`](../../.github/workflows/cited-status.yml), and the weekly Jenkins build),
+  which skips a `local` one with that reason, and by `qa-run` after a run.
 - A closed key is never fixed by deleting it. The known-gap lane shows whether the case now passes;
   the case, the contract and the arm then change through `qa-design` and `qa-automate`.
 

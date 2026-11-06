@@ -35,7 +35,7 @@ Each fact has one owner. Other files link to it or name it; they never restate i
 | Which packs the ZAP lane may scan, and that it scans only their disposable copy | `targetProblem` and `scanServiceOf` in `scripts/zap-lane.mjs` |
 | Counts of cases by status and dimension | `npm run coverage:status` |
 | Which requirements and rules are covered | `npm run traceability` |
-| Whether the tracker keys the registries and contracts cite are still open | `npm run cited-status`; meaning in `.claude/rules/registry.md` |
+| Whether the tracker keys the packs cite are still open, and which files count as citing | `npm run cited-status`; meaning in `.claude/rules/registry.md` |
 | Quality gate thresholds | qa-config `quality_gate` |
 | Performance budgets: web vitals per device project, Lighthouse minimum scores and routes | qa-config `app.environments.<env>.packs.<pack>.performance`; why and how in ADR 0012 |
 | The device projects and the default set | `helpers/device-projects.json` (typed by `helpers/devices.ts`, read by `scripts/lib/devices.mjs`); each environment's `projects` in qa-config |

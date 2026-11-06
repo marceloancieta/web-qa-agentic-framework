@@ -40,7 +40,8 @@ export function testsIn(sourceFile) {
   return tests;
 }
 
-function specFilesUnder(dir, rel) {
+/** The spec files under `dir`, as paths that start with `rel`. */
+export function specFilesUnder(dir, rel) {
   if (!existsSync(dir)) return [];
   return readdirSync(dir, { withFileTypes: true }).flatMap((entry) => {
     const path = join(dir, entry.name);
