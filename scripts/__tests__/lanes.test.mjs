@@ -164,6 +164,32 @@ test('the known-gap summary groups the cases: armed, now passing, failing otherw
   assert.match(teardown.lines.at(-1), /errors outside any test: 1/);
 });
 
+test('the known-gap summary lists the armed cases the page health guard noted', () => {
+  const entry = (annotations) => ({
+    projectName: 'shop-desktop-chromium',
+    status: 'expected',
+    expectedStatus: 'failed',
+    results: [{ status: 'failed', annotations }],
+  });
+  const report = {
+    suites: [
+      {
+        title: 'a',
+        specs: [
+          { title: 'TC-CART-03 x', tags: ['known-gap'], tests: [entry([{ type: 'page-health' }])] },
+          { title: 'TC-CART-04 x', tags: ['known-gap'], tests: [entry([{ type: 'issue' }])] },
+        ],
+      },
+    ],
+  };
+  const summary = summarizeKnownGaps(report);
+  assert.deepEqual(summary.health, ['TC-CART-03 (shop-desktop-chromium)']);
+  assert.ok(
+    summary.lines.includes('page health problems noted: TC-CART-03 (shop-desktop-chromium)'),
+  );
+  assert.equal(summary.ok, true, 'a note does not fail the lane');
+});
+
 const spec = (title, tags, outcomes, project = 'shop-desktop-chromium') => ({
   title,
   tags,

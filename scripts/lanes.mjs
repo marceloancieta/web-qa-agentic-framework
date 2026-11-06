@@ -244,6 +244,9 @@ export function reportEntries(report) {
           outcome: test.status,
           expected: test.expectedStatus,
           last: test.results?.at(-1)?.status ?? null,
+          health: [...(test.annotations ?? []), ...(test.results?.at(-1)?.annotations ?? [])].some(
+            (a) => a.type === 'page-health',
+          ),
         });
       }
     }
@@ -271,11 +274,14 @@ function grouped(entries) {
 /**
  * Which known gaps still fail as armed, which now pass and which fail for another reason. A test
  * without the tag (a preflight) counts only when it failed. `{ groups, lines, ok }`; ok when no gap
- * passed and nothing failed for another reason.
+ * passed and nothing failed for another reason. `health` lists the gaps whose run the page health
+ * guard found problems in: the guard only notes them on an armed case, so they are read here.
  */
 export function summarizeKnownGaps(report) {
   const groups = { armed: [], passing: [], other: [], skipped: [] };
+  const health = [];
   for (const entry of reportEntries(report)) {
+    if (entry.health) health.push(entry);
     if (!entry.tags.includes(KNOWN_GAP_TAG)) {
       if (entry.outcome === 'unexpected') groups.other.push(entry);
     } else if (entry.outcome === 'skipped') groups.skipped.push(entry);
@@ -288,11 +294,13 @@ export function summarizeKnownGaps(report) {
   const line = (label, list) => `${label}: ${list.length ? list.join(', ') : 'none'}`;
   return {
     groups: ids,
+    health: grouped(health),
     lines: [
       line('still failing as armed (expected)', ids.armed),
       line('now passing (check the issue; if it is fixed, the arm and the tag go)', ids.passing),
       line('failing for another reason', ids.other),
       ...(ids.skipped.length ? [line('skipped', ids.skipped)] : []),
+      ...(health.length ? [line('page health problems noted', grouped(health))] : []),
       ...outsideTests(report),
     ],
     ok: ids.passing.length === 0 && ids.other.length === 0 && !report.errors?.length,

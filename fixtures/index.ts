@@ -64,7 +64,9 @@ import { attachJson } from '../helpers/evidence';
 import { blockThirdParties } from '../helpers/network';
 import {
   checkOptions,
+  HEALTH_ANNOTATION,
   healthReport,
+  healthVerdict,
   watchPageHealth,
   type PageHealthGuard,
   type PageHealthOptions,
@@ -218,7 +220,8 @@ function projectContextOptions(testInfo: TestInfo): Partial<PlaywrightTestOption
 
 /**
  * Fail the test with the guard's findings, unless the test switched the guard off. A test that
- * already failed keeps its own error; the findings are attached either way.
+ * already failed keeps its own error, and a case armed with `knownGap` keeps its own verdict and
+ * carries the report as an annotation (`healthVerdict`); the findings are attached either way.
  */
 async function verifyHealth(
   guard: PageHealthGuard,
@@ -229,7 +232,11 @@ async function verifyHealth(
   const problems = await guard.problems();
   if (problems.length > 0) await attachJson(testInfo, 'page-health', problems);
   const report = healthReport(problems);
-  if (report && testInfo.status === 'passed') throw new Error(report);
+  const verdict = healthVerdict(report, testInfo);
+  if (verdict === 'fail') throw new Error(report ?? '');
+  if (verdict === 'note') {
+    testInfo.annotations.push({ type: HEALTH_ANNOTATION, description: report ?? '' });
+  }
 }
 
 /** The `test` of a pack: the core fixtures with the pack's way of signing actors in. */

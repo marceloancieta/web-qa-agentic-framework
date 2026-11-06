@@ -67,7 +67,9 @@ changed in review.
    `@known-gap` in the title and no `expect.soft` above the arm (soft-before-arm). The key is written
    in the call, where `cited-status` reads it (dynamic-key).
 8. **The page health guard stays on.** Switching it off takes a reason
-   (`test.use({ pageHealth: { off: '<why>' } })`).
+   (`test.use({ pageHealth: { off: '<why>' } })`). On a case armed with `knownGap` it never fails
+   the case, so a fixed gap shows as an unexpected pass; it notes its report, and
+   `lanes:known-gap` lists those cases.
 9. **Steps** (`test.step`) are optional; a step's name says what it does to the page.
 
 ## A journey

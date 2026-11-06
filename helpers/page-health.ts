@@ -191,6 +191,33 @@ export function healthReport(problems: readonly HealthProblem[]): string | null 
   );
 }
 
+/** The annotation that carries the guard's report on a case armed with `knownGap`. */
+export const HEALTH_ANNOTATION = 'page-health';
+
+/** The parts of a finished test that decide what the guard's report does. */
+export interface HealthVerdictInput {
+  status?: string;
+  expectedStatus: string;
+  annotations: readonly { type: string }[];
+}
+
+/**
+ * What the guard does with its report when a test ends: `fail` the test, `note` the report on it,
+ * or `none`. A case armed with `knownGap` is only noted: failing it would count as the failure it
+ * expects, so a gap that was fixed would keep reading as armed instead of as an unexpected pass. A
+ * plain `test.fail` carries no issue and still fails, which is how the guard's own tests prove it.
+ */
+export function healthVerdict(
+  report: string | null,
+  test: HealthVerdictInput,
+): 'fail' | 'note' | 'none' {
+  if (!report) return 'none';
+  const armed =
+    test.expectedStatus === 'failed' && test.annotations.some((a) => a.type === 'issue');
+  if (armed) return 'note';
+  return test.status === 'passed' ? 'fail' : 'none';
+}
+
 /** Refuse an opt-out without a reason. */
 export function checkOptions(options: PageHealthOptions): void {
   if (options.off !== undefined && !options.off.trim()) {
