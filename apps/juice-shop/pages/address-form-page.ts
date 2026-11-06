@@ -31,6 +31,10 @@ export class AddressFormPage {
     return this.page.getByRole('button', { name: 'Submit' });
   }
 
+  async clear(label: AddressField): Promise<void> {
+    await this.field(label).clear();
+  }
+
   /** Focus each field and leave it, so the form shows what is missing. */
   async touch(labels: AddressField[]): Promise<void> {
     for (const label of labels) await this.field(label).focus();

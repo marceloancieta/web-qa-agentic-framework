@@ -75,5 +75,40 @@
     "route": "*",
     "key": "LOCAL-25",
     "expires": "2027-01-27"
+  },
+  {
+    "rule": "button-name",
+    "target": "app-purchase-basket mat-row button",
+    "route": "/#/basket",
+    "key": "LOCAL-34",
+    "expires": "2027-01-27"
+  },
+  {
+    "rule": "label",
+    "target": "mat-radio-button input",
+    "route": "/#/address/select",
+    "key": "LOCAL-9",
+    "expires": "2027-01-27"
+  },
+  {
+    "rule": "aria-required-children",
+    "target": "mat-header-row",
+    "route": "/#/address/select",
+    "key": "LOCAL-9",
+    "expires": "2027-01-27"
+  },
+  {
+    "rule": "label",
+    "target": "mat-radio-button input",
+    "route": "/#/payment/shop",
+    "key": "LOCAL-9",
+    "expires": "2027-01-27"
+  },
+  {
+    "rule": "link-in-text-block",
+    "target": "a[routerlink=\"/track-result/new\"]",
+    "route": "*",
+    "key": "LOCAL-35",
+    "expires": "2027-01-27"
   }
 ]

@@ -27,6 +27,16 @@ export class AddressSelectPage {
     return this.page.getByRole('row').filter({ hasText: fullName });
   }
 
+  /** The radio of an address's row, whatever it is named. */
+  radio(fullName: string): Locator {
+    return this.address(fullName).getByRole('radio');
+  }
+
+  /** The radio named after an address, which no radio is until LOCAL-9 is fixed. */
+  radioNamed(fullName: string): Locator {
+    return this.page.getByRole('radio', { name: fullName });
+  }
+
   addresses(): Locator {
     return this.page.getByRole('row').filter({ has: this.page.getByRole('radio') });
   }

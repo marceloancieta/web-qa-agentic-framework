@@ -28,6 +28,21 @@ export class DeliveryPage {
     return this.page.getByRole('row').filter({ hasText: name });
   }
 
+  /** Every method: the rows that hold a radio, which the header row does not. */
+  methods(): Locator {
+    return this.page.getByRole('row').filter({ has: this.page.getByRole('radio') });
+  }
+
+  /** The radio of a method's row, whatever it is named. */
+  radio(name: DeliveryMethod): Locator {
+    return this.method(name).getByRole('radio');
+  }
+
+  /** The radio named after a method, which no radio is until LOCAL-9 is fixed. */
+  radioNamed(name: DeliveryMethod): Locator {
+    return this.page.getByRole('radio', { name });
+  }
+
   async choose(name: DeliveryMethod): Promise<void> {
     await this.method(name).getByRole('radio').click();
   }

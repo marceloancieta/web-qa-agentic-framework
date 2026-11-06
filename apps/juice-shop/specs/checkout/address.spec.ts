@@ -11,9 +11,10 @@ import { CheckoutApi } from '../../api/checkout-api';
 import { ADDRESS_LIMITS, anAddress, longStreet } from '../../builders/address-builder';
 import { expect, test, type Actor } from '../../fixtures';
 import { ADDRESS_SAVE, addressSaveAnswered, addressSaveFails } from '../../mocks/checkout-mocks';
-import { AddressFormPage } from '../../pages/address-form-page';
+import { AddressFormPage, type AddressField } from '../../pages/address-form-page';
 import { AddressSelectPage } from '../../pages/address-select-page';
 import { BasketPage } from '../../pages/basket-page';
+import { DeliveryPage } from '../../pages/delivery-page';
 
 // <PRODUCT>: the most stocked product without a limit per customer (the `stockedProduct` fixture).
 let PRODUCT = '';
@@ -21,6 +22,14 @@ test.beforeEach(({ stockedProduct }) => {
   PRODUCT = stockedProduct.name;
 });
 const MOBILE_MESSAGE = 'Mobile number must match 1000000-9999999999 format.';
+const REQUIRED: [AddressField, string][] = [
+  ['Country', 'Please provide a country.'],
+  ['Name', 'Please provide a name.'],
+  ['Mobile Number', 'Please provide a mobile number.'],
+  ['ZIP Code', 'Please provide a ZIP code.'],
+  ['Address', 'Please provide an address.'],
+  ['City', 'Please provide a city.'],
+];
 const escaped = (text: string) => text.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 const added = (city: string) =>
   new RegExp(`The address at ${escaped(city)} has been successfully added to your addresses\\.`);
@@ -103,6 +112,100 @@ test('TC-CHECKOUT-02 an address added through the form returns to "Select an add
   const saved = await new CheckoutApi(customer.api).addresses();
   expect(saved).toHaveLength(1);
   expect(saved[0]).toMatchObject({ ...address });
+});
+
+test('TC-CHECKOUT-03 the new address form keeps Submit disabled while empty, and each required field left empty says "Please provide a <field>." @regression @navigation', async ({
+  customer,
+}) => {
+  const form = new AddressFormPage(customer.page);
+  await form.open();
+  await expect(form.heading()).toBeVisible();
+  await expect(form.submit()).toBeDisabled();
+
+  // Every other field is valid in each step, so it is this field alone that disables Submit.
+  const address = anAddress();
+  for (const [label, message] of REQUIRED) {
+    await test.step(`${label} left empty says why`, async () => {
+      await form.fill(address);
+      await expect(form.submit()).toBeEnabled();
+      await expect(form.message(message)).toBeHidden();
+      await form.clear(label);
+      await form.touch([label]);
+      await expect(form.message(message)).toBeVisible();
+      await expect(form.submit()).toBeDisabled();
+    });
+  }
+});
+
+test('TC-CHECKOUT-04 an address with every required field and no State is saved @regression', async ({
+  actor,
+  qa,
+}) => {
+  test.skip(
+    !qa.allowWrites,
+    'the case saves an address to an account it creates; allow_writes is false',
+  );
+  const customer = await actor('customer', { fresh: true });
+  const address = anAddress({ state: undefined });
+  const select = new AddressSelectPage(customer.page);
+  const form = new AddressFormPage(customer.page);
+
+  // Through the list, as a customer gets here: the form returns to the page it was opened from.
+  const addresses = select.loaded();
+  await select.open();
+  await addresses;
+  await select.addNew().click();
+  await expect(form.heading()).toBeVisible();
+  await form.fill(address);
+  await expect(form.field('State')).toHaveValue('');
+  await expect(form.submit()).toBeEnabled();
+  await form.submit().click();
+
+  await expect(customer.page).toHaveURL(/#\/address\/select$/);
+  await expect(form.notification(added(address.city))).toBeVisible();
+  await expect(select.address(address.fullName)).toBeVisible();
+
+  const saved = await new CheckoutApi(customer.api).addresses();
+  expect(saved).toHaveLength(1);
+  expect(saved[0]).toMatchObject({
+    fullName: address.fullName,
+    mobileNum: address.mobileNum,
+    zipCode: address.zipCode,
+    streetAddress: address.streetAddress,
+    city: address.city,
+    country: address.country,
+  });
+  expect(saved[0]?.state ?? '').toBe('');
+});
+
+test('TC-CHECKOUT-08 with one saved address, Continue is enabled only once it is chosen, and leads to the delivery step showing that address and its mobile number @regression @navigation', async ({
+  actor,
+  qa,
+}) => {
+  test.skip(
+    !qa.allowWrites,
+    'the case saves an address and fills the basket of an account it creates; allow_writes is false',
+  );
+  const customer = await actor('customer', { fresh: true });
+  await withProductInBasket(customer);
+  const address = anAddress();
+  await new CheckoutApi(customer.api).addAddress(address);
+  const select = new AddressSelectPage(customer.page);
+  const delivery = new DeliveryPage(customer.page);
+
+  await checkoutFromBasket(customer);
+  await expect(select.heading()).toBeVisible();
+  await expect(select.addresses()).toHaveCount(1);
+  await expect(select.proceed()).toBeDisabled();
+
+  await select.choose(address.fullName);
+  await expect(select.proceed()).toBeEnabled();
+  await select.proceed().click();
+
+  await expect(customer.page).toHaveURL(/#\/delivery-method$/);
+  await expect(delivery.heading()).toBeVisible();
+  for (const part of [address.fullName, address.streetAddress, String(address.mobileNum)])
+    await expect(delivery.deliveryAddress(part)).toBeVisible();
 });
 
 test('TC-CHECKOUT-06 a mobile number of 999999 or 10000000000 says "Mobile number must match 1000000-9999999999 format." and keeps Submit disabled; 1000000 and 9999999999 are accepted @regression @known-gap', async ({

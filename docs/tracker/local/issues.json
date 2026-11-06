@@ -1,5 +1,5 @@
 {
-  "next": 34,
+  "next": 36,
   "issues": {
     "LOCAL-1": {
       "title": "Basket: a customer can read another customer's basket by its id",
@@ -361,6 +361,30 @@
     "LOCAL-33": {
       "title": "Swag Labs: documents carry none of the security headers, Strict-Transport-Security included",
       "body": "**What happens:** the documents of Swag Labs carry none of the security headers: no\nContent-Security-Policy, no X-Frame-Options or CSP frame-ancestors, no X-Content-Type-Options, no\nReferrer-Policy, no Permissions-Policy, and no Strict-Transport-Security although the site is served\nover https. Any site can frame the login page.\n\n**What should happen:** every document carries those headers, with Strict-Transport-Security on\nhttps and a framing policy (`frame-ancestors` or `X-Frame-Options: DENY`) on the login page at least.\n\n**Steps:**\n1. Request `<base_url>/` and read the response headers.\n2. None of the headers above is present; the same holds for `<base_url>/inventory.html` and the\n   other pages of the shop.\n\n**Devices:** any; the headers come from the host.\n\n**Severity:** S3. A public demonstration shop without real accounts; the missing framing policy is\nthe one a user could be tricked through.\n\n**Evidence:** the security headers sweep (`apps/saucedemo/specs/security/headers.spec.ts`) fails on\n`/` with six gaps and an empty baseline, 2026-11-03, desktop Chromium. Read-only: the sweep opens\npages and reads their answers; the ZAP lane never scans this host.\n",
+      "labels": [
+        "ui",
+        "severity:S3"
+      ],
+      "status": "open",
+      "category": "open",
+      "comments": []
+    },
+    "LOCAL-34": {
+      "title": "Basket: the decrease, increase and remove buttons of a row have no accessible name",
+      "body": "**What happens:** on `<base_url>/#/basket` the decrease, increase and remove buttons of each product row have no accessible name (axe `button-name`, three per row), so a screen reader announces \"button\" with nothing to tell them apart.\n\n**What should happen:** each button says what it does and to which product (WCAG 2.1 SC 4.1.2, level A). The basket contract notes it as gap G4 (`apps/juice-shop/docs/features/basket.md`).\n\n**Steps:** sign in, add two products, open `<base_url>/#/basket`, run axe with wcag2a, wcag2aa and wcag21aa: 6 `button-name` violations.\n\n**Seen:** 2026-11-05, the axe scans of TC-CHECKOUT-29, on the six device projects of `QA_ENV=ci`, twice each: 12 of 12 runs, Juice Shop 20.3.0 (local container). The order summary shows the same products without these buttons and has no such violation.\n\n**Severity proposal:** S2: a WCAG A failure on a main path; keyboard and pointer users are not affected, screen reader users must guess which button changes what.\n\n**Cases:** the baseline `apps/juice-shop/a11y-known.json` cites this key, which TC-CHECKOUT-29 and TC-BASKET-21 compare against.\n",
+      "labels": [
+        "ui",
+        "severity:S2"
+      ],
+      "status": "open",
+      "category": "open",
+      "comments": [
+        "**Correction to Cases:** TC-BASKET-21 has no spec yet, so today only TC-CHECKOUT-29 compares against this entry of the baseline. TC-BASKET-21 will when it is automated (JS-08).\n"
+      ]
+    },
+    "LOCAL-35": {
+      "title": "Order completion: the Track Orders link is told apart by colour alone",
+      "body": "**What happens:** on `<base_url>/#/order-completion/<ORDER_ID>` the Track Orders link inside the confirmation text is told apart from the text around it by colour alone (axe `link-in-text-block`, at `a[routerlink=\"/track-result/new\"]`).\n\n**What should happen:** the link has a mark besides colour, such as an underline, or enough contrast with the text around it (WCAG 2.1 SC 1.4.1, level A).\n\n**Steps:** place an order, then run axe with wcag2a, wcag2aa and wcag21aa on the completion page.\n\n**Seen:** 2026-11-05, the axe scan of TC-CHECKOUT-29, on the six device projects of `QA_ENV=ci`, twice each: 12 of 12 runs, Juice Shop 20.3.0 (local container). LOCAL-22 is the same rule on another page, `/#/about`.\n\n**Severity proposal:** S3: users who do not see the colour difference can miss the link; it is still reachable with the keyboard and from the order history.\n\n**Cases:** the baseline `apps/juice-shop/a11y-known.json` cites this key for every route, since the route holds the order id. TC-CHECKOUT-29 compares against it.\n",
       "labels": [
         "ui",
         "severity:S3"

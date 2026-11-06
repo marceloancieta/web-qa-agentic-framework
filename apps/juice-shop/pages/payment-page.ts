@@ -65,6 +65,16 @@ export class PaymentPage {
     return this.page.getByRole('row').filter({ hasText: `************${lastFour}` });
   }
 
+  /** The radio of a card's row, whatever it is named. */
+  radio(lastFour: string): Locator {
+    return this.card(lastFour).getByRole('radio');
+  }
+
+  /** The radio named after a card, which no radio is until LOCAL-9 is fixed. */
+  radioNamed(lastFour: string): Locator {
+    return this.page.getByRole('radio', { name: lastFour });
+  }
+
   async choose(lastFour: string): Promise<void> {
     await this.card(lastFour).getByRole('radio').click();
   }
