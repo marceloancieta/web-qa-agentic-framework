@@ -13,6 +13,7 @@ import {
   DERIVATION_PHRASES,
   FIXTURES,
   headingIds,
+  rowsWithoutCommit,
   historyWordingFindings,
   lintDocs,
   RULES,
@@ -70,6 +71,38 @@ test('closing commits: only the Closed by column of the Done table is read', () 
   ]);
 });
 
+test('closing commits: a Done row with no hash is found, and what only looks like one is not', () => {
+  const backlog = [
+    '## Open',
+    '',
+    '| Id | Item | Closed by |',
+    '|---|---|---|',
+    '| A-00 | An open table may leave it empty. |  |',
+    '',
+    '## Done',
+    '',
+    '| Id | Item | Closed by |',
+    '|---|---|---|',
+    '| A-01 | Cites one. | `abcdef1` |',
+    '| A-02 | Cites one beside some text. | merged in `abcdef2` (#3) |',
+    '| A-03 | The cell is empty. |  |',
+    '| A-04 | The cell has text only. | abcdef3 |',
+    '| A-05 | The cell has code that is no hash. | `main` |',
+    '| A-06 | The hash is in the item, `abcdef4`. | - |',
+    '| A-07 | The row ends early. |',
+    '',
+    '```md',
+    '| A-08 | An example in a fence. |  |',
+    '```',
+    '',
+    '| Id | Item |',
+    '|---|---|',
+    '| A-09 | A table with no Closed by column. |',
+    '',
+  ].join('\n');
+  assert.deepEqual(rowsWithoutCommit(backlog), [13, 14, 15, 16, 17]);
+});
+
 /** A throwaway repository with its own identity; the working repository is never touched. */
 function tempRepository() {
   const dir = mkdtempSync(join(tmpdir(), 'lint-docs-'));
@@ -106,19 +139,20 @@ test('closing commits are read from the history of HEAD, not from other branches
       `| CORE-01 | Merged. | \`${merged.slice(0, 7)}\` |`,
       `| CORE-02 | On a branch that was never merged. | \`${unmerged.slice(0, 7)}\` |`,
       '| CORE-03 | A typo. | `0000000` |',
+      '| CORE-04 | Moved here without its commit. |  |',
       '',
     ].join('\n'),
   );
 
   const findings = lintDocs(dir).filter((f) => f.rule === 'closing-commit');
-  assert.deepEqual(
-    findings.map((f) => [f.file, f.line]),
-    [
-      [BACKLOG, 8],
-      [BACKLOG, 9],
-    ],
-  );
-  assert.match(findings[0].message, new RegExp(`cites ${unmerged.slice(0, 7)}`));
+  assert.deepEqual(findings.map((f) => [f.file, f.line]).sort(), [
+    [BACKLOG, 10],
+    [BACKLOG, 8],
+    [BACKLOG, 9],
+  ]);
+  const message = (line) => findings.find((f) => f.line === line).message;
+  assert.match(message(8), new RegExp(`cites ${unmerged.slice(0, 7)}`));
+  assert.match(message(10), /cites no closing commit/);
 });
 
 test('closing commits: a shallow clone stops the linter instead of reporting', () => {
