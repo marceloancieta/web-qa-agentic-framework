@@ -1,1 +1,9 @@
-[]
+[
+  {
+    "rule": "color-contrast",
+    "target": ".dynamic_catalog_card_placeholder",
+    "route": "/dynamic-catalog-lazy-load.html",
+    "key": "LOCAL-36",
+    "expires": "2027-02-04"
+  }
+]

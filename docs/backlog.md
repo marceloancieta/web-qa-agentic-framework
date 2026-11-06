@@ -49,6 +49,7 @@ Every item of v0.1.0 is done; each is in **Done**.
 | GATE-13 | The page health guard also speaks on a case armed with `knownGap`: `verifyHealth` throws only when the test passed, so an armed case hides what the guard would find, and after the fix its own refused request keeps it failing as armed. | JS-08 review | todo |
 | JS-08 | Automate the approved Juice Shop cases that have no spec yet, one feature at a time: checkout first, then the others. | plan | in-progress |
 | CI-12 | Each `v<x.y.z>` tag gets a GitHub release with its changelog section, created by `publish.yml` after the package is published, and `v0.1.0` and `v0.2.0` get theirs; the README and the adoption guide say how to start from `npm create web-qa@latest`. | owner | in-progress |
+| SD-02 | The contrast of the Loading placeholders on `/dynamic-catalog-lazy-load.html` is filed as `LOCAL-36` and known to the accessibility sweep of the pack, which failed on that route. | owner | in-progress |
 | FUT-01 | Toolshop pack (Practice Software Testing, local Docker): authorization in the UI by role, `data-test` attributes. | plan | todo |
 | FUT-04 | i18n: projects per `locale` and `timezoneId`, pseudo-localization, right-to-left. | practice | todo |
 | FUT-05 | Design-token checks from the pack's `design-tokens.json`; `prefers-reduced-motion` emulation. | plan | todo |
