@@ -79,12 +79,14 @@ A release is a `vX.Y.Z` tag on `main`, made by the owner:
 4. The tag starts [`publish.yml`](.github/workflows/publish.yml), which waits in the `npm`
    environment until the owner approves it, then builds `create-web-qa` from the tag
    (`npm run create:pack -- --tag vX.Y.Z`), publishes it with provenance and reads it back with
-   `npm create web-qa@X.Y.Z` outside the repository. The setup on npm and GitHub is in
+   `npm create web-qa@X.Y.Z` outside the repository. A job after it creates the GitHub release
+   with the tag's changelog section. The setup on npm and GitHub is in
    [repository settings](docs/repository-settings.md#publishing). A tag never moves: a run that
    failed before publishing is re-run once its cause outside the repository is fixed, and a cause
    inside the repository becomes the next patch release. A published version can never be
    published again, so a failed read-back is not re-run; its message says how to read the version
-   back by hand.
+   back by hand. The release job then has not run, so the owner creates the release with
+   `npm run release:create -- --tag vX.Y.Z`.
 
 ## Conduct
 
