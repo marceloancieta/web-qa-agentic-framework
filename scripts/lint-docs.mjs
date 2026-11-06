@@ -21,6 +21,7 @@
 //                   that names no commit in the history of `HEAD`: a typo, a commit of a branch that
 //                   was never merged, or one a rewritten history dropped. The history is read with
 //                   `git rev-list HEAD`; a shallow clone cannot answer, so the linter stops (exit 2).
+//                   A row of that table with no hash in the column is reported too.
 //
 // Usage:
 //   node scripts/lint-docs.mjs [--root <dir>]     every file of the repository, or another tree
@@ -243,12 +244,12 @@ function tableCells(line) {
 }
 
 /**
- * The hashes the **Closed by** column of the backlog's **Done** table cites, with their lines.
- * Hashes anywhere else (the item text, the open tables, code blocks) are not read.
- * @returns {{ hash: string, line: number }[]}
+ * The cell of the **Closed by** column of each row of the backlog's **Done** table, with its line.
+ * Anything else (the item text, the open tables, code blocks) is not read.
+ * @returns {{ cell: string, line: number }[]}
  */
-export function closingCommits(markdown) {
-  const cited = [];
+function closedByCells(markdown) {
+  const rows = [];
   let inDone = false;
   let fenced = false;
   let column = -1;
@@ -272,11 +273,34 @@ export function closingCommits(markdown) {
       return;
     }
     if (cells.every((cell) => /^:?-+:?$/.test(cell))) return; // the separator row
-    for (const [, code] of (cells[column] ?? '').matchAll(/`([^`]+)`/g)) {
-      if (COMMIT_HASH.test(code)) cited.push({ hash: code.toLowerCase(), line: index + 1 });
-    }
+    rows.push({ cell: cells[column] ?? '', line: index + 1 });
   });
-  return cited;
+  return rows;
+}
+
+/** The hashes a **Closed by** cell cites, each in backticks, in lower case. */
+function hashesIn(cell) {
+  return [...cell.matchAll(/`([^`]+)`/g)]
+    .map(([, code]) => code)
+    .filter((code) => COMMIT_HASH.test(code))
+    .map((code) => code.toLowerCase());
+}
+
+/**
+ * The hashes the **Done** table cites, with their lines.
+ * @returns {{ hash: string, line: number }[]}
+ */
+export function closingCommits(markdown) {
+  return closedByCells(markdown).flatMap(({ cell, line }) =>
+    hashesIn(cell).map((hash) => ({ hash, line })),
+  );
+}
+
+/** The lines of the **Done** table whose row cites no hash. */
+export function rowsWithoutCommit(markdown) {
+  return closedByCells(markdown)
+    .filter(({ cell }) => hashesIn(cell).length === 0)
+    .map(({ line }) => line);
 }
 
 function git(args, cwd) {
@@ -305,6 +329,9 @@ export function headHistory(root) {
 }
 
 function closingCommitFindings(text, history, add) {
+  for (const line of rowsWithoutCommit(text)) {
+    add('closing-commit', line, 'a Done row cites no closing commit');
+  }
   const cited = closingCommits(text);
   if (cited.length === 0) return;
   const commits = history();
