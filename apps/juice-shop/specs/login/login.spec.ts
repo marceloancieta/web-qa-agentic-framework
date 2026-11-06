@@ -7,14 +7,17 @@
 import type { Locator } from '@playwright/test';
 import { knownGap } from '../../../../helpers/case-meta';
 import { focusChangesRendering, focused } from '../../../../helpers/keyboard';
+import { horizontalOverflow } from '../../../../helpers/layout';
 import { browserStorage, storedText } from '../../../../helpers/storage';
+import { becomesVisibleWithin } from '../../../../helpers/watch';
 import { loadDecisionTable } from '../../../../scripts/lib/decision-table.mjs';
 import { AccountApi } from '../../api/account-api';
 import { aCustomer } from '../../builders/account-builder';
 import { AccountMenu } from '../../components/account-menu';
 import { expect, test } from '../../fixtures';
-import { LOGIN, loginFails } from '../../mocks/account-mocks';
+import { LOGIN, loginFails, slowLogin } from '../../mocks/account-mocks';
 import { LoginPage } from '../../pages/login-page';
+import { SearchPage } from '../../pages/search-page';
 import { generatedPassword, type Account } from '../../../../helpers/actors';
 
 // REQ-LOGIN-02: the one message for an unknown email and a wrong password.
@@ -24,6 +27,10 @@ const EMAIL_FIELD = 'Text field for the login email';
 // The first check after a submit waits for the login answer, which took 5.5 s on a local container
 // busy with other runs (2026-10-26): longer than the default expect timeout, never a fixed wait.
 const ANSWER = { timeout: 15_000 };
+// TC-LOGIN-14 holds the answer for HOLD and watches the page for a window that ends well before it:
+// a retrying check would pass at its first look, long before anything could change.
+const HOLD = 10_000;
+const WINDOW = 6_000;
 
 /** Register an account for the case alone, through the page's own API client. */
 async function registeredAccount(api: AccountApi, prefix: string): Promise<Account> {
@@ -225,6 +232,187 @@ test('TC-LOGIN-12 neither the email nor the password appears in the URL or in br
     expect(await api.whoami()).toBe(account.username);
     await expect(page).toHaveURL((url) => leaked(url.href).length === 0);
     expect(leaked(await storedText(page)), 'typed values found in browser storage').toEqual([]);
+  });
+});
+
+test('TC-LOGIN-02 <UNKNOWN_EMAIL> gets the alert "Invalid email or password." and the URL stays /#/login @regression @security', async ({
+  page,
+}) => {
+  // <UNKNOWN_EMAIL>: made unique by the builder and never registered, so nothing is written.
+  const unknown = aCustomer('login-unknown', test.info().workerIndex);
+  const login = new LoginPage(page);
+
+  await login.open();
+  await login.signIn(unknown.username, unknown.password);
+  await expect(login.alert()).toBeVisible(ANSWER);
+  await expect(login.alert()).toHaveText(REFUSAL);
+  await expect(page).toHaveURL(/#\/login$/);
+});
+
+test('TC-LOGIN-05 focusing and leaving each empty field shows "Please provide an email address." and "Please provide a password." @regression', async ({
+  page,
+}) => {
+  const login = new LoginPage(page);
+  const emailMessage = login.message('Please provide an email address.');
+  const passwordMessage = login.message('Please provide a password.');
+
+  await login.open();
+  await expect(login.email()).toBeVisible();
+  await expect(emailMessage).toHaveCount(0);
+  await expect(passwordMessage).toHaveCount(0);
+
+  await test.step('leave the empty email field: only its message shows', async () => {
+    await login.email().focus();
+    await login.password().focus();
+    await expect(emailMessage).toBeVisible();
+    await expect(passwordMessage).toHaveCount(0);
+  });
+
+  await test.step('leave the empty password field: its message shows too', async () => {
+    await login.email().focus();
+    await expect(passwordMessage).toBeVisible();
+    await expect(emailMessage).toBeVisible();
+  });
+});
+
+test('TC-LOGIN-06 the password is masked while typed; Show password reveals it and a second press masks it again @regression @security', async ({
+  page,
+}) => {
+  // Nothing is sent: the value only fills the field, so no account is needed.
+  const typed = generatedPassword();
+  const login = new LoginPage(page);
+
+  await login.open();
+  await login.password().fill(typed);
+  await expect(login.password()).toHaveAttribute('type', 'password');
+
+  await test.step('Show password reveals what was typed', async () => {
+    await login.showPassword().click();
+    await expect(login.password()).toHaveAttribute('type', 'text');
+    await expect(login.password()).toHaveValue(typed);
+  });
+
+  await test.step('a second press masks it again', async () => {
+    await login.hidePassword().click();
+    await expect(login.password()).toHaveAttribute('type', 'password');
+    await expect(login.password()).toHaveValue(typed);
+    await expect(login.showPassword()).toBeVisible();
+  });
+});
+
+test('TC-LOGIN-08 the refusal is announced as an alert, and the page has no axe violation beyond the baseline before and after it @regression @a11y', async ({
+  page,
+  a11y,
+}) => {
+  const unknown = aCustomer('login-a11y', test.info().workerIndex);
+  const login = new LoginPage(page);
+
+  await test.step('the form at rest: no alert, no new violation', async () => {
+    await login.open();
+    await expect(login.title()).toBeVisible();
+    await expect(login.anyAlert()).toHaveCount(0);
+    await a11y.expectNoNewViolations(page);
+  });
+
+  await test.step('the refusal: an alert, no new violation', async () => {
+    await login.signIn(unknown.username, unknown.password);
+    await expect(login.alert()).toHaveText(REFUSAL, ANSWER);
+    await a11y.expectNoNewViolations(page);
+  });
+});
+
+test('TC-LOGIN-09 a signed-in session survives a reload: the account menu still shows <EMAIL> @regression @navigation', async ({
+  actor,
+  app,
+  qa,
+}) => {
+  test.skip(!qa.allowWrites, 'the case needs a customer the run creates; allow_writes is false');
+  const customer = await actor('customer');
+  if (!customer.account) throw new Error('A customer has an account.');
+  const { page, account } = customer;
+  const search = new SearchPage(page);
+  const menu = AccountMenu.for(page, app);
+
+  await search.open();
+  await menu.open();
+  await expect(menu.account(account.username)).toBeVisible();
+
+  await page.reload();
+  await menu.open();
+  await expect(menu.account(account.username)).toBeVisible();
+  // The page still holds the session after the reload, as the server sees it: this client shares
+  // the page's cookies, which the actor's own API client does not.
+  expect(await new AccountApi(page.request).whoami()).toBe(account.username);
+});
+
+test('TC-LOGIN-10 "Not yet a customer?" opens /#/register and "Forgot your password?" opens /#/forgot-password @regression @navigation', async ({
+  page,
+}) => {
+  const login = new LoginPage(page);
+
+  await login.open();
+  await login.notYetACustomer().click();
+  await expect(page).toHaveURL(/#\/register$/);
+
+  await login.open();
+  await login.forgotPassword().click();
+  await expect(page).toHaveURL(/#\/forgot-password$/);
+});
+
+test('TC-LOGIN-11 the login page has no horizontal scroll, in its initial and refused states @regression @responsive', async ({
+  page,
+}) => {
+  const unknown = aCustomer('login-scroll', test.info().workerIndex);
+  const login = new LoginPage(page);
+
+  await login.open();
+  await expect(login.title()).toBeVisible();
+  // Polled: the shell measures a few pixels wider for a moment while the page settles.
+  const settled = (state: string) =>
+    expect.poll(() => horizontalOverflow(page), { message: `sideways scroll ${state}` });
+  await settled('on the empty form').toBe(0);
+
+  await login.signIn(unknown.username, unknown.password);
+  await expect(login.alert()).toBeVisible(ANSWER);
+  await settled('with the alert').toBe(0);
+});
+
+test('TC-LOGIN-14 a delayed login answer keeps the form as it is, then signs in when the answer arrives @regression', async ({
+  page,
+  qa,
+}) => {
+  test.skip(!qa.allowWrites, 'the case registers an account; allow_writes is false');
+  test.slow();
+  const api = new AccountApi(page.request);
+  const account = await registeredAccount(api, 'login-slow');
+  const login = new LoginPage(page);
+
+  await login.open();
+  await expect(login.title()).toBeVisible();
+  await slowLogin(page, HOLD);
+  const asked = Date.now();
+  const loading = becomesVisibleWithin(login.loading(), WINDOW);
+  const notice = becomesVisibleWithin(login.notice(), WINDOW);
+  await login.signIn(account.username, account.password);
+  const [sawLoading, sawNotice] = await Promise.all([loading, notice]);
+
+  await test.step('at the end of the window: no indicator or message came, the form as it was', async () => {
+    expect(sawLoading, 'a loading indicator while the answer is held').toBe(false);
+    expect(sawNotice, 'a message while the answer is held').toBe(false);
+    await expect(page).toHaveURL(/#\/login$/);
+    await expect(login.email()).toHaveValue(account.username);
+    await expect(login.password()).toHaveValue(account.password);
+    await expect(login.password()).toHaveAttribute('type', 'password');
+    await expect(login.submit()).toBeEnabled();
+    // Hard: checks that outlasted the hold would have read a page that had its answer.
+    expect(Date.now() - asked, 'the checks ended while the answer was held').toBeLessThan(HOLD);
+  });
+
+  await test.step('when the answer arrives: signed in on /#/search', async () => {
+    await expect(page).toHaveURL(/#\/search$/, ANSWER);
+    // Not before the hold ended: a mock that stopped matching would let the answer through at once.
+    expect(Date.now() - asked, 'the answer was held').toBeGreaterThanOrEqual(HOLD);
+    expect(await api.whoami()).toBe(account.username);
   });
 });
 

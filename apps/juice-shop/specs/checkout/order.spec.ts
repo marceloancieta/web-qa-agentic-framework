@@ -23,7 +23,11 @@ import { OrderCompletionPage } from '../../pages/order-completion-page';
 import { OrderHistoryPage, TrackResultPage } from '../../pages/order-history-page';
 import { OrderSummaryPage } from '../../pages/order-summary-page';
 import { PaymentPage } from '../../pages/payment-page';
-import { horizontalOverflow, clippedText } from '../../../../helpers/layout';
+import {
+  clippedText,
+  horizontalOverflow,
+  settledHorizontalOverflow,
+} from '../../../../helpers/layout';
 import { knownGap } from '../../../../helpers/case-meta';
 import { focusChangesRendering, tabUntil } from '../../../../helpers/keyboard';
 import type { Actor } from '../../../../fixtures';
@@ -354,9 +358,14 @@ test.describe('the checkout writes', () => {
     await expect(page).toHaveURL(/#\/order-summary$/);
   });
 
-  test('TC-CHECKOUT-21 no checkout step scrolls sideways with <LONG_ADDRESS> and a long holder name, and the summary rows keep name, quantity and price visible @regression @responsive', async ({
+  test('TC-CHECKOUT-21 no checkout step scrolls sideways with <LONG_ADDRESS> and a long holder name, and the summary rows keep name, quantity and price visible @regression @responsive @known-gap', async ({
     actor,
   }) => {
+    // Polled: the shell measures a few pixels wider for a moment while a step settles.
+    const noSidewaysScroll = (page: Page, step: string) =>
+      expect
+        .poll(() => horizontalOverflow(page), { message: `sideways scroll on ${step}` })
+        .toBe(0);
     const street = longStreet();
     const holder = longHolderName(80);
     const shopper = await aShopper(actor, {
@@ -371,46 +380,64 @@ test.describe('the checkout writes', () => {
     const summary = new OrderSummaryPage(page);
 
     await test.step('the address step lists the long address without scrolling sideways', async () => {
+      // The page shows an empty basket until its answer, which took over 5 s under load (2026-11-06).
+      const contents = basket.contentsLoaded();
       await basket.open();
+      await contents;
       await expect(basket.row(PRODUCT)).toBeVisible();
       await basket.checkout().click();
       await expect(select.address(shopper.address.fullName)).toContainText(street);
-      expect(await horizontalOverflow(page), 'sideways scroll on the address step').toBe(0);
+      await noSidewaysScroll(page, 'the address step');
     });
 
-    await test.step('the delivery step repeats the long address without scrolling sideways', async () => {
-      await chooseSavedAddress(page, shopper.address.fullName);
-      await expect(delivery.deliveryAddress(street)).toBeVisible();
-      expect(await horizontalOverflow(page), 'sideways scroll on the delivery step').toBe(0);
-    });
+    // Read here and on the summary, and asserted at the end, behind the arm, so the steps after
+    // each one still run.
+    const deliveryOverflow =
+      await test.step('the delivery step repeats the long address', async () => {
+        await chooseSavedAddress(page, shopper.address.fullName);
+        await expect(delivery.deliveryAddress(street)).toBeVisible();
+        return settledHorizontalOverflow(page);
+      });
 
     await test.step('the payment step lists the long holder name without scrolling sideways', async () => {
       await chooseDelivery(page, shopper.delivery.name);
       await expect(payment.card(lastFour(shopper.card))).toContainText(holder);
-      expect(await horizontalOverflow(page), 'sideways scroll on the payment step').toBe(0);
+      await noSidewaysScroll(page, 'the payment step');
     });
 
-    await test.step('the summary shows the long address and whole rows without scrolling sideways', async () => {
-      await chooseSavedCard(page, shopper.card);
-      for (const { product } of shopper.lines) {
-        await expect(summary.product(product.name)).toBeVisible();
-      }
-      await expect(summary.shows(street)).toBeVisible();
-      expect(await horizontalOverflow(page), 'sideways scroll on the summary').toBe(0);
-      for (const { product, quantity } of shopper.lines) {
-        const row = summary.product(product.name);
-        const quantityCell = summary.productQuantity(product.name);
-        const priceCell = summary.productPrice(product.name);
-        // Brought into view first: on a short screen a row can sit below the fold, which is not
-        // what the case is about; a cell pushed out sideways stays out of the viewport.
-        await row.scrollIntoViewIfNeeded();
-        await expect(row).toContainText(product.name);
-        await expect(quantityCell).toHaveText(String(quantity));
-        await expect(quantityCell).toBeInViewport();
-        await expect(priceCell).toHaveText(money(product.price));
-        await expect(priceCell).toBeInViewport();
-        expect(await clippedText(row), `text cut off in the row of ${product.name}`).toEqual([]);
-      }
+    const summaryOverflow =
+      await test.step('the summary shows the long address and whole rows', async () => {
+        await chooseSavedCard(page, shopper.card);
+        for (const { product } of shopper.lines) {
+          // The rows come with the basket's answer, which took 5.4 s under load (2026-11-06).
+          await expect(summary.product(product.name)).toBeVisible({ timeout: 15_000 });
+        }
+        await expect(summary.shows(street)).toBeVisible();
+        const overflow = await settledHorizontalOverflow(page);
+        for (const { product, quantity } of shopper.lines) {
+          const row = summary.product(product.name);
+          const quantityCell = summary.productQuantity(product.name);
+          const priceCell = summary.productPrice(product.name);
+          // Brought into view first: on a short screen a row can sit below the fold, which is not
+          // what the case is about; a cell pushed out sideways stays out of the viewport.
+          await row.scrollIntoViewIfNeeded();
+          await expect(row).toContainText(product.name);
+          await expect(quantityCell).toHaveText(String(quantity));
+          await expect(quantityCell).toBeInViewport();
+          await expect(priceCell).toHaveText(money(product.price));
+          await expect(priceCell).toBeInViewport();
+          expect(await clippedText(row), `text cut off in the row of ${product.name}`).toEqual([]);
+        }
+        return overflow;
+      });
+
+    test.fail(
+      true,
+      await knownGap('LOCAL-38', 'a long address line runs out of its card and scrolls sideways'),
+    );
+    expect({ deliveryOverflow, summaryOverflow }, 'sideways scroll on the two steps').toEqual({
+      deliveryOverflow: 0,
+      summaryOverflow: 0,
     });
   });
 

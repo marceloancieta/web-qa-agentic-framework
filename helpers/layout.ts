@@ -4,12 +4,32 @@
 
 import type { Locator, Page } from '@playwright/test';
 
-/** How many CSS pixels the document is wider than the viewport; 0 when nothing scrolls sideways. */
+/**
+ * How many CSS pixels of content the widest scroller of the page cannot show; 0 when nothing
+ * scrolls sideways. The scrollers are the document and every element that scrolls by itself, since
+ * an application shell often scrolls inside a container and leaves the document as wide as the
+ * viewport.
+ */
 export async function horizontalOverflow(page: Page): Promise<number> {
   return page.evaluate(() => {
-    const root = document.documentElement;
-    return Math.max(0, root.scrollWidth - root.clientWidth);
+    const scrolls = (element: Element) =>
+      ['auto', 'scroll'].includes(getComputedStyle(element).overflowX);
+    const inner = [...document.querySelectorAll('body, body *')].filter(scrolls);
+    const scrollers = [document.documentElement, ...inner];
+    return Math.max(0, ...scrollers.map((e) => e.scrollWidth - e.clientWidth));
   });
+}
+
+/**
+ * `horizontalOverflow` read once for a value kept for later, when a retrying assertion cannot wait
+ * for it: 0 as soon as a read gives 0, otherwise the last read of `ms`. A shell can measure a few
+ * pixels wider for a moment while a page settles, and a lasting overflow stays through the window.
+ */
+export async function settledHorizontalOverflow(page: Page, ms = 1_000): Promise<number> {
+  const deadline = Date.now() + ms;
+  let overflow = await horizontalOverflow(page);
+  while (overflow > 0 && Date.now() < deadline) overflow = await horizontalOverflow(page);
+  return overflow;
 }
 
 export interface ClippedText {

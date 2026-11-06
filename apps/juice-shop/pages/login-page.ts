@@ -42,8 +42,35 @@ export class LoginPage {
     return this.page.getByRole('button', { name: 'Show password' });
   }
 
+  /** The same button once the password shows: its name says what the next press does. */
+  hidePassword(): Locator {
+    return this.page.getByRole('button', { name: 'Hide password' });
+  }
+
   forgotPassword(): Locator {
     return this.page.getByRole('link', { name: 'Forgot your password?' });
+  }
+
+  notYetACustomer(): Locator {
+    return this.page.getByRole('link', { name: 'Not yet a customer?' });
+  }
+
+  /** The title, which the shop translates after it loads: the sign the page has its texts. */
+  title(): Locator {
+    return this.page.getByRole('heading', { name: 'Login', level: 1, exact: true });
+  }
+
+  /** A progress indicator anywhere on the page. */
+  loading(): Locator {
+    return this.page.getByRole('progressbar');
+  }
+
+  /** Any message announced anywhere on the page, the overlay of a notification included. */
+  notice(): Locator {
+    return this.page
+      .getByRole('alert')
+      .or(this.page.getByRole('status'))
+      .or(this.page.locator('mat-snack-bar-container')); // a notification has no role in Chromium
   }
 
   /** Any alert the form shows, whatever its text: the sign that a refused login was handled. */

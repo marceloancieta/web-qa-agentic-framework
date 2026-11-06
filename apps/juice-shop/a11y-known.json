@@ -110,5 +110,12 @@
     "route": "*",
     "key": "LOCAL-35",
     "expires": "2027-01-27"
+  },
+  {
+    "rule": "color-contrast",
+    "target": "app-login p.error",
+    "route": "/#/login",
+    "key": "LOCAL-37",
+    "expires": "2027-02-04"
   }
 ]

@@ -77,7 +77,7 @@ whether the email has no account or the password is wrong, and the page shows th
 | incomplete | field messages, Log in disabled | focus and leave a field |
 | refused | the alert, the URL unchanged | an unknown email or a wrong password |
 | signed in | `/#/search`, the account menu with the email | an account created for the run |
-| waiting for the answer | unobserved: the request answers in a few ms locally | `delay` on `/rest/user/login`, which holds the real answer (no `@mocked`) |
+| waiting for the answer | the form stays as it is: no indicator, no message, Log in enabled (TC-LOGIN-14, 2026-11-06) | `delay` on `/rest/user/login`, which holds the real answer (no `@mocked`) |
 | server error | stays on `/#/login` with no session; the alert reads "[object Object]" with the mock's JSON body (TC-LOGIN-15, 2026-10-26; LOCAL-19, unconfirmed with a real server error) | `failWith` on `/rest/user/login` (`@mocked`) |
 
 ## Navigation
@@ -108,7 +108,7 @@ account menu. Every page also loads `/rest/admin/application-configuration`, the
 | Dimension | Applies? | Expected, or why not |
 |---|---|---|
 | responsive | applies | no horizontal scroll at any project; the account menu in the toolbar or the side navigation |
-| perf | n/a | the form shows no loading state: the answer replaces the form in a few ms, and a delayed answer only keeps the page as it is (to confirm with `delay` in automate: TC-LOGIN-14) |
+| perf | n/a | the form shows no loading state: the answer replaces the form in a few ms, and a delayed answer only keeps the page as it is (confirmed with `delay`: TC-LOGIN-14) |
 | security | applies | password masked; the same message for a wrong password and an unknown email; nothing sensitive in the URL after a refused or a successful login |
 | layout | applies | the page health guard on every case; the visual case of the login page |
 | navigation | applies | Log in disabled until both fields have a value; the links; reload keeps a session |
@@ -130,6 +130,7 @@ account menu. Every page also loads `/rest/admin/application-configuration`, the
 |---|---|---|---|
 | G1 | The email field has no `type=email`, and neither field has an `autocomplete` value, so browsers and password managers get no hint (security checklist). | app map, 2026-10-25 | searched, none |
 | G2 | A signed-in customer can open `/#/login` and sees the form, with no redirect. The owner would rather send a signed-in customer to the home page, and accepts the form as it is (2026-10-25); no case checks it. | live look, 2026-10-25 | searched, none; accepted |
+| G3 | The refusal message has a contrast of 2.9:1, where 4.5:1 is needed. | TC-LOGIN-08 runs, 2026-11-06 | LOCAL-37 (S2) |
 
 ## Out of scope
 
@@ -141,5 +142,5 @@ account menu. Every page also loads `/rest/admin/application-configuration`, the
 
 ## Assumptions to confirm
 
-- A1: a delayed login answer shows no loading indicator (perf `n/a`). Checked with `delay` (TC-LOGIN-14) in
-  automate; if an indicator appears, perf applies.
+- A1: a delayed login answer shows no loading indicator (perf `n/a`). Confirmed with `delay`
+  (TC-LOGIN-14, 2026-11-06).
