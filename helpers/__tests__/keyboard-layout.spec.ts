@@ -7,7 +7,7 @@ import {
   tabOrder,
   tabUntil,
 } from '../keyboard';
-import { clippedText, horizontalOverflow } from '../layout';
+import { clippedText, horizontalOverflow, settledHorizontalOverflow } from '../layout';
 
 const FORM = `<!doctype html><html lang="en"><head><title>Form</title><style>
   #plain:focus { outline: none; }
@@ -125,4 +125,46 @@ test('horizontal overflow and clipped text are measured, an ellipsis is accepted
     document.body.append(wide);
   });
   expect(await horizontalOverflow(page)).toBe(250);
+});
+
+test('sideways scroll inside a container counts, and what cannot scroll does not', async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 400, height: 300 });
+  const shell = (overflow: string, width: string) =>
+    page.setContent(`<!doctype html><html lang="en"><head><title>Shell</title><style>
+      html, body { margin: 0; overflow: hidden; }
+      #shell { width: 400px; height: 300px; overflow: ${overflow}; }
+      #content { width: ${width}; height: 10px; }
+    </style></head><body><div id="shell"><div id="content"></div></div></body></html>`);
+
+  await shell('auto', '650px');
+  expect(await horizontalOverflow(page), 'a shell that scrolls').toBe(250);
+  await shell('scroll', '650px');
+  expect(await horizontalOverflow(page), 'a shell that always scrolls').toBe(250);
+  await shell('auto', '400px');
+  expect(await horizontalOverflow(page), 'a shell whose content fits').toBe(0);
+  await shell('hidden', '650px');
+  expect(await horizontalOverflow(page), 'content cut off, which clippedText reads').toBe(0);
+
+  await page.setContent(`<!doctype html><html lang="en"><head><title>Body</title><style>
+    html { overflow: hidden; }
+    body { margin: 0; width: 400px; height: 300px; overflow: auto; }
+    #content { width: 650px; height: 10px; }
+  </style></head><body><div id="content"></div></body></html>`);
+  expect(await horizontalOverflow(page), 'the body as the scroller').toBe(250);
+});
+
+test('a settled overflow waits out a moment of width, and keeps one that lasts', async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 400, height: 300 });
+  await page.setContent(`<!doctype html><html lang="en"><head><title>Settling</title></head>
+    <body style="margin: 0"><div id="wide" style="width: 650px; height: 10px"></div></body></html>`);
+  expect(await settledHorizontalOverflow(page, 100), 'an overflow that lasts').toBe(250);
+
+  await page.evaluate(() => {
+    setTimeout(() => document.getElementById('wide')?.remove(), 150);
+  });
+  expect(await settledHorizontalOverflow(page), 'an overflow gone within the window').toBe(0);
 });

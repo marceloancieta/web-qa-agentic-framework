@@ -1,5 +1,5 @@
 {
-  "next": 37,
+  "next": 39,
   "issues": {
     "LOCAL-1": {
       "title": "Basket: a customer can read another customer's basket by its id",
@@ -403,6 +403,30 @@
       "status": "open",
       "category": "open",
       "comments": []
+    },
+    "LOCAL-37": {
+      "title": "Login: the refusal message has too little contrast",
+      "body": "## What happens\n\nAfter a refused login, the message \"Invalid email or password.\" has a contrast of 2.9:1: `#f44336` on `#3e3e3e`, at 16px, normal weight.\n\n## What should happen\n\nText of this size needs at least 4.5:1 (WCAG 2.2 AA, 1.4.3 Contrast (Minimum)). REQ-LOGIN-02 makes this message what tells a person the login failed.\n\n## Steps\n\n1. Open `<base_url>/#/login`.\n2. Sign in with an address no account has.\n3. Run axe once the message shows.\n\n## Devices\n\njuice-shop-desktop-chromium and juice-shop-mobile-chrome. The other device projects were not run.\n\n## Evidence\n\n- TC-LOGIN-08, `npx playwright test apps/juice-shop/specs/login/login.spec.ts --project='juice-shop-*' --repeat-each=2`: `color-contrast`, impact serious, on `p`, 4 of 4 on 2026-11-06.\n- A separate measure read 2.9:1 at once and again 1.5 seconds later, so it is not the appearance of the message.\n\nThe accessibility sweep does not find it: it opens the page without sending the form.\n\n## Width\n\nSeen on `/#/login` only. Other forms may share the style; seeing their messages takes submitting them, which design does not do.\n\n## Severity\n\nS2: a WCAG AA failure on a main path. A screen reader is told, since the message is an alert, but a person with low vision may not be able to read why the login failed.\n",
+      "labels": [
+        "ui",
+        "severity:S2"
+      ],
+      "status": "open",
+      "category": "open",
+      "comments": []
+    },
+    "LOCAL-38": {
+      "title": "Checkout: a long address line runs out of the delivery step and scrolls sideways",
+      "body": "## What happens\n\nOn the delivery step, a long address line with no spaces runs out of its card and past the edge of the screen, and the content area scrolls sideways: 713 px on a phone, 19 px on the desktop.\n\n## What should happen\n\nNo checkout step scrolls sideways with a long address (REQ-CHECKOUT-08). The address accepts 160 characters, so a line of that length is valid data.\n\n## Steps\n\n1. Sign in as a customer with a product in the basket, and an address whose street is 160 characters with a long run of characters and no spaces.\n2. Open `<base_url>/#/basket`, press Checkout and choose that address.\n3. Look at the Delivery Address on the delivery step.\n\n## Devices\n\njuice-shop-desktop-chromium and juice-shop-mobile-chrome. The other device projects were not run.\n\n## Evidence\n\nTC-CHECKOUT-21, `npx playwright test apps/juice-shop/specs/checkout/order.spec.ts --project='juice-shop-*' --repeat-each=2`, 4 of 4 on 2026-11-06, with a screenshot of the failure on mobile-chrome that shows the line leaving the card.\n\nThe case passed before only because `horizontalOverflow` measured the document, and in this shop the scrolling element is `mat-sidenav-content`.\n\n## Width\n\nSeen on the delivery step. The address step measures 0 on the same data. The case stops at the delivery step, so the payment step and the summary are not known yet.\n\n## Severity\n\nS3: a wrong layout with a way around it, since the page can be scrolled and the checkout goes on.\n",
+      "labels": [
+        "ui",
+        "severity:S3"
+      ],
+      "status": "open",
+      "category": "open",
+      "comments": [
+        "The width of this issue, from TC-CHECKOUT-21 on 2026-11-06, with the case changed to run past the delivery step:\n\n- The order summary has the same problem: 728 px on mobile-chrome, with the same long address.\n- The address step and the payment step measure 0 on the same data, with a long holder name on the payment step.\n"
+      ]
     }
   }
 }

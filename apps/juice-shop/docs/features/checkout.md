@@ -169,6 +169,7 @@ A failing address, card or checkout call can only be produced with a mock.
 | G9 | The new address form refuses mobile numbers from 1000000 to 1111110, which its message and REQ-CHECKOUT-03 allow. | TC-CHECKOUT-06 runs, 2026-10-26 | LOCAL-14 (S3) |
 | G10 | A failed address save empties the form without saying it failed. | TC-CHECKOUT-23 runs, 2026-10-26 | LOCAL-15 (S3) |
 | G11 | On a phone, the Print icon covers "Track Your Order" in the order history. | a TC-CHECKOUT-14 run and an isolated reproduction, 2026-10-26 | LOCAL-16 (S2) |
+| G12 | On the delivery step and the summary, a long address line runs out of its card and the content area scrolls sideways. | TC-CHECKOUT-21 runs, 2026-11-06 | LOCAL-38 (S3) |
 
 ## Out of scope
 
