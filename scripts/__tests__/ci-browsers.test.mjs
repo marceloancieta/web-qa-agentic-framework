@@ -1,8 +1,16 @@
 // The apt cache only saves time: whatever happens to it, the install runs, and its exit code is the
 // script's.
+import { readFileSync } from 'node:fs';
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { APT_ARCHIVES, INSTALL_ARGS, installBrowsers, packagesIn } from '../ci-browsers.mjs';
+import {
+  APT_ARCHIVES,
+  APT_LIMITS,
+  APT_LIMITS_TARGET,
+  INSTALL_ARGS,
+  installBrowsers,
+  packagesIn,
+} from '../ci-browsers.mjs';
 
 const CACHE = '/home/runner/.cache/qa-apt-packages';
 const ok = { status: 0 };
@@ -53,26 +61,49 @@ test('cached packages reach apt before the install, and new ones are kept after 
     folders: { [CACHE]: ['a.deb'], [APT_ARCHIVES]: ['a.deb', 'b.deb', 'lock'] },
   });
   assert.equal(installBrowsers({ cache: CACHE }, io), 0);
-  assert.equal(io.calls[0], 'sudo cp 1');
-  assert.equal(io.calls[1], 'install');
+  assert.equal(io.calls[1], 'sudo cp 1');
+  assert.equal(io.calls[2], 'install');
   const copies = io.calls.filter((call) => call.startsWith('copy'));
   assert.equal(copies.length, 1, 'a package the cache holds is not copied again');
   assert.match(copies[0], /b\.deb/);
 });
 
-test('an empty cache runs no root command and fills the cache after the install', () => {
+test('an empty cache copies no package and fills the cache after the install', () => {
   const io = machine({ folders: { [APT_ARCHIVES]: ['a.deb'] } });
   assert.equal(installBrowsers({ cache: CACHE }, io), 0);
-  assert.equal(io.calls[0], 'install');
+  assert.deepEqual(io.calls.slice(0, 2), ['sudo cp 0', 'install']);
   assert.ok(io.calls.some((call) => call.startsWith('copy')));
 });
 
-test('a restore that fails is reported and the install still runs', () => {
+test('apt gets its limits before anything else, in the folder it reads them from', () => {
+  const copied = [];
+  const io = machine({ folders: { [CACHE]: ['a.deb'] } });
+  const { sudo } = io;
+  io.sudo = (args) => {
+    copied.push(args);
+    return sudo(args);
+  };
+  assert.equal(installBrowsers({ cache: CACHE }, io), 0);
+  assert.deepEqual(copied[0], ['cp', APT_LIMITS, APT_LIMITS_TARGET]);
+  assert.equal(io.calls[0], 'sudo cp 0');
+});
+
+test('the limits are short, and name each protocol apt uses on a runner', () => {
+  const limits = readFileSync(APT_LIMITS, 'utf8');
+  for (const name of ['Acquire::http::Timeout', 'Acquire::https::Timeout']) {
+    const seconds = Number(new RegExp(`^${name} "(\\d+)";$`, 'm').exec(limits)?.[1]);
+    assert.ok(seconds > 0 && seconds <= 30, name);
+  }
+  assert.match(limits, /^Acquire::Retries "[1-5]";$/m);
+});
+
+test('a root command that fails is reported and the install still runs', () => {
   for (const sudo of [{ status: 1 }, { status: null, error: new Error('no sudo') }]) {
     const io = machine({ folders: { [CACHE]: ['a.deb'] }, sudo });
     assert.equal(installBrowsers({ cache: CACHE }, io), 0);
     assert.ok(io.calls.includes('install'));
-    assert.match(io.errors[0], /restoring the apt packages failed/);
+    assert.match(io.errors[0], /setting the apt limits failed/);
+    assert.match(io.errors[1], /restoring the apt packages failed/);
   }
 });
 

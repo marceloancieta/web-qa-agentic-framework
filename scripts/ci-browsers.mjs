@@ -12,8 +12,13 @@
  * its version and checksum match what it would fetch, and fetches the rest, so an old cache costs a
  * download and never installs an old package.
  *
- * The cache only saves time: a copy that fails is reported and the install goes on as if it were
- * empty. Without $QA_APT_CACHE, on a person's machine or in Jenkins, nothing is copied.
+ * The cache holds packages, not the index apt reads first, so a mirror that stops answering can
+ * still hold a job (CI-13). With $QA_APT_CACHE, `scripts/ci-apt-limits.conf` gives apt short
+ * timeouts and retries before the install.
+ *
+ * The cache and the limits only help: a copy that fails is reported and the install goes on as if
+ * they were not there. Without $QA_APT_CACHE, on a person's machine or in Jenkins, nothing is
+ * copied.
  *
  * The exit code is the install's.
  */
@@ -30,6 +35,9 @@ import { describeExit, exitCodeOf } from './lib/spawn.mjs';
 export const APT_CACHE_PATH = '~/.cache/qa-apt-packages';
 /** Where apt keeps the packages it fetched and looks for them before fetching. */
 export const APT_ARCHIVES = '/var/cache/apt/archives';
+/** The limits of apt on a runner, and where apt reads them. */
+export const APT_LIMITS = join(REPO_ROOT, 'scripts', 'ci-apt-limits.conf');
+export const APT_LIMITS_TARGET = '/etc/apt/apt.conf.d/99qa-limits';
 
 const PLAYWRIGHT_CLI = join(REPO_ROOT, 'node_modules', '@playwright', 'test', 'cli.js');
 export const INSTALL_ARGS = ['install', '--with-deps', 'chromium', 'firefox', 'webkit'];
@@ -37,6 +45,14 @@ export const INSTALL_ARGS = ['install', '--with-deps', 'chromium', 'firefox', 'w
 /** The package files of a folder, by name; a folder that is missing holds none. */
 export function packagesIn(names) {
   return names.filter((name) => name.endsWith('.deb'));
+}
+
+/** Give apt its limits, in a folder only root may write. */
+function limit(io) {
+  const copy = io.sudo(['cp', APT_LIMITS, APT_LIMITS_TARGET]);
+  if (exitCodeOf(copy) === 0) io.out.log('ci-browsers: apt limits set.');
+  else
+    io.out.error(`ci-browsers: setting the apt limits failed (${describeExit(copy)}); going on.`);
 }
 
 /** Copy the cached packages to apt's folder, which only root may write. Returns how many. */
@@ -77,6 +93,7 @@ function save(cache, io) {
  */
 export function installBrowsers({ cache }, io) {
   if (cache) {
+    limit(io);
     try {
       restore(cache, io);
     } catch (error) {
