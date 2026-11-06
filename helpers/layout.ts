@@ -32,6 +32,19 @@ export async function settledHorizontalOverflow(page: Page, ms = 1_000): Promise
   return overflow;
 }
 
+/**
+ * Wait until the page's running animations end, the endless ones aside. Reading a state while it
+ * fades in measures a colour the page never rests on: a hint at 30% opacity fails a contrast check.
+ */
+export async function animationsFinished(page: Page): Promise<void> {
+  await page.evaluate(async () => {
+    const ending = document
+      .getAnimations()
+      .filter((animation) => animation.effect?.getComputedTiming().endTime !== Infinity);
+    await Promise.allSettled(ending.map((animation) => animation.finished));
+  });
+}
+
 export interface ClippedText {
   text: string;
   scrollWidth: number;

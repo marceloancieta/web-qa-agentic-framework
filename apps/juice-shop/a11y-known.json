@@ -117,5 +117,26 @@
     "route": "/#/login",
     "key": "LOCAL-37",
     "expires": "2027-02-04"
+  },
+  {
+    "rule": "color-contrast",
+    "target": "app-register mat-error",
+    "route": "/#/register",
+    "key": "LOCAL-37",
+    "expires": "2027-02-04"
+  },
+  {
+    "rule": "color-contrast",
+    "target": "app-register mat-label",
+    "route": "/#/register",
+    "key": "LOCAL-37",
+    "expires": "2027-02-04"
+  },
+  {
+    "rule": "aria-progressbar-name",
+    "target": "app-register mat-progress-bar",
+    "route": "/#/register",
+    "key": "LOCAL-39",
+    "expires": "2027-02-04"
   }
 ]
