@@ -59,4 +59,11 @@ export class AccountApi {
     const { user } = (await response.json()) as { user: { email?: string } };
     return user.email ?? null;
   }
+
+  /** The security questions the application offers at sign-up, in its order. */
+  async securityQuestions(): Promise<string[]> {
+    const response = await this.api.get('api/SecurityQuestions/');
+    const { data } = (await response.json()) as { data: { question: string }[] };
+    return data.map(({ question }) => question);
+  }
 }

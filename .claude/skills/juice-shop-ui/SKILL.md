@@ -93,8 +93,9 @@ gaps. The registries' Defect column says which cases cite each key.
 | LOCAL-32 (S3) | every response sends `Access-Control-Allow-Origin: *` (ZAP 10098) |
 | LOCAL-34 (S2) | the decrease, increase and remove buttons of a basket row have no accessible name |
 | LOCAL-35 (S3) | the Track Orders link of the completion page is told apart by colour alone |
-| LOCAL-37 (S2) | the refusal message of the login has too little contrast |
+| LOCAL-37 (S2) | the error colour has too little contrast: the refusal of the login, and the messages and invalid labels of the registration form |
 | LOCAL-38 (S3) | a long address line runs out of the delivery step and the summary, which scroll sideways |
+| LOCAL-39 (S2) | the progress bar of the registration form has no accessible name |
 
 ## Accessibility baseline
 

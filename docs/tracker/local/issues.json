@@ -1,5 +1,5 @@
 {
-  "next": 39,
+  "next": 40,
   "issues": {
     "LOCAL-1": {
       "title": "Basket: a customer can read another customer's basket by its id",
@@ -413,7 +413,9 @@
       ],
       "status": "open",
       "category": "open",
-      "comments": []
+      "comments": [
+        "The width of this issue, from TC-SIGNUP-13 on 2026-11-06: the same colours on `/#/register`.\n\n- The field messages (`mat-error`) and the labels of invalid fields (`mat-label`) read `#f44336` on `#3e3e3e`, 2.9:1 at 16px, on every field left empty.\n- Seen in `color-contrast` on the device projects of the case, and measured apart by axe on desktop Chromium.\n\nSo the cause is the shop's error colour on its card, not the login's message alone. `a11y-known.json` lists both on `/#/register` under this key.\n"
+      ]
     },
     "LOCAL-38": {
       "title": "Checkout: a long address line runs out of the delivery step and scrolls sideways",
@@ -427,6 +429,17 @@
       "comments": [
         "The width of this issue, from TC-CHECKOUT-21 on 2026-11-06, with the case changed to run past the delivery step:\n\n- The order summary has the same problem: 728 px on mobile-chrome, with the same long address.\n- The address step and the payment step measure 0 on the same data, with a long holder name on the payment step.\n"
       ]
+    },
+    "LOCAL-39": {
+      "title": "Registration: the progress bar shown with a typed password has no accessible name",
+      "body": "## What happens\n\nOn `/#/register`, once a password is typed, a `mat-progress-bar` shows with no accessible name, so a screen reader announces a progress bar without saying what it measures.\n\n## What should happen\n\nA progress bar has an accessible name (WCAG 2.2 A, 4.1.2 Name, Role, Value; axe rule `aria-progressbar-name`). REQ-SIGNUP-09 and the quality checklist ask for the form to be usable without sight.\n\n## Steps\n\n1. Open `<base_url>/#/register`.\n2. Type a password.\n3. Run axe.\n\n## Devices\n\nAll six device projects of the `ci` environment: desktop-chromium, desktop-firefox, desktop-webkit, tablet, mobile-chrome and mobile-safari.\n\n## Evidence\n\nTC-SIGNUP-13, `QA_ENV=ci npx playwright test apps/juice-shop/specs/signup/signup.spec.ts --project='juice-shop-*' --repeat-each=2 --workers=2`: `aria-progressbar-name`, impact serious, at `mat-progress-bar`, 12 of 12 on 2026-11-06.\n\nThe accessibility sweep does not find it: the bar is not on the page until a password is typed.\n\n## Severity\n\nS2: a WCAG A failure on a main path, for screen-reader users. Registering stays possible without the bar. That it is the password strength meter is read from when it appears; it was not confirmed.\n",
+      "labels": [
+        "ui",
+        "severity:S2"
+      ],
+      "status": "open",
+      "category": "open",
+      "comments": []
     }
   }
 }

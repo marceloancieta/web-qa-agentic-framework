@@ -53,6 +53,27 @@ export class RegisterPage {
     return this.page.getByRole('button', { name: 'Button to complete the registration' });
   }
 
+  passwordAdvice(): Locator {
+    return this.page.getByRole('switch', { name: 'Show password advice' });
+  }
+
+  alreadyACustomer(): Locator {
+    return this.page.getByRole('link', { name: 'Already a customer?' });
+  }
+
+  /**
+   * The form field around a control, where Angular Material draws the focus indicator and the box
+   * a long value must stay in. The wrapper has no role or name of its own.
+   */
+  formField(control: Locator): Locator {
+    return this.page.locator('mat-form-field').filter({ has: control }); // no role or name
+  }
+
+  /** An element a text would create if the page rendered it as markup, by the token it carried. */
+  injected(token: string): Locator {
+    return this.page.locator(`[id="${token}"], img[src*="${token}"]`); // no role or name, only the token
+  }
+
   /**
    * A field's error, as opposed to its hint: the password's hint and its error share the text
    * "Password must be 5-40 characters long.", and only the error replaces the hint when the value
@@ -109,6 +130,20 @@ export class RegisterPage {
   /** Leave the field that has the focus, so the form shows what is missing or wrong. */
   async leaveFields(): Promise<void> {
     await this.heading().click();
+  }
+
+  /** Focus and leave every field while empty, so the form shows each one's message. */
+  async leaveEveryFieldEmpty(): Promise<void> {
+    for (const field of [
+      this.email(),
+      this.password(),
+      this.repeat(),
+      this.question(),
+      this.answer(),
+    ]) {
+      await field.focus();
+      await this.leaveFields();
+    }
   }
 
   /** Fill the form with the first security question of the list, and send it. */

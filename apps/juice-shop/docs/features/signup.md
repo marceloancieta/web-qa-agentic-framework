@@ -125,6 +125,8 @@ unobserved (A3).
 |---|---|---|---|
 | G1 | The password counter reads `/20` while the field and its hint allow 40 characters. | live look and app map, 2026-10-25 | LOCAL-4 (S3) |
 | G2 | The email field has no `type=email`, and no field has an `autocomplete` value. | app map, 2026-10-25 | searched, none |
+| G3 | The field messages and the labels of invalid fields have a contrast of 2.9:1, where 4.5:1 is needed. | TC-SIGNUP-13 runs, 2026-11-06 | LOCAL-37 (S2) |
+| G4 | The progress bar shown once a password is typed has no accessible name. | TC-SIGNUP-13 runs, 2026-11-06 | LOCAL-39 (S2) |
 
 ## Out of scope
 
