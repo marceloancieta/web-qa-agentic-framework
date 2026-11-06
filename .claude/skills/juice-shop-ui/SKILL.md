@@ -91,8 +91,10 @@ gaps. The registries' Defect column says which cases cite each key.
 | LOCAL-16 (S2) | on a phone the Print icon covers Track Your Order in the order history |
 | LOCAL-31 (S3) | the documents carry no Content-Security-Policy, Referrer-Policy or Permissions-Policy (`headers-known.json`; ZAP 10038 in `zap-known.json`) |
 | LOCAL-32 (S3) | every response sends `Access-Control-Allow-Origin: *` (ZAP 10098) |
+| LOCAL-34 (S2) | the decrease, increase and remove buttons of a basket row have no accessible name |
+| LOCAL-35 (S3) | the Track Orders link of the completion page is told apart by colour alone |
 
 ## Accessibility baseline
 
-The pack has no baseline file yet. The first accessibility cases (JS-05, JS-06) create it, and each
-known violation gets a tracker key and an expiry.
+`apps/juice-shop/a11y-known.json` holds the known violations, each with a tracker key and an expiry.
+The completion page's route holds the order id, so its entry uses route `*`.

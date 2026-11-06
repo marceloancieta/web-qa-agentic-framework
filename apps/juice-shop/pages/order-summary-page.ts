@@ -13,6 +13,16 @@ export class OrderSummaryPage {
     await this.page.goto('#/order-summary');
   }
 
+  /** The title as text, which it is today (LOCAL-11); it keeps matching once it is a heading. */
+  title(): Locator {
+    return this.page.getByText('Order Summary', { exact: true });
+  }
+
+  /** The title as a heading, which it is not until LOCAL-11 is fixed. */
+  heading(): Locator {
+    return this.page.getByRole('heading', { name: 'Order Summary' });
+  }
+
   /** A product's row, named after the product. */
   product(name: string): Locator {
     return this.page.getByRole('row', { name: rowStartingWith(name) });

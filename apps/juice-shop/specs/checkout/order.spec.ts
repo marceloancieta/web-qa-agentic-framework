@@ -4,7 +4,7 @@
 // cards and orders that stay until the container restarts; the products, the address and the card
 // go in through `api/`, and the steps the case is about are walked through the UI.
 
-import type { Page } from '@playwright/test';
+import type { Locator, Page } from '@playwright/test';
 import { BasketApi } from '../../api/basket-api';
 import { CatalogueApi, type Product } from '../../api/catalogue-api';
 import { CheckoutApi, type Order } from '../../api/checkout-api';
@@ -25,6 +25,7 @@ import { OrderSummaryPage } from '../../pages/order-summary-page';
 import { PaymentPage } from '../../pages/payment-page';
 import { horizontalOverflow, clippedText } from '../../../../helpers/layout';
 import { knownGap } from '../../../../helpers/case-meta';
+import { focusChangesRendering, tabUntil } from '../../../../helpers/keyboard';
 import type { Actor } from '../../../../fixtures';
 
 // <PRODUCT>: the most stocked product without a limit per customer (the `stockedProduct` fixture).
@@ -36,6 +37,12 @@ test.beforeEach(({ stockedProduct }) => {
 // price, or took another method's, would differ from the right one.
 const DELIVERY: DeliveryMethod = 'Fast Delivery';
 const money = (amount: number) => `${amount.toFixed(2)}¤`;
+const TAB_LIMIT = 40;
+const METHODS: { name: DeliveryMethod; price: string; days: RegExp }[] = [
+  { name: 'One Day Delivery', price: '0.99¤', days: /\b1 Days?\b/ },
+  { name: 'Fast Delivery', price: '0.50¤', days: /\b3 Days?\b/ },
+  { name: 'Standard Delivery', price: '0.00¤', days: /\b5 Days?\b/ },
+];
 
 interface Line {
   product: Product;
@@ -51,7 +58,7 @@ interface Shopper {
   card: Card;
   /** An address and a card saved before the chosen ones, when the case asked for them. */
   others: { address: Address; card: Card }[];
-  delivery: { name: DeliveryMethod; price: number; eta: number };
+  delivery: { id: number; name: DeliveryMethod; price: number; eta: number };
   /** Items, the delivery price and the total the summary must show; no coupon, no promotion. */
   items: number;
   total: number;
@@ -122,8 +129,8 @@ async function aShopper(
   };
 }
 
-/** From the basket through the address and delivery steps, as the customer takes them. */
-async function walkToPayment(page: Page, shopper: Shopper): Promise<void> {
+/** From the basket through the address step, as the customer takes them. */
+async function walkToDelivery(page: Page, shopper: Shopper): Promise<void> {
   const basket = new BasketPage(page);
   await basket.open();
   await expect(basket.row(PRODUCT)).toBeVisible();
@@ -131,6 +138,11 @@ async function walkToPayment(page: Page, shopper: Shopper): Promise<void> {
   await expect(new AddressSelectPage(page).heading()).toBeVisible();
   await chooseSavedAddress(page, shopper.address.fullName);
   await expect(new DeliveryPage(page).heading()).toBeVisible();
+}
+
+/** From the basket through the address and delivery steps, as the customer takes them. */
+async function walkToPayment(page: Page, shopper: Shopper): Promise<void> {
+  await walkToDelivery(page, shopper);
   await chooseDelivery(page, shopper.delivery.name);
   await expect(new PaymentPage(page).heading()).toBeVisible();
 }
@@ -158,6 +170,29 @@ async function placeOrder(page: Page, summary: OrderSummaryPage): Promise<string
   const completion = new OrderCompletionPage(page);
   await expect(completion.heading()).toBeVisible();
   return completion.orderId();
+}
+
+/** Place the shopper's order through the API, for a case about what follows it. */
+async function orderThroughApi({ checkout, basket, delivery }: Shopper): Promise<string> {
+  const [address] = await checkout.addresses();
+  const [card] = await checkout.cards();
+  if (!address || !card) throw new Error('The shopper has a saved address and a saved card.');
+  return checkout.placeOrder(basket.basketId, {
+    addressId: address.id,
+    paymentId: card.id,
+    deliveryMethodId: delivery.id,
+  });
+}
+
+/**
+ * Tab to a control, then check that it has focus and shows it. Angular Material draws the focus on
+ * a wrapper or a pseudo-element, so the check compares how `region` is drawn, never the control's
+ * own style: a radio's native input is not what a customer sees.
+ */
+async function tabTo(page: Page, name: string, control: Locator, region = control): Promise<void> {
+  const stops = await tabUntil(page, control, TAB_LIMIT);
+  await expect(control, `Tab reaches ${name}, past ${JSON.stringify(stops)}`).toBeFocused();
+  expect(await focusChangesRendering(control, region), `${name} shows its focus`).toBe(true);
 }
 
 const escape = (text: string) => text.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
@@ -549,6 +584,265 @@ test.describe('the checkout writes', () => {
         await expect.soft(button).toHaveAccessibleName(leadsTo);
       });
     }
+  });
+
+  test('TC-CHECKOUT-05 an address without a State shows no empty slot in its line on the list and the summary @regression @content @known-gap', async ({
+    actor,
+  }) => {
+    const address = anAddress({ state: undefined });
+    const shopper = await aShopper(actor, { address });
+    const { page } = shopper.customer;
+    const select = new AddressSelectPage(page);
+    const summary = await walkToSummary(page, shopper);
+    await expect(summary.shows(address.streetAddress)).toBeVisible();
+
+    test.fail(true, await knownGap('LOCAL-12', 'an address without a State shows an empty slot'));
+    await expect.soft(summary.shows(/,\s*,/), 'the summary shows no empty slot').toHaveCount(0);
+    const loaded = select.loaded();
+    await select.open();
+    await loaded;
+    await expect
+      .soft(select.address(address.fullName), 'the list shows no empty slot')
+      .not.toContainText(/,\s*,/);
+  });
+
+  test('TC-CHECKOUT-09 the delivery step lists One Day Delivery 0.99¤ 1 day, Fast Delivery 0.50¤ 3 days and Standard Delivery 0.00¤ 5 days, and Continue stays disabled until one is chosen @regression', async ({
+    actor,
+  }) => {
+    const shopper = await aShopper(actor);
+    const { page } = shopper.customer;
+    const delivery = new DeliveryPage(page);
+
+    await walkToDelivery(page, shopper);
+
+    await expect(delivery.methods()).toHaveCount(METHODS.length);
+    for (const { name, price, days } of METHODS) {
+      await expect(delivery.method(name)).toContainText(price);
+      await expect(delivery.method(name)).toContainText(days);
+    }
+    await expect(delivery.proceed()).toBeDisabled();
+    await delivery.choose('Standard Delivery');
+    await expect(delivery.proceed()).toBeEnabled();
+  });
+
+  test('TC-CHECKOUT-15 a customer with no orders sees "You have not placed any orders yet." in the order history @regression', async ({
+    actor,
+  }) => {
+    const customer = await actor('customer', { fresh: true });
+    expect(await new CheckoutApi(customer.api).orders()).toEqual([]);
+    const history = new OrderHistoryPage(customer.page);
+
+    await history.open();
+
+    await expect(history.empty()).toBeVisible();
+    await expect(history.track()).toHaveCount(0);
+  });
+
+  test.describe('the tracking refused', () => {
+    // The refusal is what the case is about: once LOCAL-8 is fixed the page's own request is
+    // refused, and the guard keeps watching everything else.
+    test.use({
+      pageHealth: {
+        allowConsole: [/\/rest\/track-order\//],
+        allowRequests: [/\/rest\/track-order\//],
+      },
+    });
+
+    test("TC-CHECKOUT-18 without a session, the tracking of a customer's order is refused by the API and the tracking page shows none of its products @regression @security @known-gap", async ({
+      actor,
+    }) => {
+      const shopper = await aShopper(actor);
+      const orderId = await orderThroughApi(shopper);
+      // The entry state: the order exists and its owner reads it, so a refusal below is about the
+      // session and not about an order that is not there.
+      const own = await shopper.checkout.track(orderId);
+      expect(own.status).toBe(200);
+      expect(own.orders.map((o) => o.orderId)).toEqual([orderId]);
+      const anonymous = await actor('anonymous');
+      const track = new TrackResultPage(anonymous.page);
+
+      test.fail(true, await knownGap('LOCAL-8', 'anyone with an order id reads the order'));
+      const answer = await new CheckoutApi(anonymous.api).track(orderId);
+      expect.soft(answer.status, 'the API refuses the tracking').toBeGreaterThanOrEqual(400);
+      expect.soft(answer.orders, 'the API gives no order').toEqual([]);
+      const answered = track.answered();
+      await track.open(orderId);
+      expect.soft(await answered, 'the page is refused too').toBeGreaterThanOrEqual(400);
+      for (const { product } of shopper.lines)
+        await expect.soft(track.product(product.name), 'the page shows no product').toBeHidden();
+    });
+  });
+
+  test.describe('a step opened directly', () => {
+    // Opened directly, the payment step asks for a delivery method nobody chose and the shop logs
+    // the refusal. The case is about the radios; it walks no step, so that nothing else depends on
+    // one, and the guard keeps watching everything else.
+    test.use({
+      pageHealth: {
+        allowConsole: [/\/api\/Deliverys\/null/],
+        allowRequests: [/\/api\/Deliverys\/null/],
+      },
+    });
+
+    test('TC-CHECKOUT-26 the radios of the address, delivery and card tables are named after their rows @regression @a11y @known-gap', async ({
+      actor,
+    }) => {
+      const shopper = await aShopper(actor);
+      const { page } = shopper.customer;
+      const select = new AddressSelectPage(page);
+      const delivery = new DeliveryPage(page);
+      const payment = new PaymentPage(page);
+      const { fullName } = shopper.address;
+      const card = lastFour(shopper.card);
+      const steps = [
+        {
+          open: () => select.open(),
+          radios: [{ inRow: select.radio(fullName), named: select.radioNamed(fullName) }],
+        },
+        {
+          open: () => delivery.open(),
+          radios: METHODS.map(({ name }) => ({
+            inRow: delivery.radio(name),
+            named: delivery.radioNamed(name),
+          })),
+        },
+        {
+          open: () => payment.open(),
+          radios: [{ inRow: payment.radio(card), named: payment.radioNamed(card) }],
+        },
+      ];
+      // Every row has its radio, so a missing name below is about the name and not about the row.
+      for (const { open, radios } of steps) {
+        await open();
+        for (const { inRow } of radios) await expect(inRow).toBeVisible();
+      }
+
+      test.fail(
+        true,
+        await knownGap('LOCAL-9', 'the radios of the checkout have no accessible name'),
+      );
+      for (const { open, radios } of steps) {
+        await open();
+        for (const { named } of radios) await expect.soft(named).toBeVisible();
+      }
+    });
+  });
+
+  test('TC-CHECKOUT-28 the summary and the order history each have a heading for their content @regression @a11y @known-gap', async ({
+    actor,
+  }) => {
+    const shopper = await aShopper(actor);
+    const { page } = shopper.customer;
+    const history = new OrderHistoryPage(page);
+    const orderId = await orderThroughApi(shopper);
+    await history.open();
+    await expect(history.order(orderId)).toBeVisible();
+    await expect(history.title()).toBeVisible();
+    // The order emptied the basket; the summary needs its products back.
+    for (const { product, quantity } of shopper.lines)
+      await shopper.basket.add(product.id, quantity);
+    const summary = await walkToSummary(page, shopper);
+    await expect(summary.title()).toBeVisible();
+
+    test.fail(true, await knownGap('LOCAL-11', 'neither page has a heading for its content'));
+    await expect.soft(summary.heading(), 'the summary has a heading').toBeVisible();
+    await history.open();
+    await expect.soft(history.heading(), 'the order history has a heading').toBeVisible();
+  });
+
+  test('TC-CHECKOUT-29 the keyboard alone completes the checkout, the focus visible on each control used, no axe violation beyond the baseline @regression @a11y', async ({
+    a11y,
+    actor,
+  }) => {
+    const method = 'One Day Delivery';
+    const shopper = await aShopper(actor, { method });
+    const { page } = shopper.customer;
+    const { fullName } = shopper.address;
+    const card = lastFour(shopper.card);
+    const basket = new BasketPage(page);
+    const select = new AddressSelectPage(page);
+    const delivery = new DeliveryPage(page);
+    const payment = new PaymentPage(page);
+    const summary = new OrderSummaryPage(page);
+    const completion = new OrderCompletionPage(page);
+
+    await test.step('the basket', async () => {
+      const contents = basket.contentsLoaded();
+      await basket.open();
+      await contents;
+      await expect(basket.row(PRODUCT)).toBeVisible();
+      await a11y.expectNoNewViolations(page);
+      const addresses = select.loaded();
+      await tabTo(page, 'Checkout', basket.checkout());
+      await page.keyboard.press('Enter');
+      await addresses;
+    });
+
+    await test.step('the address step', async () => {
+      await expect(select.heading()).toBeVisible();
+      await expect(select.address(fullName)).toBeVisible();
+      await a11y.expectNoNewViolations(page);
+      await tabTo(
+        page,
+        'the radio of the address',
+        select.radio(fullName),
+        select.address(fullName),
+      );
+      await page.keyboard.press('Space');
+      await expect(select.proceed()).toBeEnabled();
+      await tabTo(page, 'Continue on the address step', select.proceed());
+      await page.keyboard.press('Enter');
+    });
+
+    await test.step('the delivery step', async () => {
+      await expect(delivery.heading()).toBeVisible();
+      await expect(delivery.method(method)).toBeVisible();
+      await a11y.expectNoNewViolations(page);
+      await tabTo(page, 'the radio of the method', delivery.radio(method), delivery.method(method));
+      await page.keyboard.press('Space');
+      await expect(delivery.proceed()).toBeEnabled();
+      await tabTo(page, 'Continue on the delivery step', delivery.proceed());
+      await page.keyboard.press('Enter');
+    });
+
+    await test.step('the payment step', async () => {
+      await expect(payment.heading()).toBeVisible();
+      await expect(payment.card(card)).toBeVisible();
+      await a11y.expectNoNewViolations(page);
+      await tabTo(page, 'the radio of the card', payment.radio(card), payment.card(card));
+      await page.keyboard.press('Space');
+      await expect(payment.proceed()).toBeEnabled();
+      await tabTo(page, 'Continue on the payment step', payment.proceed());
+      await page.keyboard.press('Enter');
+    });
+
+    let orderId = '';
+    await test.step('the summary', async () => {
+      for (const { product } of shopper.lines)
+        await expect(summary.product(product.name)).toBeVisible();
+      await a11y.expectNoNewViolations(page);
+      await tabTo(page, 'Place your order and pay', summary.placeOrder());
+      const answered = summary.orderAnswered();
+      await page.keyboard.press('Enter');
+      expect(await answered).toBe(200);
+      await expect(completion.heading()).toBeVisible();
+      orderId = completion.orderId();
+    });
+
+    await test.step('the completion page, and the API holds the order', async () => {
+      for (const { product } of shopper.lines)
+        await expect(completion.product(product.name)).toBeVisible();
+      await a11y.expectNoNewViolations(page);
+      const orders = await shopper.checkout.orders();
+      expect(orders.map((o) => o.orderId)).toEqual([orderId]);
+      // What the keyboard chose reached the order: the shop also places one without it (LOCAL-7).
+      expect(orders[0]).toMatchObject({
+        totalPrice: shopper.total,
+        deliveryPrice: shopper.delivery.price,
+      });
+      expect(orders[0]?.addressId).toBeTruthy();
+      expect(orders[0]?.paymentId).toBeTruthy();
+    });
   });
 });
 
