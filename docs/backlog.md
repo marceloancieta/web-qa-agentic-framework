@@ -47,6 +47,7 @@ Every item of v0.1.0 is done; each is in **Done**.
 |---|---|---|---|
 | GATE-12 | A hook checks the browser limits of design in `.claude/rules/modes.md`, which today are a sentence: an agent browser tool in design navigates and reads, and types only into the login. | ADR 0013 | todo |
 | JS-08 | Automate the approved Juice Shop cases that have no spec yet, one feature at a time: checkout first, then the others. | plan | in-progress |
+| CI-13 | `npm run ci:browsers` gives apt short timeouts and retries on a CI runner: the apt cache holds packages, not the index apt reads first, and on 2026-11-06 a job stayed about 30 minutes in that step after a mirror stopped answering, with its 181 cached packages restored. | owner | in-progress |
 | FUT-01 | Toolshop pack (Practice Software Testing, local Docker): authorization in the UI by role, `data-test` attributes. | plan | todo |
 | FUT-04 | i18n: projects per `locale` and `timezoneId`, pseudo-localization, right-to-left. | practice | todo |
 | FUT-05 | Design-token checks from the pack's `design-tokens.json`; `prefers-reduced-motion` emulation. | plan | todo |
