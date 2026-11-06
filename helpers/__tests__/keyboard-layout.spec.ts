@@ -7,7 +7,12 @@ import {
   tabOrder,
   tabUntil,
 } from '../keyboard';
-import { clippedText, horizontalOverflow, settledHorizontalOverflow } from '../layout';
+import {
+  animationsFinished,
+  clippedText,
+  horizontalOverflow,
+  settledHorizontalOverflow,
+} from '../layout';
 
 const FORM = `<!doctype html><html lang="en"><head><title>Form</title><style>
   #plain:focus { outline: none; }
@@ -153,6 +158,21 @@ test('sideways scroll inside a container counts, and what cannot scroll does not
     #content { width: 650px; height: 10px; }
   </style></head><body><div id="content"></div></body></html>`);
   expect(await horizontalOverflow(page), 'the body as the scroller').toBe(250);
+});
+
+test('animations are waited for until they end, and an endless one does not hold the wait', async ({
+  page,
+}) => {
+  await page.setContent(`<!doctype html><html lang="en"><head><title>Fade</title><style>
+    @keyframes fade { from { opacity: 0; } to { opacity: 1; } }
+    #hint { animation: fade 300ms linear; }
+    #spinner { animation: fade 1s linear infinite; }
+  </style></head><body><p id="hint">Hint</p><p id="spinner">Spinner</p></body></html>`);
+  const opacity = () =>
+    page.locator('#hint').evaluate((element) => Number(getComputedStyle(element).opacity));
+
+  await animationsFinished(page);
+  expect(await opacity(), 'the fade has ended').toBe(1);
 });
 
 test('a settled overflow waits out a moment of width, and keeps one that lasts', async ({

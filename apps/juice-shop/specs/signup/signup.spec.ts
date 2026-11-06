@@ -8,7 +8,7 @@ import type { Locator } from '@playwright/test';
 import { generatedPassword } from '../../../../helpers/actors';
 import { knownGap } from '../../../../helpers/case-meta';
 import { focusChangesRendering, tabUntil } from '../../../../helpers/keyboard';
-import { horizontalOverflow } from '../../../../helpers/layout';
+import { animationsFinished, horizontalOverflow } from '../../../../helpers/layout';
 import { storedText } from '../../../../helpers/storage';
 import { loadDecisionTable } from '../../../../scripts/lib/decision-table.mjs';
 import { AccountApi } from '../../api/account-api';
@@ -421,6 +421,8 @@ test('TC-SIGNUP-13 each field message is tied to its field, and the page has no 
   page,
   a11y,
 }) => {
+  // Two axe scans and ten fields walked: more than a case about one state.
+  test.slow();
   const register = new RegisterPage(page);
   const isTied = async (field: Locator, message: string) => {
     await expect(register.fieldError(message)).toBeVisible();
@@ -431,6 +433,7 @@ test('TC-SIGNUP-13 each field message is tied to its field, and the page has no 
   await test.step('every field left empty: each message tied, no new violation', async () => {
     await register.leaveEveryFieldEmpty();
     for (const [field, message] of emptyFieldMessages(register)) await isTied(field, message);
+    await animationsFinished(page);
     await a11y.expectNoNewViolations(page);
   });
 
@@ -441,6 +444,7 @@ test('TC-SIGNUP-13 each field message is tied to its field, and the page has no 
     await register.leaveFields();
     await isTied(register.email(), 'Email address is not valid.');
     await isTied(register.repeat(), 'Passwords do not match');
+    await animationsFinished(page);
     await a11y.expectNoNewViolations(page);
   });
 });
