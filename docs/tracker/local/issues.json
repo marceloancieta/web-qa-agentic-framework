@@ -1,5 +1,5 @@
 {
-  "next": 36,
+  "next": 37,
   "issues": {
     "LOCAL-1": {
       "title": "Basket: a customer can read another customer's basket by its id",
@@ -388,6 +388,17 @@
       "labels": [
         "ui",
         "severity:S3"
+      ],
+      "status": "open",
+      "category": "open",
+      "comments": []
+    },
+    "LOCAL-36": {
+      "title": "Dynamic catalog: the Loading placeholders of the lazy-load page have too little contrast",
+      "body": "## What happens\n\nOn `/dynamic-catalog-lazy-load.html` the \"Loading…\" text of the card placeholders has a contrast of 4.12:1: `#767676` on `#f4f4f4`, at 14px.\n\n## What should happen\n\nText of this size needs at least 4.5:1 (WCAG 2.2 AA, 1.4.3 Contrast (Minimum)). The route has no feature contract yet, so the standard is the source.\n\n## Steps\n\n1. Sign in as the standard user at `<base_url>`.\n2. Open `<base_url>/dynamic-catalog-lazy-load.html`.\n3. Run axe while the cards below the fold still show their placeholder.\n\n## Devices\n\n- saucedemo-desktop-chromium: 4 elements.\n- saucedemo-mobile-chrome: 3 elements.\n\nWhich items are affected follows the viewport (`lazy-load-item-8` to `11` on desktop, `3` to `5` on mobile), since those are the cards not loaded yet.\n\n## Evidence\n\nThe accessibility sweep, `npm run lanes:a11y -- --grep \"dynamic-catalog-lazy-load\"`: `color-contrast`, impact serious in axe, on both projects. Seen in 3 of 3 repeats, and again on 2026-11-06.\n\n## Severity\n\nS4: the text is a short-lived placeholder and the task does not depend on reading it. axe's \"serious\" is the rule's impact, not the severity of this issue.\n",
+      "labels": [
+        "ui",
+        "severity:S4"
       ],
       "status": "open",
       "category": "open",
