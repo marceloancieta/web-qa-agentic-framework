@@ -2,10 +2,26 @@ import {
   cancelledByPage,
   checkOptions,
   healthReport,
+  healthVerdict,
   unansweredRequestUrls,
   watchPageHealth,
 } from '../page-health';
 import { expect, test } from './fake-app';
+
+test('the guard fails a passing test, and only notes a case armed with knownGap', () => {
+  const armed = { expectedStatus: 'failed', annotations: [{ type: 'issue' }] };
+  const plain = { expectedStatus: 'passed', annotations: [] };
+  // Fixed: the body passes, so Playwright must report the unexpected pass, not a failure as armed.
+  expect(healthVerdict('report', { ...armed, status: 'passed' })).toBe('note');
+  expect(healthVerdict('report', { ...armed, status: 'failed' })).toBe('note');
+  expect(healthVerdict('report', { ...plain, status: 'passed' })).toBe('fail');
+  expect(healthVerdict('report', { ...plain, status: 'failed' })).toBe('none');
+  // A plain test.fail carries no issue: the guard's own tests prove it this way.
+  expect(healthVerdict('report', { ...plain, expectedStatus: 'failed', status: 'passed' })).toBe(
+    'fail',
+  );
+  expect(healthVerdict(null, { ...armed, status: 'passed' })).toBe('none');
+});
 
 test("a request the page cancels is not a failure in any engine; a mock's abort still is", () => {
   for (const reason of [
