@@ -90,9 +90,8 @@ test('the package is published from a release tag of its own repository, with no
   const workflow = parse(text);
   assert.deepEqual(workflow.on, { push: { tags: ['v[0-9]+.[0-9]+.[0-9]+'] } });
   assert.deepEqual(workflow.permissions, {});
-  const jobs = Object.values(workflow.jobs);
-  assert.equal(jobs.length, 1);
-  const [job] = jobs;
+  assert.deepEqual(Object.keys(workflow.jobs), ['create-web-qa', 'github-release']);
+  const job = workflow.jobs['create-web-qa'];
   const slug = new URL(FRAMEWORK_REPOSITORY).pathname.slice(1);
   assert.equal(readJson(`${PACKAGE_DIR}/package.json`).repository.url, FRAMEWORK_REPOSITORY);
   assert.equal(job.if, `\${{ github.repository == '${slug}' }}`);
@@ -118,6 +117,16 @@ test('the package is published from a release tag of its own repository, with no
   assert.equal(
     readJson('package.json').scripts['create:publish'],
     'npm publish reports/create-web-qa/package --access public --provenance',
+  );
+
+  // The GitHub release follows the publish, and can neither publish nor wait in its environment.
+  const release = workflow.jobs['github-release'];
+  assert.equal(release.needs, 'create-web-qa');
+  assert.deepEqual(release.permissions, { contents: 'write' });
+  assert.equal(release.environment, undefined);
+  assert.deepEqual(
+    release.steps.filter((step) => step.run).map((step) => step.run.trim()),
+    ['npm run release:create -- --tag "$TAG"'],
   );
 
   // No other workflow can mint the token npm trusts.

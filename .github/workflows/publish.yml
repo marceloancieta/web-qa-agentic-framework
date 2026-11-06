@@ -65,3 +65,33 @@ jobs:
       # read the version back by hand instead.
       - name: Read the published version back
         run: npm run create:readback -- --tag "$TAG"
+
+  # What a reader of the repository's page sees: the tag's changelog section as a GitHub release. It
+  # follows the publish, so a release never names a version npm does not have, and it holds neither
+  # the OIDC permission nor the `npm` environment.
+  github-release:
+    name: release (GitHub)
+    needs: create-web-qa
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    permissions:
+      contents: write
+    env:
+      TAG: ${{ github.ref_name }}
+    steps:
+      - name: Check out the tag
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Set up Node from .nvmrc
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version-file: .nvmrc
+          package-manager-cache: false
+
+      # Refuses a tag whose version has no changelog section, so a release always says what it holds.
+      - name: Create the release from the changelog
+        run: npm run release:create -- --tag "$TAG"
+        env:
+          GH_TOKEN: ${{ github.token }}

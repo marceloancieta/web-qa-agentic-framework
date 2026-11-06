@@ -5,10 +5,12 @@ newer release. The framework is published as a GitHub template, and as the `crea
 for a start without GitHub:
 
 ```sh
-npm create web-qa@<version> <dir>
+npm create web-qa@latest <dir>
 ```
 
-The package's project holds the same product as a template copy and records its release in
+`latest` is the newest of the [releases](https://github.com/marceloancieta/web-qa-agentic-framework/releases);
+put a version there to start from an older one. The package's project holds the same product as a
+template copy and records its release in
 `.web-qa.json` at once; it starts without git, so `git init` and a first commit come before step 1.2.
 The framework builds the package with `npm run create:pack` (`scripts/create-package.mjs`).
 
@@ -59,7 +61,8 @@ Add the team's own applications with `npm run scaffold:app`
 
 ## 4. Take a later release
 
-The framework's releases are tags (`v<x.y.z>`), each with a changelog section. To take one:
+The framework's releases are tags (`v<x.y.z>`), each with a GitHub release and a changelog
+section. To take one:
 
 ```sh
 npm run framework:update -- --to v0.2.0 --from v0.1.0      # the first time; later, --to alone

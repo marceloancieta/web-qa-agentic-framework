@@ -74,6 +74,8 @@
     "changelog": "node scripts/changelog.mjs --next",
     "changelog:write": "node scripts/changelog.mjs --next --write",
     "release:check": "node scripts/release-check.mjs",
+    "release:notes": "node scripts/release-notes.mjs",
+    "release:create": "node scripts/release-notes.mjs --create",
     "gates": "npm run lint && npm run format:check && npm run types:check && npm run config:check && npm run test:hooks && npm run test:scripts && npm run lint:qa && npm run coverage:status && npm run traceability && npm run cited-status -- --offline && npm run test:unit && npm run scan:denylist:self-test && npm run scan:denylist && npm run scan:denylist:history && npm run lint:docs:history && npm run scan:secrets"
   },
   "devDependencies": {

@@ -49,6 +49,9 @@ Claude Code skills, rules, hooks and agents that carry the process. It is the si
 
 ## Quick start
 
+These steps run the framework itself. For a project of your own, use the GitHub template or
+`npm create web-qa@latest <dir>`, and follow [Adopting the framework](docs/guides/adopting.md).
+
 ```sh
 npm ci
 npx playwright install chromium   # the browser the core's unit tests and the default projects use
