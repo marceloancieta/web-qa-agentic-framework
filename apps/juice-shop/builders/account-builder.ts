@@ -22,3 +22,14 @@ export function aCustomer(role: string, worker: number): Account {
     password: generatedPassword(),
   };
 }
+
+/**
+ * A customer whose address has exactly 120 characters and is a valid one: the part before the @ at
+ * its limit of 64, and the rest in the domain, whose labels take 63 each.
+ */
+export function aCustomerWithLongEmail(worker: number): Account {
+  const local = `long-${uniqueSuffix(worker)}`.padEnd(64, 'x');
+  const domain = 'example.test';
+  const label = 'y'.repeat(120 - local.length - '@.'.length - domain.length);
+  return { username: `${local}@${label}.${domain}`, password: generatedPassword() };
+}

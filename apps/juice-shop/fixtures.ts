@@ -17,8 +17,8 @@ import { CatalogueApi, type Product } from './api/catalogue-api';
 import { aCustomer } from './builders/account-builder';
 
 export const provider: ActorProvider = {
-  async provision({ api, role, worker }) {
-    const account = aCustomer(role, worker);
+  async provision({ api, role, worker, account: built }) {
+    const account = built ?? aCustomer(role, worker);
     const created = await new AccountApi(api).register(account);
     return { ...account, id: String(created.id) };
   },

@@ -1,6 +1,6 @@
 // The basket (`/#/basket`): a table with a row per product, the total and Checkout.
 
-import type { Locator, Page } from '@playwright/test';
+import type { Locator, Page, Response } from '@playwright/test';
 
 export class BasketPage {
   constructor(private readonly page: Page) {}
@@ -13,8 +13,13 @@ export class BasketPage {
    * Resolves when the basket's contents have answered. Start it before opening the page: until
    * then the table has no rows whatever the basket holds.
    */
-  contentsLoaded(): Promise<unknown> {
+  contentsLoaded(): Promise<Response> {
     return this.page.waitForResponse((r) => /\/rest\/basket\/\d+$/.test(new URL(r.url()).pathname));
+  }
+
+  /** The card the page's content sits on. */
+  card(): Locator {
+    return this.page.locator('mat-card').first(); // no role or name; the page's only outer card
   }
 
   title(): Locator {
@@ -57,6 +62,22 @@ export class BasketPage {
 
   remove(name: string): Locator {
     return this.row(name).getByRole('cell').last().getByRole('button'); // the last cell holds it
+  }
+
+  name(name: string): Locator {
+    return this.row(name).getByRole('cell').nth(1); // the second cell is the name
+  }
+
+  price(name: string): Locator {
+    return this.row(name).getByRole('cell').nth(3); // the fourth cell is the price
+  }
+
+  columnHeaders(): Locator {
+    return this.page.getByRole('table').getByRole('columnheader');
+  }
+
+  images(): Locator {
+    return this.page.getByRole('table').getByRole('img');
   }
 
   /** A notification such as "You can order only up to 5 items of this product.". */

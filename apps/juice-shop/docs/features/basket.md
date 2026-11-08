@@ -124,6 +124,8 @@ automate).
 | G2 | A customer reads another customer's basket by its id, through the API and on the page. Juice Shop is insecure on purpose and this is one of its training vulnerabilities. | throwaway spec, 2026-10-25 | LOCAL-1 (S1) |
 | G3 | A failed basket answer is shown as an ordinary empty basket, with no message; the loading state shows the empty state too (LOCAL-13). | TC-BASKET-17 and -18 runs, 2026-10-26 | LOCAL-17 (S3) |
 | G4 | The decrease, increase and remove buttons of a basket row have no accessible name; page objects find them by their place in the row. | locator capture in automate, 2026-10-26 | LOCAL-34 (S2) |
+| G5 | Pressing a quantity button redraws the table and the focus falls to the body of the page. | a TC-BASKET-21 run and a focus reading on desktop Chromium, 2026-11-06 | LOCAL-40 (S2) |
+| G6 | A long but valid email (a local part of 64 characters, 120 in all) runs out of the title's card and past the viewport, 591 to 984 px depending on the device. | TC-BASKET-22 runs on the six `ci` device projects, 2026-11-06 | LOCAL-41 (S3) |
 
 ## Out of scope
 
