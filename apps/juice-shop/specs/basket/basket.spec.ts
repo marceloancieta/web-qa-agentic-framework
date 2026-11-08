@@ -2,17 +2,28 @@
 // customer, removing the last product, another customer's basket, the basket without a session, and
 // a slow and a failed basket answer. Every case that changes a basket takes a customer of its own,
 // created for the case, so no case sees another's items; the products go in through `api/` except
-// in TC-BASKET-03, which adds through the page, and what the page claims is read back through `api/`.
+// in the cases about adding from the search page, and what the page claims is read back through
+// `api/`.
 
+import type { Response } from '@playwright/test';
 import { knownGap } from '../../../../helpers/case-meta';
+import { tabUntil } from '../../../../helpers/keyboard';
+import {
+  clippedText,
+  horizontalOverflow,
+  textSpill,
+  unloadedImages,
+} from '../../../../helpers/layout';
 import { seedSessionStorage } from '../../../../helpers/storage';
 import { becomesVisibleWithin } from '../../../../helpers/watch';
 import { BasketApi } from '../../api/basket-api';
 import { CatalogueApi } from '../../api/catalogue-api';
+import { aCustomerWithLongEmail } from '../../builders/account-builder';
 import { Toolbar } from '../../components/toolbar';
 import { expect, test, type Actor } from '../../fixtures';
 import { slowBasket } from '../../mocks/checkout-mocks';
 import { basketFails } from '../../mocks/shop-mocks';
+import { AboutPage } from '../../pages/about-page';
 import { BasketPage } from '../../pages/basket-page';
 import { LoginPage } from '../../pages/login-page';
 import { SearchPage } from '../../pages/search-page';
@@ -27,6 +38,8 @@ const NO_BONUS = 'You will gain 0 Bonus Points from this order!';
 const ANSWER = 15_000;
 // How long a case watches for something that must never show, from the opening of the page on.
 const WATCH = 15_000;
+// The same for an empty basket: long enough to run past its answer, at the cost of the wait.
+const EMPTY_WATCH = 6_000;
 /** The basket button's text ends with the count: "Your Basket <n>" on a wide screen, "<n>" below. */
 const counts = (n: number) => new RegExp(`(?:^|\\D)${n}$`);
 /** The amount of "Total Price: <amount>¤". */
@@ -42,10 +55,10 @@ async function aCustomer(
 }
 
 /** Open the basket page and resolve once its contents have answered. */
-async function openBasket(page: BasketPage): Promise<void> {
+async function openBasket(page: BasketPage): Promise<Response> {
   const contents = page.contentsLoaded();
   await page.open();
-  await contents;
+  return contents;
 }
 
 test.describe('the basket writes', () => {
@@ -340,4 +353,354 @@ test('TC-BASKET-12 without a session, /#/basket opens the login and shows no bas
   await expect.soft(page, '/#/basket sends to the login').toHaveURL(/#\/login$/);
   await expect.soft(login.email(), 'the login form').toBeVisible();
   await expect.soft(basketPage.title(), 'no basket without a session').toBeHidden();
+});
+
+test.describe('the basket page', () => {
+  test.beforeEach(({ qa }) => {
+    test.skip(!qa.allowWrites, 'the case creates an account; allow_writes is false');
+  });
+
+  /** A customer of the case's own with <PRODUCT> in the basket. */
+  async function aCustomerWithProduct(
+    actor: Parameters<typeof aCustomer>[0],
+  ): Promise<{ customer: Actor; basket: BasketApi; basketPage: BasketPage }> {
+    const { customer, basket } = await aCustomer(actor);
+    await basket.add((await new CatalogueApi(customer.api).product(PRODUCT)).id);
+    return { customer, basket, basketPage: new BasketPage(customer.page) };
+  }
+
+  /** Wait for the images of the rows: a table can widen or reflow once they arrive. */
+  const imagesLoaded = (basketPage: BasketPage) =>
+    expect.poll(() => unloadedImages(basketPage.images())).toEqual([]);
+
+  test('TC-BASKET-01 a customer\'s basket page is titled "Your Basket (<EMAIL>)" and shows the basket the session names @sanity', async ({
+    actor,
+  }) => {
+    const { customer, basket, basketPage } = await aCustomerWithProduct(actor);
+    const answer = await openBasket(basketPage);
+    expect(new URL(answer.url()).pathname, 'the basket the session names').toBe(
+      `/rest/basket/${basket.basketId}`,
+    );
+    await expect(basketPage.title()).toHaveText(`Your Basket (${customer.account?.username})`);
+    await expect(basketPage.rows()).toHaveCount(1);
+    await expect(basketPage.quantity(PRODUCT)).toHaveText('1');
+  });
+
+  test('TC-BASKET-02 an empty basket shows no rows, "Total Price: 0¤", a disabled Checkout and 0 bonus points @regression @navigation', async ({
+    actor,
+  }) => {
+    const { customer, basket } = await aCustomer(actor);
+    expect(await basket.lines(), 'the basket of a new customer starts empty').toEqual([]);
+    const basketPage = new BasketPage(customer.page);
+    // Until the answer the page looks empty whatever the basket holds (LOCAL-13), so the watch runs
+    // past it: a row shown at any moment of the window is caught.
+    const sawRow = becomesVisibleWithin(basketPage.rows().first(), EMPTY_WATCH);
+
+    await openBasket(basketPage);
+    await expect(basketPage.title()).toBeVisible();
+    expect(await sawRow, 'a row in an empty basket').toBe(false);
+    await expect(basketPage.rows()).toHaveCount(0);
+    await expect(basketPage.totalReading(EMPTY_TOTAL)).toBeVisible();
+    await expect(basketPage.checkout()).toBeDisabled();
+    await expect(basketPage.bonusReading(NO_BONUS)).toBeVisible();
+  });
+
+  test('TC-BASKET-04 adding <PRODUCT> a second time says "Added another <PRODUCT> to basket." and its quantity becomes 2 @regression', async ({
+    actor,
+  }) => {
+    const { customer, basket } = await aCustomer(actor);
+    const { page } = customer;
+    const product = await new CatalogueApi(customer.api).product(PRODUCT);
+    const search = new SearchPage(page);
+    const toolbar = new Toolbar(page);
+    const basketPage = new BasketPage(page);
+
+    await search.open(PRODUCT);
+    await search.addToBasket(PRODUCT).click();
+    await expect(toolbar.basketButton()).toHaveText(counts(1), { timeout: ANSWER });
+
+    await search.addToBasket(PRODUCT).click();
+    await expect(search.notification(`Added another ${PRODUCT} to basket.`)).toBeVisible({
+      timeout: ANSWER,
+    });
+    await expect(toolbar.basketButton()).toHaveText(counts(2), { timeout: ANSWER });
+
+    await openBasket(basketPage);
+    await expect(basketPage.quantity(PRODUCT)).toHaveText('2');
+    expect(await basket.lines()).toEqual([{ name: PRODUCT, price: product.price, quantity: 2 }]);
+  });
+
+  test('TC-BASKET-07 adding <SOLD_OUT> says "We are out of stock! Sorry for the inconvenience." and the basket stays as it was @regression', async ({
+    actor,
+  }) => {
+    const { customer, basket } = await aCustomerWithProduct(actor);
+    const soldOut = await new CatalogueApi(customer.api).soldOut();
+    const before = await basket.lines();
+    const search = new SearchPage(customer.page);
+
+    await search.open(soldOut.name);
+    await expect(search.product(soldOut.name)).toBeVisible();
+    await search.addToBasket(soldOut.name).click();
+    await expect(
+      search.notification('We are out of stock! Sorry for the inconvenience.'),
+    ).toBeVisible({ timeout: ANSWER });
+    expect(await basket.lines()).toEqual(before);
+  });
+
+  test("TC-BASKET-08 the basket button's count follows the basket: 0 when empty, then the number of items @regression @responsive", async ({
+    actor,
+    app,
+    stockedProduct,
+  }) => {
+    const { customer, basket } = await aCustomer(actor);
+    const { page } = customer;
+    const search = new SearchPage(page);
+    const toolbar = new Toolbar(page);
+    const shows = (items: number) =>
+      expect(toolbar.basketButton()).toHaveText(toolbar.basketText(items, app), {
+        timeout: ANSWER,
+        // What shows: below the breakpoint "Your Basket" stays in the page, hidden.
+        useInnerText: true,
+      });
+
+    await search.open(PRODUCT);
+    await shows(0);
+    for (const items of [1, 2]) {
+      await search.addToBasket(PRODUCT).click();
+      await shows(items);
+    }
+    expect((await basket.lines()).map(({ quantity }) => quantity)).toEqual([2]);
+
+    // A change the page did not make: the count comes from the basket, not from the clicks.
+    await basket.add(stockedProduct.id);
+    await page.reload();
+    await shows(3);
+  });
+
+  test('TC-BASKET-10 Checkout is enabled once the basket holds a product @regression @navigation', async ({
+    actor,
+  }) => {
+    const { customer, basket } = await aCustomer(actor);
+    const product = await new CatalogueApi(customer.api).product(PRODUCT);
+    const basketPage = new BasketPage(customer.page);
+    // Until the table's answer the page shows the empty state whatever the basket holds (LOCAL-13),
+    // so the disabled Checkout is read after a window that runs past that answer.
+    const sawRow = becomesVisibleWithin(basketPage.rows().first(), EMPTY_WATCH);
+
+    await openBasket(basketPage);
+    await expect(basketPage.title()).toBeVisible();
+    expect(await sawRow, 'a row in an empty basket').toBe(false);
+    await expect(basketPage.checkout()).toBeDisabled();
+
+    await basket.add(product.id);
+    await customer.page.reload();
+    await expect(basketPage.row(PRODUCT)).toBeVisible({ timeout: ANSWER });
+    await expect(basketPage.checkout()).toBeEnabled();
+  });
+
+  test('TC-BASKET-13 a basket with a product keeps it after a reload, and after leaving the page and going Back @regression @navigation', async ({
+    actor,
+  }) => {
+    const { customer, basket, basketPage } = await aCustomerWithProduct(actor);
+    const { page } = customer;
+    const kept = async () => {
+      await expect(basketPage.row(PRODUCT)).toBeVisible({ timeout: ANSWER });
+      await expect(basketPage.quantity(PRODUCT)).toHaveText('1');
+    };
+    await openBasket(basketPage);
+    await expect(basketPage.title()).toBeVisible();
+    await kept();
+
+    await test.step('a reload asks again and keeps the product', async () => {
+      const answered = basketPage.contentsLoaded();
+      await page.reload();
+      await answered;
+      await kept();
+    });
+
+    await test.step('leaving the page and going Back asks again and keeps the product', async () => {
+      await new SearchPage(page).open();
+      await expect(basketPage.title()).toHaveCount(0);
+      const answered = basketPage.contentsLoaded();
+      await page.goBack();
+      await answered;
+      await expect(page).toHaveURL(/#\/basket$/);
+      await kept();
+    });
+
+    expect((await basket.lines()).map(({ name }) => name)).toEqual([PRODUCT]);
+  });
+
+  test('TC-BASKET-14 the basket button opens /#/basket from the search page and from the about page @regression @navigation', async ({
+    actor,
+  }) => {
+    const { page } = await actor('customer');
+    const toolbar = new Toolbar(page);
+    const about = new AboutPage(page);
+    const basketPage = new BasketPage(page);
+    const onTheBasket = async () => {
+      await expect(page).toHaveURL(/#\/basket$/);
+      await expect(basketPage.title()).toBeVisible();
+    };
+
+    await new SearchPage(page).open();
+    await toolbar.openBasket();
+    await onTheBasket();
+
+    await about.open();
+    await expect(about.title()).toBeVisible();
+    await toolbar.openBasket();
+    await onTheBasket();
+  });
+
+  test('TC-BASKET-15 neither the basket id nor the email appears in the URL of the basket page @regression @security', async ({
+    actor,
+    qa,
+  }) => {
+    const { customer, basketPage } = await aCustomerWithProduct(actor);
+    const { page } = customer;
+
+    // Reached through the button, so the address is the page's own and not one the case typed.
+    await new SearchPage(page).open();
+    await new Toolbar(page).openBasket();
+    await expect(basketPage.row(PRODUCT)).toBeVisible({ timeout: ANSWER });
+    // The whole address: path, query and fragment leave no room for the id or the email.
+    await expect(page).toHaveURL(`${qa.baseUrl}/#/basket`);
+  });
+
+  test('TC-BASKET-16 a basket with products has no horizontal scroll, and every row shows its name, quantity and price @regression @responsive', async ({
+    actor,
+    stockedProduct,
+  }) => {
+    const { customer, basket, basketPage } = await aCustomerWithProduct(actor);
+    await basket.add(stockedProduct.id, 2);
+    const lines = await basket.lines();
+    expect(lines, 'the basket holds both products').toHaveLength(2);
+
+    await openBasket(basketPage);
+    await expect(basketPage.rows()).toHaveCount(lines.length);
+    await imagesLoaded(basketPage);
+    await expect
+      .poll(() => horizontalOverflow(customer.page), { message: 'sideways scroll on the basket' })
+      .toBe(0);
+    for (const { name, price, quantity } of lines) {
+      const whole = { ratio: 1 };
+      await basketPage.row(name).scrollIntoViewIfNeeded();
+      await expect(basketPage.name(name)).toHaveText(name);
+      await expect(basketPage.name(name)).toBeInViewport(whole);
+      await expect(basketPage.quantity(name)).toHaveText(String(quantity));
+      await expect(basketPage.quantity(name)).toBeInViewport(whole);
+      await expect(basketPage.price(name)).toHaveText(`${price}¤`);
+      await expect(basketPage.price(name)).toBeInViewport(whole);
+      expect(await clippedText(basketPage.row(name)), `text cut off in ${name}`).toEqual([]);
+    }
+  });
+
+  test('TC-BASKET-19 every product image of the basket loads @regression @layout', async ({
+    actor,
+    stockedProduct,
+  }) => {
+    const { basket, basketPage } = await aCustomerWithProduct(actor);
+    await basket.add(stockedProduct.id);
+    await openBasket(basketPage);
+    await expect(basketPage.images()).toHaveCount(2);
+    await imagesLoaded(basketPage);
+  });
+
+  test('TC-BASKET-21 the basket table names its columns, its quantity controls are reached and used with the keyboard, and the page has no axe violation beyond the baseline @regression @a11y @known-gap', async ({
+    actor,
+    a11y,
+  }) => {
+    test.slow();
+    const { customer, basket, basketPage } = await aCustomerWithProduct(actor);
+    const { page } = customer;
+    const quantityIs = async (quantity: number) => {
+      await expect(basketPage.quantity(PRODUCT)).toHaveText(String(quantity), { timeout: ANSWER });
+      expect((await basket.lines())[0]?.quantity).toBe(quantity);
+    };
+    await openBasket(basketPage);
+    await expect(basketPage.row(PRODUCT)).toBeVisible();
+
+    await test.step('Tab to the increase button and press Enter', async () => {
+      await tabUntil(page, basketPage.increase(PRODUCT), 30);
+      await expect(basketPage.increase(PRODUCT)).toBeFocused();
+      await page.keyboard.press('Enter');
+      await quantityIs(2);
+    });
+
+    await test.step('from the top of the page, Tab to the decrease button and press Enter', async () => {
+      // The press above redraws the table and the focus falls to the body, so the walk starts over
+      // from a reload until LOCAL-40 is fixed.
+      await page.reload();
+      await expect(basketPage.row(PRODUCT)).toBeVisible({ timeout: ANSWER });
+      await tabUntil(page, basketPage.decrease(PRODUCT), 30);
+      await expect(basketPage.decrease(PRODUCT)).toBeFocused();
+      await page.keyboard.press('Enter');
+      await quantityIs(1);
+    });
+
+    await a11y.expectNoNewViolations(page);
+
+    test.fail(
+      true,
+      await knownGap('LOCAL-23', 'the header row of the products table has no column headers'),
+    );
+    await expect(basketPage.columnHeaders()).toContainText(['Product', 'Quantity', 'Price']);
+  });
+
+  test('TC-BASKET-22 the title with <LONG_EMAIL> stays inside the page @regression @content @known-gap', async ({
+    actor,
+  }) => {
+    const account = aCustomerWithLongEmail(test.info().workerIndex);
+    const customer = await actor('customer', { fresh: true, account });
+    const basketPage = new BasketPage(customer.page);
+
+    await openBasket(basketPage);
+    await expect(basketPage.title()).toContainText(account.username);
+    test.fail(true, await knownGap('LOCAL-41', 'a long email in the title runs out of the page'));
+    await expect
+      .poll(
+        async () => {
+          const { box, viewport } = await textSpill(basketPage.title(), basketPage.card());
+          return Math.max(box, viewport);
+        },
+        { message: 'the title past its card or the viewport' },
+      )
+      .toBeLessThanOrEqual(0);
+    await expect
+      .poll(() => horizontalOverflow(customer.page), { message: 'sideways scroll with the title' })
+      .toBe(0);
+  });
+
+  test('TC-BASKET-23 the longest product name of the catalogue stays inside its row @regression @content', async ({
+    actor,
+  }) => {
+    const { customer, basket } = await aCustomer(actor);
+    const catalogue = new CatalogueApi(customer.api);
+    const byLength = (await catalogue.products()).sort((a, b) => b.name.length - a.name.length);
+    // The longest name that can be added: a sold out product never reaches a basket.
+    let longest: (typeof byLength)[number] | undefined;
+    for (const product of byLength) {
+      if ((await catalogue.quantity(product.id)).stock > 0) {
+        longest = product;
+        break;
+      }
+    }
+    if (!longest) throw new Error('No product has stock left.');
+    await basket.add(longest.id);
+    const basketPage = new BasketPage(customer.page);
+
+    await openBasket(basketPage);
+    await expect(basketPage.name(longest.name)).toHaveText(longest.name);
+    await imagesLoaded(basketPage);
+    await expect
+      .poll(async () => (await textSpill(basketPage.name(longest.name))).box, {
+        message: 'the name past its cell',
+      })
+      .toBeLessThanOrEqual(0);
+    expect(await clippedText(basketPage.row(longest.name)), 'the name cut off').toEqual([]);
+    await expect
+      .poll(() => horizontalOverflow(customer.page), { message: 'sideways scroll with the name' })
+      .toBe(0);
+  });
 });

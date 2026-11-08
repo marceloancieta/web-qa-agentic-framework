@@ -1,5 +1,5 @@
 {
-  "next": 40,
+  "next": 42,
   "issues": {
     "LOCAL-1": {
       "title": "Basket: a customer can read another customer's basket by its id",
@@ -436,6 +436,28 @@
       "labels": [
         "ui",
         "severity:S2"
+      ],
+      "status": "open",
+      "category": "open",
+      "comments": []
+    },
+    "LOCAL-40": {
+      "title": "Basket: pressing a quantity button loses the keyboard focus",
+      "body": "## What happens\n\nOn `/#/basket`, pressing the increase button with the keyboard redraws the table, and the focus falls to the body of the page.\n\n## What should happen\n\nThe focus stays on the control, or moves somewhere meaningful, so a person using a keyboard or a screen reader keeps their place (WCAG 2.2 A, 2.4.3 Focus Order). REQ-BASKET-03 and the contract's quality checklist ask for the quantity controls to work with the keyboard.\n\n## Steps\n\n1. Sign in as a customer with a product in the basket.\n2. Open `<base_url>/#/basket`.\n3. Tab to the increase button of the row and press Enter.\n4. Read `document.activeElement` once the quantity has changed.\n\n## Devices\n\nMeasured on desktop-chromium: the active element was the button before Enter and `BODY` after it. All six device projects of the `ci` environment failed at the same point of an earlier version of TC-BASKET-21, which expected the focus to stay in the row; the focus itself was not read on the other five.\n\n## Evidence\n\nA throwaway spec on 2026-11-06 read the active element before and after the press. In Chromium the next Tab resumed in the row, so the place is not lost for good there; other browsers were not read. The decrease button was not measured.\n\n## Severity\n\nS2: a WCAG A failure on a main path, for keyboard and screen-reader users. The task can still be completed.\n",
+      "labels": [
+        "ui",
+        "severity:S2"
+      ],
+      "status": "open",
+      "category": "open",
+      "comments": []
+    },
+    "LOCAL-41": {
+      "title": "Basket: a long email in the title runs out of the page",
+      "body": "## What happens\n\nOn `/#/basket`, the title shows the customer's email in one unbroken line. With a long but valid address, the title runs out of its card and past the right edge of the viewport.\n\n## What should happen\n\nThe title stays inside the page: it wraps or shortens the address. REQ-BASKET-01 of the basket contract puts the customer's email in the title, and the contract's content dimension says \"a very long email in the title stays inside the page\".\n\n## Steps\n\n1. Register a customer whose email is valid and 120 characters long: a local part of 64 characters (the maximum), a domain label of 42 characters and `example.test`.\n2. Sign in as that customer.\n3. Open `<base_url>/#/basket`.\n4. Compare the right edge of the title with the right edge of its card and of the viewport.\n\n## Devices\n\nAll six device projects of the `ci` environment, desktop and mobile, measured by TC-BASKET-22 on 2026-11-06.\n\n## Evidence\n\nTC-BASKET-22 measured the title 591 to 984 px past its card or the viewport, depending on the device project. The order summary shows the same email in its title and was not measured.\n\n## Severity\n\nS3: a layout fault with a way around it; the email is cut off from view, and only customers with very long addresses see it. Whether the rest of the basket stays usable at that width was not measured.\n",
+      "labels": [
+        "ui",
+        "severity:S3"
       ],
       "status": "open",
       "category": "open",

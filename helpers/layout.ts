@@ -83,3 +83,50 @@ export async function clippedText(scope: Locator): Promise<ClippedText[]> {
     return found;
   });
 }
+
+/** The source of each image of `images` that has not loaded; empty once all of them have. */
+export async function unloadedImages(images: Locator): Promise<string[]> {
+  return images.evaluateAll((elements) =>
+    (elements as HTMLImageElement[])
+      .filter((image) => !image.complete || image.naturalWidth === 0)
+      .map((image) => image.currentSrc || image.src),
+  );
+}
+
+/**
+ * How many CSS pixels the text of `scope` runs past the box of `container`, and past the viewport;
+ * 0 or less while it stays inside. It measures the rendered text, not the element around it: a long
+ * unbroken word leaves its element the size the layout gave it and runs out of it, and a clipping
+ * ancestor hides that from `horizontalOverflow`. Text its block shortens with an ellipsis
+ * (`text-overflow: ellipsis` with the overflow clipped) is measured to that block's content edge,
+ * as `clippedText` counts it handled; a plain clip still counts as spill.
+ */
+export async function textSpill(
+  scope: Locator,
+  container: Locator = scope,
+): Promise<{ box: number; viewport: number }> {
+  const limit = await container.evaluate((element) => element.getBoundingClientRect().right);
+  const right = await scope.evaluate((element) => {
+    const range = document.createRange();
+    range.selectNodeContents(element);
+    const laidOut = range.getBoundingClientRect().right;
+    // text-overflow belongs to the block container whose inline content overflows. Only a plain
+    // inline box is walked past: an inline-block, inline-flex or inline-grid is its own container.
+    let block: Element | null = element;
+    while (block && getComputedStyle(block).display === 'inline') {
+      block = block.parentElement;
+    }
+    if (!block) return laidOut;
+    const style = getComputedStyle(block);
+    const shortened =
+      style.textOverflow === 'ellipsis' && ['hidden', 'clip'].includes(style.overflowX);
+    if (!shortened) return laidOut;
+    const edge =
+      block.getBoundingClientRect().right -
+      parseFloat(style.borderRightWidth) -
+      parseFloat(style.paddingRight);
+    return Math.min(laidOut, edge);
+  });
+  const width = await scope.evaluate(() => document.documentElement.clientWidth);
+  return { box: right - limit, viewport: right - width };
+}

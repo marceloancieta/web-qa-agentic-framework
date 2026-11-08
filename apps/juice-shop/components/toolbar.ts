@@ -3,12 +3,21 @@
 // name is the same on every device.
 
 import type { Locator, Page } from '@playwright/test';
+import type { AppPack } from '../../../helpers/app-pack';
 
 export class Toolbar {
   constructor(private readonly page: Page) {}
 
   basketButton(): Locator {
     return this.page.getByRole('button', { name: 'Show the shopping cart' });
+  }
+
+  /** What the basket button reads with `count` items, in the form the page's viewport shows. */
+  basketText(count: number, app: Pick<AppPack, 'breakpoints'>): RegExp {
+    const toolbarFrom = app.breakpoints?.['toolbar'];
+    if (toolbarFrom === undefined) throw new Error('app.json has no breakpoints.toolbar.');
+    const wide = (this.page.viewportSize()?.width ?? 0) >= toolbarFrom;
+    return new RegExp(wide ? `Your Basket\\s*${count}$` : `^(?!.*Basket).*\\D${count}$`);
   }
 
   async openBasket(): Promise<void> {

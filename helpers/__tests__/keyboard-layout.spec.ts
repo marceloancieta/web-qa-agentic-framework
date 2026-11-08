@@ -12,6 +12,8 @@ import {
   clippedText,
   horizontalOverflow,
   settledHorizontalOverflow,
+  textSpill,
+  unloadedImages,
 } from '../layout';
 
 const FORM = `<!doctype html><html lang="en"><head><title>Form</title><style>
@@ -187,4 +189,66 @@ test('a settled overflow waits out a moment of width, and keeps one that lasts',
     setTimeout(() => document.getElementById('wide')?.remove(), 150);
   });
   expect(await settledHorizontalOverflow(page), 'an overflow gone within the window').toBe(0);
+});
+
+test('an image that did not load is named, and one that did is not', async ({ page }) => {
+  const pixel = 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7';
+  await page.setContent(`<!doctype html><html lang="en"><head><title>Images</title></head><body>
+    <img alt="good" src="${pixel}"><img alt="broken" src="data:image/gif;base64,broken">
+  </body></html>`);
+  await expect.poll(() => unloadedImages(page.getByRole('img', { name: 'good' }))).toEqual([]);
+  await expect
+    .poll(() => unloadedImages(page.getByRole('img', { name: 'broken' })))
+    .toEqual(['data:image/gif;base64,broken']);
+});
+
+test('text that runs past its box is measured, even where a clipping ancestor hides it', async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 400, height: 300 });
+  const card = (text: string, titleStyle = '', cardStyle = '') =>
+    page.setContent(`<!doctype html><html lang="en"><head><title>Card</title><style>
+      body { margin: 0; overflow: hidden; }
+      #card { width: 200px; overflow: hidden; ${cardStyle} }
+    </style></head><body><div id="card"><h1 style="margin: 0; font: 20px/1 monospace; ${titleStyle}">${text}</h1></div></body></html>`);
+
+  await card('fits');
+  expect((await textSpill(page.locator('h1'))).box).toBeLessThanOrEqual(0);
+
+  await card('x'.repeat(80));
+  const spill = await textSpill(page.locator('h1'), page.locator('#card'));
+  expect(spill.box, 'past the card').toBeGreaterThan(0);
+  expect(spill.viewport, 'past the viewport').toBeGreaterThan(0);
+  expect(await horizontalOverflow(page), 'clipped, so nothing scrolls').toBe(0);
+
+  await card('x'.repeat(80), 'overflow: hidden');
+  expect(
+    (await textSpill(page.locator('h1'), page.locator('#card'))).box,
+    'a plain clip on the title still spills',
+  ).toBeGreaterThan(0);
+
+  await card('x'.repeat(80), 'overflow: hidden; text-overflow: ellipsis');
+  const shortened = await textSpill(page.locator('h1'), page.locator('#card'));
+  expect(shortened.box, 'an ellipsis keeps it inside the card').toBeLessThanOrEqual(0);
+  expect(shortened.viewport, 'and inside the viewport').toBeLessThanOrEqual(0);
+
+  await card('x'.repeat(80), '', 'text-overflow: ellipsis');
+  expect(
+    (await textSpill(page.locator('h1'), page.locator('#card'))).box,
+    'an ellipsis on an ancestor does not shorten the title, a block of its own',
+  ).toBeGreaterThan(0);
+
+  await page.setContent(`<!doctype html><html lang="en"><head><title>Inline block</title></head><body style="margin: 0">
+    <p style="width: 300px; margin: 0; font: 20px/1 monospace">Hi <span style="display: inline-block; width: 150px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; vertical-align: top">${'x'.repeat(80)}</span></p></body></html>`);
+  expect(
+    (await textSpill(page.locator('span'), page.locator('p'))).box,
+    'an inline-block shortens its own text',
+  ).toBeLessThanOrEqual(0);
+
+  await page.setContent(`<!doctype html><html lang="en"><head><title>Inline</title></head><body style="margin: 0">
+    <p style="width: 200px; margin: 0; overflow: hidden; text-overflow: ellipsis; font: 20px/1 monospace">Hi <span>${'x'.repeat(80)}</span></p></body></html>`);
+  expect(
+    (await textSpill(page.locator('span'), page.locator('p'))).box,
+    'an inline element is shortened by the block it sits in',
+  ).toBeLessThanOrEqual(0);
 });

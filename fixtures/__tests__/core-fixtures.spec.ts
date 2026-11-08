@@ -15,8 +15,11 @@ const ADMIN_USER = 'FAKE_APP_ADMIN_USER';
 const ADMIN_PASS = 'FAKE_APP_ADMIN_PASSWORD';
 
 const provider: ActorProvider = {
-  async provision({ api, role, worker }) {
-    const account = { username: `${role}-${uniqueSuffix(worker)}`, password: generatedPassword() };
+  async provision({ api, role, worker, account: built }) {
+    const account = built ?? {
+      username: `${role}-${uniqueSuffix(worker)}`,
+      password: generatedPassword(),
+    };
     const created = await api.post('api/users', { data: account });
     if (created.status() !== 201) throw new Error(`could not create ${account.username}`);
     return account;
@@ -124,6 +127,15 @@ test('the API client shares the session of the page', async ({ actor }) => {
   const me = await customer.api.get('api/me');
   expect(me.status()).toBe(200);
   expect(((await me.json()) as { username: string }).username).toBe(customer.account?.username);
+});
+
+test('a fresh actor can take a built account, and only a fresh one can', async ({ actor }) => {
+  const account = { username: `built-${uniqueSuffix(0)}`, password: generatedPassword() };
+  const built = await actor('customer', { fresh: true, account });
+  expect(built.account?.username).toBe(account.username);
+  const me = await built.api.get('api/me');
+  expect(((await me.json()) as { username: string }).username).toBe(account.username);
+  await expect(actor('customer', { account })).rejects.toThrow(/fresh/);
 });
 
 test("a fresh actor has an account of its own and leaves the worker's state alone", async ({

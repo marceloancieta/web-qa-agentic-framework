@@ -47,6 +47,8 @@ export interface ActorContext {
   role: string;
   /** The parallel worker, so names created by two workers never collide. */
   worker: number;
+  /** An account a case built, for `provision` to create instead of one of its own. */
+  account?: Account;
 }
 
 export interface ActorProvider {

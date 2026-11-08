@@ -178,6 +178,8 @@ export interface ActorOptions {
    * otherwise change what the other cases of the worker see.
    */
   fresh?: boolean;
+  /** With `fresh`, the account to create and sign in, for a case that needs particular data. */
+  account?: Account;
 }
 
 interface Session {
@@ -192,7 +194,10 @@ export interface CoreWorkerFixtures {
   app: AppPack;
   authDir: string;
   redaction: RedactionPolicy & { knownSecrets: string[] };
-  sessions: { get(role: string): Promise<Session>; fresh(role: string): Promise<Session> };
+  sessions: {
+    get(role: string): Promise<Session>;
+    fresh(role: string, built?: Account): Promise<Session>;
+  };
 }
 
 // What a new context needs from the project to look like the device the project emulates.
@@ -273,7 +278,7 @@ export function createTest(provider: ActorProvider) {
         const open = new Map<string, Promise<Session>>();
         const started: [string, Promise<Session>][] = [];
         const context = (role: string) => ({ api, qa, role, worker: workerInfo.workerIndex });
-        const start = async (role: string, fresh: boolean): Promise<Session> => {
+        const start = async (role: string, fresh: boolean, built?: Account): Promise<Session> => {
           const config = actorConfig(qa, role);
           if (!config) throw new Error('The anonymous actor has no session.');
           if (fresh && config.account !== 'provisioned') {
@@ -283,7 +288,11 @@ export function createTest(provider: ActorProvider) {
           }
           let account: Account;
           if (config.account === 'existing') account = existingAccount(config, role);
-          else if (provider.provision) account = await provider.provision(context(role));
+          else if (provider.provision)
+            account = await provider.provision({
+              ...context(role),
+              ...(built ? { account: built } : {}),
+            });
           else
             throw new Error(
               `Actor "${role}" is provisioned, but the pack's provider cannot create accounts.`,
@@ -320,8 +329,8 @@ export function createTest(provider: ActorProvider) {
               }
               return open.get(role) as Promise<Session>;
             },
-            fresh(role) {
-              const pending = start(role, true);
+            fresh(role, built) {
+              const pending = start(role, true, built);
               started.push([role, pending]);
               return pending;
             },
@@ -361,14 +370,15 @@ export function createTest(provider: ActorProvider) {
     actor: async ({ browser, playwright, qa, app, sessions, pageHealth }, use, testInfo) => {
       checkOptions(pageHealth);
       const opened: { actor: Actor; guard: PageHealthGuard }[] = [];
-      await use(async (role = qa.defaultActor, { fresh = false }: ActorOptions = {}) => {
+      await use(async (role = qa.defaultActor, { fresh = false, account }: ActorOptions = {}) => {
         const options = projectContextOptions(testInfo);
         if (fresh && role === ANONYMOUS_ACTOR)
           throw new Error('The anonymous actor has no account.');
+        if (account && !fresh) throw new Error('A built account needs an actor of its own: fresh.');
         const session =
           role === ANONYMOUS_ACTOR
             ? null
-            : await (fresh ? sessions.fresh(role) : sessions.get(role));
+            : await (fresh ? sessions.fresh(role, account) : sessions.get(role));
         const context = await browser.newContext({
           ...options,
           baseURL: `${qa.baseUrl}/`,

@@ -96,6 +96,8 @@ gaps. The registries' Defect column says which cases cite each key.
 | LOCAL-37 (S2) | the error colour has too little contrast: the refusal of the login, and the messages and invalid labels of the registration form |
 | LOCAL-38 (S3) | a long address line runs out of the delivery step and the summary, which scroll sideways |
 | LOCAL-39 (S2) | the progress bar of the registration form has no accessible name |
+| LOCAL-40 (S2) | pressing a quantity button of the basket loses the keyboard focus |
+| LOCAL-41 (S3) | a long email in the basket title runs out of its card and the viewport |
 
 ## Accessibility baseline
 
