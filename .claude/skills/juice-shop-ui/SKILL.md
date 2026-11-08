@@ -98,6 +98,8 @@ gaps. The registries' Defect column says which cases cite each key.
 | LOCAL-39 (S2) | the progress bar of the registration form has no accessible name |
 | LOCAL-40 (S2) | pressing a quantity button of the basket loses the keyboard focus |
 | LOCAL-41 (S3) | a long email in the basket title runs out of its card and the viewport |
+| LOCAL-42 (S4) | a very long search term runs out of the title of the product list |
+| LOCAL-43 (S4) | an empty catalogue shows "All Products" and "0 of 0" without "No results found" |
 
 ## Accessibility baseline
 

@@ -10,6 +10,12 @@ export const noMatchTerm = (worker: number): string => `no-match-${uniqueSuffix(
 /** Harmless markup: if the page builds an element from it, a `<b>` appears. Never a script. */
 export const markupTerm = (): string => `<b>bold-${randomBytes(2).toString('hex')}</b>`;
 
+/**
+ * A term with each character that needs escaping in a URL: `&`, `#`, `%` and a space. Unique per
+ * call, so no product name or description holds it.
+ */
+export const escapingTerm = (): string => `a&b #c 50% ${randomBytes(2).toString('hex')}`;
+
 /** A term of exactly `length` characters, for the long-text cases. */
 export function longTerm(length: number): string {
   const head = `long-term-${randomBytes(3).toString('hex')}-`;
