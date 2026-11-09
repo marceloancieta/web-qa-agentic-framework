@@ -33,6 +33,25 @@ export async function settledHorizontalOverflow(page: Page, ms = 1_000): Promise
 }
 
 /**
+ * The elements of `elements` that reach past the left or the right edge of the viewport, each with
+ * how many CSS pixels; empty when every one fits the width. `horizontalOverflow` sees content a
+ * scroller cannot show, and misses an element whose ancestor clips it at the viewport's edge.
+ */
+export async function pastTheWidth(
+  elements: Locator,
+): Promise<{ index: number; left: number; right: number }[]> {
+  return elements.evaluateAll((all) => {
+    const width = document.documentElement.clientWidth;
+    return all
+      .map((element, index) => {
+        const box = element.getBoundingClientRect();
+        return { index, left: Math.max(0, -box.left), right: Math.max(0, box.right - width) };
+      })
+      .filter(({ left, right }) => left > 0.5 || right > 0.5);
+  });
+}
+
+/**
  * Wait until the page's running animations end, the endless ones aside. Reading a state while it
  * fades in measures a colour the page never rests on: a hint at 30% opacity fails a contrast check.
  */

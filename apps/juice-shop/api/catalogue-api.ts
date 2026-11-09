@@ -7,6 +7,8 @@ export interface Product {
   id: number;
   name: string;
   price: number;
+  /** The search page matches a term against it as well as the name. */
+  description: string;
 }
 
 export class CatalogueApi {
@@ -16,7 +18,12 @@ export class CatalogueApi {
     const response = await this.api.get('rest/products/search?q=');
     if (!response.ok()) throw new Error(`The catalogue did not load: ${response.status()}.`);
     const { data } = (await response.json()) as { data: Product[] };
-    return data.map(({ id, name, price }) => ({ id, name, price }));
+    return data.map(({ id, name, price, description }) => ({
+      id,
+      name,
+      price,
+      description: description ?? '',
+    }));
   }
 
   /**

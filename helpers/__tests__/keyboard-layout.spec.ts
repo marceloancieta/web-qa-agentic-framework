@@ -12,6 +12,7 @@ import {
   clippedText,
   horizontalOverflow,
   settledHorizontalOverflow,
+  pastTheWidth,
   textSpill,
   unloadedImages,
 } from '../layout';
@@ -200,6 +201,27 @@ test('an image that did not load is named, and one that did is not', async ({ pa
   await expect
     .poll(() => unloadedImages(page.getByRole('img', { name: 'broken' })))
     .toEqual(['data:image/gif;base64,broken']);
+});
+
+test('an element past either edge of the viewport is named with how far, and one inside is not', async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 400, height: 300 });
+  await page.setContent(`<!doctype html><html lang="en"><head><title>Cards</title><style>
+      body { margin: 0; }
+      #shelf { position: relative; width: 400px; height: 50px; overflow: hidden; }
+      .card { position: absolute; top: 0; width: 100px; height: 50px; }
+    </style></head><body><div id="shelf">
+    <div class="card" style="left: 10px"></div>
+    <div class="card" style="left: 350px"></div>
+    <div class="card" style="left: -30px"></div>
+    <div class="card" style="left: 300px"></div></div></body></html>`);
+  expect(await pastTheWidth(page.locator('.card'))).toEqual([
+    { index: 1, left: 0, right: 50 },
+    { index: 2, left: 30, right: 0 },
+  ]);
+  // The page does not scroll, so only the measure of each card names them.
+  expect(await horizontalOverflow(page), 'clipped by their shelf, so nothing scrolls').toBe(0);
 });
 
 test('text that runs past its box is measured, even where a clipping ancestor hides it', async ({

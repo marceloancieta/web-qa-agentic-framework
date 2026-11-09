@@ -1,5 +1,5 @@
 {
-  "next": 42,
+  "next": 44,
   "issues": {
     "LOCAL-1": {
       "title": "Basket: a customer can read another customer's basket by its id",
@@ -458,6 +458,28 @@
       "labels": [
         "ui",
         "severity:S3"
+      ],
+      "status": "open",
+      "category": "open",
+      "comments": []
+    },
+    "LOCAL-42": {
+      "title": "Search: a very long term runs out of the title",
+      "body": "## What happens\n\nOn `/#/search`, the title \"Search Results - `<term>`\" shows the term in one unbroken line. With a long term without spaces, the term runs out of the title and past the right edge of the page.\n\n## What should happen\n\nThe term stays inside the title: it wraps or shortens. REQ-SEARCH-10 of the search contract says \"a very long term stays inside the title\", and the contract's content dimension asks for it.\n\n## Steps\n\n1. Open `<base_url>/#/search?q=<term>`, where the term is 200 characters without spaces that no product holds.\n2. Wait for \"No results found\".\n3. Compare the right edge of the term's text with the right edge of the title's box.\n\n## Devices\n\nAll six device projects of the `ci` environment, desktop and mobile, measured by TC-SEARCH-18 on 2026-11-08.\n\n## Evidence\n\nTC-SEARCH-18 measured the text past the title's box by 467 px on the three desktop projects, 843 px on the tablet, 1111 px on mobile Chrome and 1133 px on mobile Safari. The case stops at that measure, so how far past the viewport the text goes, and whether it is cut off or drawn over the page, was not read.\n\n## Severity\n\nS4: cosmetic. Only a term far longer than any product name shows it, and the results below the title are unaffected.\n",
+      "labels": [
+        "ui",
+        "severity:S4"
+      ],
+      "status": "open",
+      "category": "open",
+      "comments": []
+    },
+    "LOCAL-43": {
+      "title": "Search: an empty catalogue shows no \"No results found\"",
+      "body": "## What happens\n\nOn `/#/search` with no term, when the catalogue answers with no products, the page shows \"All Products\", no cards and \"0 of 0\". It never says that nothing was found.\n\n## What should happen\n\n\"No results found\" and \"Try adjusting your search to find what you're looking for.\" show with \"0 of 0\", the way they do for a term no product matches. REQ-SEARCH-03 of the search contract gives that message for a search with no results.\n\n## Steps\n\n1. Answer `GET <base_url>/rest/products/search?q=` with an empty list of products (a mock; the shipped catalogue is never empty).\n2. Open `<base_url>/#/search`.\n3. Read the page once \"0 of 0\" shows.\n\n## Devices\n\nAll six device projects of the `ci` environment, measured by TC-SEARCH-16 on 2026-11-08: \"No results found\" was not found on any of them.\n\n## Evidence\n\nTC-SEARCH-16 failed at the \"No results found\" check on each device project. The same picture shows while the catalogue loads (LOCAL-18) and when its answer fails (TC-SEARCH-15), so a person cannot tell an empty shop from one that is still loading or broken.\n\n## Severity\n\nS4: the catalogue Juice Shop ships with is never empty, so only an empty or filtered catalogue would show it, and the range \"0 of 0\" still says there is nothing.\n",
+      "labels": [
+        "ui",
+        "severity:S4"
       ],
       "status": "open",
       "category": "open",

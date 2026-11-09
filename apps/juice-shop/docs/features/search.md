@@ -17,7 +17,7 @@ As a visitor or a customer, I look for products by name so that I find what I wa
 | ID | Rule | Source |
 |---|---|---|
 | REQ-SEARCH-01 | Without a term, the page lists every product under "All Products", 15 to a page, with "1 – 15 of <total>". | live look, 2026-10-25: 46 products |
-| REQ-SEARCH-02 | A term keeps the products whose name contains it, whatever the case, under "Search Results - <term>". | live look, 2026-10-25: `apple` and `APPLE` both give the same 3 products |
+| REQ-SEARCH-02 | A term keeps the products whose name or description contains it, whatever the case, under "Search Results - <term>". | live look, 2026-10-25: `apple` and `APPLE` both give the same 3 products; the description, live look, 2026-11-08: `50%` finds a product only its description names |
 | REQ-SEARCH-03 | A term no product matches shows "No results found" and "Try adjusting your search to find what you're looking for.", with "0 of 0". | live look, 2026-10-25 |
 | REQ-SEARCH-04 | The term is shown back as text, never as markup. | security checklist; the application breaks it (G1, LOCAL-2) |
 | REQ-SEARCH-05 | The page size is 15, 30, 45 or 60, and Previous and Next move a page at a time, disabled at the ends. | live look, 2026-10-25 |
@@ -30,8 +30,8 @@ As a visitor or a customer, I look for products by name so that I find what I wa
 ## Acceptance criteria
 
 - **Given** the search page, **when** someone opens `/#/search?q=apple`, **then** exactly the
-  products with "apple" in their name show, under "Search Results - apple" (REQ-SEARCH-02,
-  REQ-SEARCH-06).
+  products with "apple" in their name or description show, under "Search Results - apple"
+  (REQ-SEARCH-02, REQ-SEARCH-06).
 - **Given** a term no product has, **then** "No results found" shows with "0 of 0" (REQ-SEARCH-03).
 - **Given** a term with markup, such as `<b>bold</b>`, **then** the title shows the characters as
   typed, and no element is created from them (REQ-SEARCH-04).
@@ -66,7 +66,7 @@ term. The page sizes are the paginator's options.
 | no results | REQ-SEARCH-03 | a term no product has |
 | loading | "All Products", an empty grid and "0 of 0", never "Searching for products" (TC-SEARCH-14, 2026-10-26; LOCAL-18, against REQ-SEARCH-09) | `delay` on `/rest/products/search`, which holds the real answer (no `@mocked`) |
 | error | "All Products", no cards and no "No results found": the same picture as loading, with no message (TC-SEARCH-15, 2026-10-26) | `failWith` on `/rest/products/search` (`@mocked`) |
-| empty catalogue | unobserved | `mockJson` with no products (`@mocked`) |
+| empty catalogue | "All Products", no cards and "0 of 0", never "No results found" (TC-SEARCH-16, 2026-11-08; LOCAL-43, against REQ-SEARCH-03) | `mockJson` with no products (`@mocked`) |
 
 ## Navigation
 
@@ -106,6 +106,8 @@ first call produces the loading state with the real answer; a mock of it, the er
 | `<b>bold</b>`: the title read "Search Results - bold" and held a `<b>` element | `/#/search?q=%3Cb%3Ebold%3C%2Fb%3E` | desktop Chromium | 2026-10-25 |
 | every term: `GET /rest/products/search?q=` with an empty `q` | `/#/search` | desktop Chromium | 2026-10-25 |
 | 0 px of horizontal overflow | `/#/search` | 1280 and 412 px | 2026-10-25 |
+| `50%` matches a product by its description alone, not its name; the page filters on both | `/#/search?q=50%25` | desktop Chromium | 2026-11-08 |
+| a term of 200 characters without spaces: its text 467 px past the title's box on desktop, 843 px on the tablet, 1111 and 1133 px on mobile | `/#/search?q=<term>` | the six `ci` projects | 2026-11-08 |
 
 ## Gaps and discrepancies
 
@@ -115,6 +117,8 @@ first call produces the loading state with the real answer; a mock of it, the er
 | G2 | "All Products" and "Search Results - <term>" are plain text, not headings, so the page has no heading a screen reader can jump to. | live look, 2026-10-25 | LOCAL-5 (S2) |
 | G3 | The toolbar's search box has no accessible name; it is found through "Open search". | app map and live look, 2026-10-25 | LOCAL-6 (S2) |
 | G4 | While the catalogue loads the page never says "Searching for products": it shows "All Products", an empty grid and "0 of 0", like an empty shop. | TC-SEARCH-14 runs, 2026-10-26 | LOCAL-18 (S3) |
+| G5 | A very long term runs out of the title instead of wrapping, against REQ-SEARCH-10. | TC-SEARCH-18 runs, 2026-11-08 | LOCAL-42 (S4) |
+| G6 | An empty catalogue shows "All Products" and "0 of 0" without "No results found", against REQ-SEARCH-03. | TC-SEARCH-16 runs, 2026-11-08 | LOCAL-43 (S4) |
 
 ## Out of scope
 
