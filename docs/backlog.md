@@ -45,13 +45,12 @@ Every item of v0.1.0 is done; each is in **Done**.
 
 | Id | Item | Origin | Status |
 |---|---|---|---|
-| GATE-12 | A hook checks the browser limits of design in `.claude/rules/modes.md`, which today are a sentence: an agent browser tool in design navigates and reads, and types only into the login. | ADR 0013 | in-progress |
 | FUT-01 | Toolshop pack (Practice Software Testing, local Docker): authorization in the UI by role, `data-test` attributes. | plan | todo |
 | FUT-04 | i18n: projects per `locale` and `timezoneId`, pseudo-localization, right-to-left. | practice | todo |
 | FUT-05 | Design-token checks from the pack's `design-tokens.json`; `prefers-reduced-motion` emulation. | plan | todo |
 | FUT-07 | TOTP two-factor login and a mail-catcher pattern (Mailpit). | plan | todo |
 | FUT-08 | `qa-explore` skill for chartered exploratory sessions, after an ADR decides its mode. | plan | todo |
-| CI-09 | Staged publishing for `create-web-qa`: the trusted publisher may only stage a version (`npm stage publish`, npm 11.15.0 or later), so a version reaches the registry only after the owner approves it on npm with two-factor authentication, beside the approval of the `npm` environment; the read-back waits for that approval or reads the version back by hand. | exp | todo |
+| CI-09 | Staged publishing for `create-web-qa`: the trusted publisher may only stage a version (`npm stage publish`, npm 11.15.0 or later), so a version reaches the registry only after the owner approves it on npm with two-factor authentication, beside the approval of the `npm` environment; the read-back waits for that approval or reads the version back by hand. | exp | in-progress |
 
 ## Later
 
@@ -151,3 +150,4 @@ Items no release holds yet; one moves into a release when its preconditions hold
 | CI-13 | `npm run ci:browsers` gives apt short timeouts and retries on a CI runner: the apt cache holds packages, not the index apt reads first, and on 2026-11-06 a job stayed about 30 minutes in that step after a mirror stopped answering, with its 181 cached packages restored. | `dee8148` |
 | GATE-14 | `lint-docs` closing-commit also reports a **Done** row that cites no hash: it read only the hashes a row cites, so a row moved with an empty **Closed by** cell passed. | `609db36` |
 | JS-08 | Automate the approved Juice Shop cases that had no spec yet, one feature at a time: checkout, login, sign-up, basket and search, each reviewed against its registry, run on the six device projects and published. | `dbe9ad1`, `2283c20`, `70533ef`, `f1a581a`, `1db0f2b` |
+| GATE-12 | The `browser-guard` hook holds an agent's browser tools (Playwright MCP, Claude in Chrome) to the browser limits of design in `.claude/rules/modes.md`: reads and navigation to the environments qa-config names pass, an upload is refused, and a call whose effect depends on the page (a click, typing, a key that activates, code run in the page, another origin, an unknown tool) asks the user, since a hook sees the arguments and not the page. | `7fd629b` |

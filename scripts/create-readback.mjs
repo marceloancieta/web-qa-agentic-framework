@@ -1,12 +1,13 @@
 #!/usr/bin/env node
 /**
  * `npm run create:readback -- --tag vX.Y.Z [--minutes N]`: reads a published `create-web-qa` back,
- * the last step of `.github/workflows/publish.yml` (FUT-12). It waits until the registry shows the
- * version, which can take minutes after a publish, then runs `npm create web-qa@X.Y.Z` in an empty
- * folder outside the repository and checks that the project it made records that release.
+ * the last step of `.github/workflows/publish.yml` (FUT-12). The step before it stages the version
+ * (CI-09), so it waits until the owner has approved it on npm and the registry shows it, then runs
+ * `npm create web-qa@X.Y.Z` in an empty folder outside the repository and checks that the project
+ * it made records that release.
  *
- * It runs after a good publish, and a re-run cannot publish the same version again, so a failure
- * here says to read the version back by hand instead of re-running the job.
+ * It runs after a good stage, and a re-run cannot stage the same version again, so a failure here
+ * says how to approve the version and read it back by hand instead of re-running the job.
  *
  * Exit codes: 0 read back; 1 the registry did not show it in time, or the project was not made;
  * 2 usage error.
@@ -20,18 +21,21 @@ import { setTimeout as sleep } from 'node:timers/promises';
 import { pathToFileURL } from 'node:url';
 import { parseArgs } from 'node:util';
 
-export const DEFAULT_MINUTES = 15;
+// The owner approves the staged version on npm with two-factor authentication while this waits.
+export const DEFAULT_MINUTES = 30;
 const POLL_MS = 30_000;
 const RELEASE_TAG = /^v(\d+\.\d+\.\d+)$/;
 
-/** What to do by hand when the read-back fails after the publish succeeded. */
+/** What to do by hand when the read-back fails after the stage succeeded. */
 export function byHand(version) {
   return (
-    `create-web-qa@${version} was published (the publish step succeeded), and a re-run cannot ` +
-    `publish it again: do not re-run. Once npm view create-web-qa@${version} version prints ` +
+    `create-web-qa@${version} was staged (the stage step succeeded), and a re-run cannot stage ` +
+    `it again: do not re-run. If it is not approved yet, approve it on npm with two-factor ` +
+    `authentication: the package's Staged Packages tab, or npm stage list create-web-qa and ` +
+    `npm stage approve <stage-id>. Once npm view create-web-qa@${version} version prints ` +
     `${version}, read it back by hand in an empty folder outside the repository with ` +
-    `npm create web-qa@${version} readback, and check that readback/.web-qa.json names ` +
-    `v${version} (CONTRIBUTING, releasing).`
+    `npm create web-qa@${version} readback, check that readback/.web-qa.json names ` +
+    `v${version}, and create the GitHub release (CONTRIBUTING, releasing).`
   );
 }
 
@@ -116,6 +120,9 @@ async function main() {
     console.error('usage: npm run create:readback -- --tag vX.Y.Z [--minutes N]');
     return 2;
   }
+  console.log(
+    `create-readback: waiting up to ${minutes} minutes for create-web-qa@${version} to be approved on npm and shown by the registry.`,
+  );
   const { code, lines } = await readBack({ version, minutes, io: registryIo() });
   for (const line of lines) (code === 0 ? console.log : console.error)(`create-readback: ${line}`);
   return code;

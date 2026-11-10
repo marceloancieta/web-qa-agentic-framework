@@ -116,7 +116,7 @@ test('the package is published from a release tag of its own repository, with no
   assert.deepEqual(checkout.with, { 'fetch-depth': 0, 'persist-credentials': false });
   assert.equal(
     readJson('package.json').scripts['create:publish'],
-    'npm publish reports/create-web-qa/package --access public --provenance',
+    'npm stage publish reports/create-web-qa/package --access public --provenance',
   );
 
   // The GitHub release follows the publish, and can neither publish nor wait in its environment.
@@ -192,9 +192,12 @@ test('the read-back waits for the registry, then checks the project npm create m
   assert.equal(wrong.code, 1);
   assert.match(wrong.lines[0], /did not make a project of v1\.2\.3 \(it recorded nothing\)/);
 
-  // Every failure follows a good publish, so it says not to re-run and how to read back by hand.
+  // Every failure follows a good stage, so it says not to re-run, how to approve the staged version
+  // and how to read it back by hand.
   for (const { lines } of [timedOut, wrong]) assert.ok(lines[0].endsWith(byHand('1.2.3')));
   assert.match(byHand('1.2.3'), /do not re-run/);
+  assert.match(byHand('1.2.3'), /npm stage list create-web-qa and npm stage approve <stage-id>/);
+  assert.match(byHand('1.2.3'), /two-factor authentication/);
   assert.match(byHand('1.2.3'), /npm create web-qa@1\.2\.3 readback/);
   assert.match(byHand('1.2.3'), /outside the repository/);
 });

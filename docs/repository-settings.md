@@ -86,25 +86,35 @@ secret.
 [`publish.yml`](../.github/workflows/publish.yml) publishes `create-web-qa` when a `vX.Y.Z` tag is
 pushed ([releasing](../CONTRIBUTING.md#releasing)). It uses npm trusted publishing: npm trusts that
 workflow file through GitHub's OIDC token, so no npm token is stored, and each version carries a
-provenance statement naming the repository, the workflow and the tagged commit. Set up once:
+provenance statement naming the repository, the workflow and the tagged commit. The workflow only
+stages the version (`npm stage publish`); it reaches the registry when the owner approves it on npm
+with two-factor authentication, which no token or OIDC exchange can do. A version therefore needs
+two approvals by the owner: the `npm` environment on GitHub, then the staged version on npm. Set up
+once:
 
 - **On GitHub**, **Settings → Environments → New environment** `npm`: the owner as required
-  reviewer, and a deployment rule that allows only tags matching `v*`. Approving the deployment is
-  the moment of publishing.
+  reviewer, and a deployment rule that allows only tags matching `v*`. Approving the deployment
+  lets the job build and stage the version.
 - **On npm**, in the package's settings, **Trusted publishing**: a publisher of type GitHub Actions
-  with this repository's owner and name, the workflow `publish.yml` and the environment `npm`. Tick
-  **Allow npm publish**; without it the publisher may only stage a version, and the job fails with
-  `403 ... OIDC permission denied for this action`. Leave **Allow npm dist-tag** unticked.
+  with this repository's owner and name, the workflow `publish.yml` and the environment `npm`.
+  Staging is always allowed; leave **Allow npm publish** and **Allow npm dist-tag** unticked, so a
+  direct `npm publish` from the workflow is refused. A publisher cannot be edited once created: to
+  change one, delete it and create it again. A new publisher expires if no publish follows within
+  two days, so create it shortly before the release that uses it.
+- **Approving a staged version**: the package's **Staged Packages** tab on npmjs.com, or
+  `npm stage list create-web-qa` and `npm stage approve <stage-id>` in a terminal; both ask for the
+  two-factor code. `npm stage download <stage-id>` fetches the tarball for a look first, and
+  `npm stage reject <stage-id>` removes a version that should not ship. The job's read-back waits up
+  to 30 minutes for the approval.
 - npm configures a trusted publisher only on a package that exists, so its first version is published
   by hand by the owner. A new package published by hand goes through npm's staged publishing: npm
   creates it with a placeholder version `0.0.0-stage`, which no one else can publish (a plain
   `npm publish` of that version is refused with `403`), and the version staged beside it waits for
-  the owner's approval on npm. Once a version has been published by the workflow, set the package's
-  publishing access to require two-factor authentication and disallow tokens.
-- npm warns that **Allow npm publish** is weaker than leaving it unticked, which lets the publisher
-  only stage a version for the owner's approval on npm. The workflow publishes directly, after the
-  approval of the `npm` environment; staged publishing is backlog CI-09.
-- The job installs a pinned npm (trusted publishing needs 11.5.1 or later; Node 22 bundles 10).
+  the owner's approval on npm. Set the package's publishing access to require two-factor
+  authentication and disallow tokens.
+- npm's documentation does not say whether the provenance statement survives the approval of a
+  staged version; the first release staged this way checks the package page for it.
+- The job installs a pinned npm (staged publishing needs 11.15.0 or later; Node 22 bundles 10).
   Dependabot does not read that pin: update it by hand to a release at least two weeks old, with the
   command the test in `scripts/__tests__/create-publish.test.mjs` expects.
 

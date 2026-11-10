@@ -50,7 +50,7 @@
     "framework:update": "node scripts/framework-update.mjs",
     "remove:app": "node scripts/remove-app.mjs",
     "create:pack": "node scripts/create-package.mjs",
-    "create:publish": "npm publish reports/create-web-qa/package --access public --provenance",
+    "create:publish": "npm stage publish reports/create-web-qa/package --access public --provenance",
     "create:readback": "node scripts/create-readback.mjs",
     "review:pr": "node scripts/pr-review.mjs",
     "mutation": "stryker run && stryker run stryker.hooks.config.mjs && npm run mutation:gate",
