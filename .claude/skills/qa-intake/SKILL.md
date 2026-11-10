@@ -30,8 +30,8 @@ with an account that is there before the session; never submit another form or c
 1. **Pin the scope.** List the routes and the user goal they serve. Every route must be in the app
    map or answer live; a route the application does not have is reported and the work stops there.
    Never swap in a page that looks similar.
-2. **Check reachability** (`.claude/rules/reachability.md`). Juice Shop down means
-   `npm run juice-shop:up`; anything else that does not answer means stopping with what to check.
+2. **Check reachability** (`.claude/rules/reachability.md`). A local pack down means
+   starting it (`npm run juice-shop:up`, `npm run spree:up`); anything else that does not answer means stopping with what to check.
 3. **Refresh the map when it is stale or misses a route**:
    `npm run app:map -- --pack <pack> --write`, and with `--actor <role>` for the signed-in routes
    (`docs/app-map.<role>.json`), which walks with the state an actor fixture wrote during a spec

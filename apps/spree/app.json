@@ -1,0 +1,10 @@
+{
+  "name": "spree",
+  "version": "6.0.3",
+  "title": "Spree Commerce admin",
+  "login_path": "/dashboard/login",
+  "breakpoints": {},
+  "third_party_hosts": [],
+  "secret_keys": [],
+  "identity_fields": []
+}

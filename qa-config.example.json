@@ -34,6 +34,19 @@
               }
             }
           },
+          "spree": {
+            "base_url": "http://localhost:3100",
+            "allow_writes": true,
+            "recovery": { "command": "docker compose -f docker/compose.yml restart spree" },
+            "actors": {
+              "admin": {
+                "account": "existing",
+                "username_env": "SPREE_ADMIN_EMAIL",
+                "password_env": "SPREE_ADMIN_PASSWORD"
+              }
+            },
+            "default_actor": "admin"
+          },
           "saucedemo": {
             "base_url": "https://www.saucedemo.com",
             "allow_writes": false,

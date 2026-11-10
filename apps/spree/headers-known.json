@@ -1,0 +1,14 @@
+[
+  {
+    "rule": "content-security-policy",
+    "route": "*",
+    "key": "LOCAL-44",
+    "expires": "2027-02-10"
+  },
+  {
+    "rule": "permissions-policy",
+    "route": "*",
+    "key": "LOCAL-44",
+    "expires": "2027-02-10"
+  }
+]

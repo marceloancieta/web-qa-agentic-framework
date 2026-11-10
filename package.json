@@ -21,6 +21,8 @@
     "test": "playwright test",
     "juice-shop:up": "docker compose -f docker/compose.yml up -d --wait juice-shop",
     "juice-shop:down": "docker compose -f docker/compose.yml rm --stop --force juice-shop",
+    "spree:up": "node scripts/spree-up.mjs",
+    "spree:down": "docker compose -f docker/compose.yml rm --stop --force --volumes spree spree-db",
     "lanes:visual": "docker compose -f docker/compose.yml run --rm playwright node scripts/visual-lane.mjs",
     "lanes:mocked": "node scripts/lanes.mjs mocked",
     "lanes:known-gap": "node scripts/lanes.mjs known-gap",
