@@ -45,14 +45,21 @@ Every item of v0.1.0 is done; each is in **Done**.
 
 | Id | Item | Origin | Status |
 |---|---|---|---|
-| GATE-12 | A hook checks the browser limits of design in `.claude/rules/modes.md`, which today are a sentence: an agent browser tool in design navigates and reads, and types only into the login. | ADR 0013 | todo |
+| GATE-12 | A hook checks the browser limits of design in `.claude/rules/modes.md`, which today are a sentence: an agent browser tool in design navigates and reads, and types only into the login. | ADR 0013 | in-progress |
 | FUT-01 | Toolshop pack (Practice Software Testing, local Docker): authorization in the UI by role, `data-test` attributes. | plan | todo |
 | FUT-04 | i18n: projects per `locale` and `timezoneId`, pseudo-localization, right-to-left. | practice | todo |
 | FUT-05 | Design-token checks from the pack's `design-tokens.json`; `prefers-reduced-motion` emulation. | plan | todo |
 | FUT-07 | TOTP two-factor login and a mail-catcher pattern (Mailpit). | plan | todo |
 | FUT-08 | `qa-explore` skill for chartered exploratory sessions, after an ADR decides its mode. | plan | todo |
-| FUT-09 | Extract a shared core with the sibling API framework once both are stable. | plan | todo |
 | CI-09 | Staged publishing for `create-web-qa`: the trusted publisher may only stage a version (`npm stage publish`, npm 11.15.0 or later), so a version reaches the registry only after the owner approves it on npm with two-factor authentication, beside the approval of the `npm` environment; the read-back waits for that approval or reads the version back by hand. | exp | todo |
+
+## Later
+
+Items no release holds yet; one moves into a release when its preconditions hold.
+
+| Id | Item | Origin | Status |
+|---|---|---|---|
+| FUT-09 | Extract a shared core with the sibling API framework once both are stable. | plan | todo |
 
 ---
 

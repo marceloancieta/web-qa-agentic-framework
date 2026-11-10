@@ -63,6 +63,28 @@ export function packVariable(pack, setting) {
 }
 
 /**
+ * The origins of every pack in every environment qa-config names, with the active environment's
+ * QA_<PACK>_BASE_URL overrides: the only places an agent's browser is meant to go. Base URLs that do
+ * not parse are left out.
+ * @returns {Set<string>}
+ */
+export function configuredOrigins(config) {
+  const urls = Object.values(config?.app?.environments ?? {}).flatMap((environment) =>
+    Object.values(environment?.packs ?? {}).map((settings) => settings?.base_url),
+  );
+  urls.push(...activeEnvironment(config).packs.map((pack) => pack.baseUrl));
+  const origins = new Set();
+  for (const url of urls) {
+    try {
+      if (typeof url === 'string' && url) origins.add(new URL(url).origin);
+    } catch {
+      // not a URL: it gives no origin
+    }
+  }
+  return origins;
+}
+
+/**
  * The active environment (QA_ENV overrides app.default_environment) and the packs it configures,
  * each with its base URL after the QA_<PACK>_BASE_URL override.
  * @returns {{ name: string, packs: { name: string, baseUrl: string }[] }}

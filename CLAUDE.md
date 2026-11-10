@@ -83,6 +83,8 @@ Registered in `.claude/settings.json` and described in `.claude/hooks/README.md`
 - `secret-guard` refuses prompts and tool calls that carry credentials or read secret files, and
   masks credentials in output. Work with it; never route around it.
 - `git-policy` applies the commit and pull-request rules configured in qa-config.
+- `browser-guard` holds a browser tool to the limits of design: reads and the configured
+  environments pass, an upload is refused, and a click, typing or code in the page asks the user.
 - `session-probe` reports the setup state and whether each pack's application answers when a
   session starts.
 
