@@ -31,9 +31,15 @@ export class BasketPage {
     return [this.title()];
   }
 
-  /** The row of a product, named after it. */
+  /**
+   * The row of a product: the one with a cell named exactly after it. Text inside the row would
+   * not do, since one name can sit inside another ("Apple Juice (1000ml)" in "Pineapple Juice
+   * (1000ml)") and a text filter ignores case.
+   */
   row(name: string): Locator {
-    return this.page.getByRole('row').filter({ hasText: name });
+    return this.page
+      .getByRole('row')
+      .filter({ has: this.page.getByRole('cell', { name, exact: true }) });
   }
 
   rows(): Locator {
