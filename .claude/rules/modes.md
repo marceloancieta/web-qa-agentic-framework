@@ -40,7 +40,11 @@ Why:
   `OPTIONS`, never clicks, types or submits, and lists what it blocked under `blocked_writes`.
 - **Browser tools follow the same limits.** In design, a browser driven by an agent (Playwright MCP,
   Claude in Chrome) navigates, reads and takes screenshots. It does not type into a form other than
-  the login, press a submit button or accept a dialog that changes data.
+  the login, press a submit button or accept a dialog that changes data. The `browser-guard` hook
+  checks each call: reads and navigation to the environments qa-config names pass, an upload is
+  refused, and a call whose effect depends on the page (a click, typing, a key that activates, code
+  run in the page) asks you, since the hook sees the arguments and not the page. Follow a link by
+  navigating to its address.
 - **Manual exploration notes** that someone else wrote are a source for intake like a story or an
   issue. They do not make a write in design acceptable.
 

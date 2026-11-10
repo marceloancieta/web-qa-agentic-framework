@@ -14,12 +14,14 @@ what a command does. `__tests__/settings.test.mjs` keeps the read and edit lists
 |---|---|---|
 | `secret-guard.mjs` | `UserPromptSubmit`, `PreToolUse` (every tool), `PostToolUse` (every tool) | Refuses prompts and tool calls that contain credentials, refuses access to files that usually hold secrets, refuses network commands or web/subagent calls carrying secrets, and masks credentials in tool output. Encoded media in the output (an image or PDF the Read tool returns, an MCP block with a `mimeType`) is left whole, since masking its bytes would corrupt the file without hiding any text. |
 | `git-policy.mjs` | `PreToolUse` (`Bash`, `PowerShell`) | Optional commit and pull-request rules read from `qa-config` (`tracker`, `policies`). Each rule applies once configured; with no qa-config at all, none applies. |
+| `browser-guard.mjs` | `PreToolUse` (Playwright MCP `browser_*`, Claude in Chrome) | Holds an agent's browser to the browser limits of design in [`modes.md`](../rules/modes.md); see [Browser tools](#browser-tools). |
 | `session-probe.mjs` | `SessionStart` | Adds a short status report to the session: setup state, application reachability (one line per pack the active environment configures, with its login page when app.json names one), coverage totals once the coverage report exists. |
 
 Shared modules in `lib/`:
 
 - `io.mjs` reads the event payload and writes verdicts;
 - `config.mjs` reads `qa-config` without third-party packages;
+- `browser.mjs` holds the verdict of every browser tool call `browser-guard` knows;
 - `secrets.mjs` holds every credential pattern, so there is one place to extend;
 - `shell.mjs` splits a command line into words.
 
@@ -69,9 +71,27 @@ contains a path separator; `issue.key` is a member access and passes, `'server.k
 `certs/tls.pem` are refused. Command substitutions inside a double-quoted argument and unquoted
 heredoc bodies run in the shell, so they are read as shell words.
 
+## Browser tools
+
+In design an agent's browser navigates and reads, and types only into the pack's login. Execution
+never drives one, so `browser-guard` applies in every session. A hook sees a tool's name and
+arguments, not the page, so it cannot tell a link from a submit button or a login field from a
+search box:
+
+| Verdict | Calls |
+|---|---|
+| allow | snapshots, screenshots, page text, console and network reads, hovering, scrolling, waiting, resizing, tab lists, dismissing a dialog, keys that only move (Tab, arrows, Page Up and Down, Home, End, Escape), navigation to a base URL of any environment qa-config names (with the active environment's `QA_<PACK>_BASE_URL`), `about:blank`, back and forward |
+| ask | clicks, typing, filling and selecting, other keys, drags, accepting a dialog, code run in the page, navigation anywhere else, a tool it does not know |
+| deny | uploading a file |
+
+A Claude in Chrome `browser_batch` gets the verdict of its strictest step. The registration matches
+Playwright MCP under any server name that contains `playwright` (a plugin's included) and
+Claude in Chrome; a browser tool of another server is not matched, and a script started through
+Bash is seen by no hook, so `behaviour-investigator` probes keep their own route guard.
+
 ## Configuration
 
-`git-policy` and `session-probe` read `qa-config.json` and fall back to `qa-config.example.json`. They
+`git-policy`, `browser-guard` and `session-probe` read `qa-config.json` and fall back to `qa-config.example.json`. They
 use only Node built-ins, so they work in a fresh clone before `npm ci`.
 
 ## Tests

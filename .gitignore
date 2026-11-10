@@ -21,6 +21,8 @@ npm-debug.log*
 /test-results/
 /blob-report/
 /playwright/.cache/
+# Snapshots and screenshots an agent's Playwright MCP browser writes
+/.playwright-mcp/
 
 # Allure
 /allure-results/

@@ -78,6 +78,18 @@
             "statusMessage": "Applying commit and pull-request rules"
           }
         ]
+      },
+      {
+        "matcher": "mcp__.*playwright.*__browser_.*|mcp__claude-in-chrome__.*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node",
+            "args": ["${CLAUDE_PROJECT_DIR}/.claude/hooks/browser-guard.mjs"],
+            "timeout": 10,
+            "statusMessage": "Checking the browser limits of design"
+          }
+        ]
       }
     ],
     "PostToolUse": [

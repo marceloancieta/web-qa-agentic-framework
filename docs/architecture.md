@@ -318,7 +318,8 @@ submits forms).
   or pass by coincidence, layers, title against body) with evaluation fixtures;
   `behaviour-investigator` (requirement against observed UI, read-only).
 - **Hooks:** `secret-guard` refuses and masks credentials, `git-policy` applies the commit rules of
-  qa-config, and `session-probe` checks each
+  qa-config, `browser-guard` holds an agent's browser tools to the limits of design, and
+  `session-probe` checks each
   pack's URL and its login page.
 
 ## 8. Shared with the API framework
