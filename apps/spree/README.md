@@ -8,10 +8,23 @@ Created by `npm run scaffold:app`. Still to fill in, through the phases:
 
 - [ ] `app.json`: layout `breakpoints`, `third_party_hosts` to block, extra `secret_keys` and
       `identity_fields`
-- [ ] `fixtures.ts`: how the `admin` actor signs in (`signIn`), and staff of other roles
-- [ ] `docs/app-notes.md`: facts about the application that tests rely on
-- [ ] `docs/app-map.json`: `npm run app:map -- --pack spree --write`
-- [ ] `.claude/skills/spree-ui/SKILL.md`: the placeholders the skill still has
+- [ ] `fixtures.ts`: staff of limited roles, provisioned through the admin API
+
+## Features
+
+| Feature | Contract |
+|---|---|
+| `LOGIN` | [admin sign-in](docs/features/login.md) |
+| `ROLES` | [staff roles](docs/features/roles.md) |
+
+## Layout
+
+| Path | Holds |
+|---|---|
+| `fixtures.ts` | the `admin` actor, signed in through the admin API, once per context (`singleUseSessions`) |
+| `api/auth-api.ts` | the admin sign-in: the access token and the single-use refresh cookie |
+| `docs/app-map.json`, `docs/app-map.admin.json` | the app maps, anonymous and as the admin |
+| `docs/app-notes.md` | sessions, the store's ids, the sample data, page behaviour |
 
 ## Running it
 

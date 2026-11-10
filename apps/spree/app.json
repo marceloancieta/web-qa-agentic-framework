@@ -6,5 +6,15 @@
   "breakpoints": {},
   "third_party_hosts": [],
   "secret_keys": [],
-  "identity_fields": []
+  "identity_fields": [],
+  "app_map": {
+    "start": ["/", "/dashboard/login", "/dashboard/forgot-password"],
+    "session_writes": ["POST /api/v3/admin/auth/refresh"],
+    "exclude": ["#main-content$", "/logout", "/sign-out"],
+    "actors": {
+      "admin": {
+        "start": ["/dashboard"]
+      }
+    }
+  }
 }

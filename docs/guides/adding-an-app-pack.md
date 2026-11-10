@@ -68,7 +68,9 @@ npm run app:map -- --pack <pack> --actor <role> --write   # signed in, after a r
 ```
 
 The walk only reads: it aborts every request that is not a `GET`, `HEAD` or `OPTIONS` and never
-leaves the application's origin. The map, `apps/<pack>/docs/app-map.json`, is tracked, so a change in
+leaves the application's origin. A page that renews its session with a write when it loads (a token
+refresh) declares that request in `app.json` `app_map.session_writes`, the only write the walk lets
+through. The map, `apps/<pack>/docs/app-map.json`, is tracked, so a change in
 the application shows up as a diff, and it is the structural source of intake. Once the pack has an
 entry in the `ci` environment, the weekly [app map drift](running-tests.md#app-map-drift) check
 compares it with the live application. Once a map exists,

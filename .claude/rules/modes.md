@@ -37,7 +37,9 @@ Why:
   (`npm run app:map -- --pack <pack> --actor <role>` finds it by role). Design never creates an
   account to look around.
 - **The app map is read-only by construction.** It aborts every request that is not `GET`, `HEAD` or
-  `OPTIONS`, never clicks, types or submits, and lists what it blocked under `blocked_writes`.
+  `OPTIONS`, never clicks, types or submits, and lists what it blocked under `blocked_writes`. The
+  one exception is a session renewal the pack declares in `app.json` `app_map.session_writes` (a
+  token refresh the page sends when it loads): like the login, it changes no data.
 - **Browser tools follow the same limits.** In design, a browser driven by an agent (Playwright MCP,
   Claude in Chrome) navigates, reads and takes screenshots. It does not type into a form other than
   the login, press a submit button or accept a dialog that changes data. The `browser-guard` hook

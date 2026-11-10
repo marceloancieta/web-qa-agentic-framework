@@ -53,6 +53,13 @@ export interface ActorContext {
 
 export interface ActorProvider {
   /**
+   * The application's sessions work for one browser context only: it rotates the session on its
+   * first use and refuses the old one, as a single-use refresh token does. The core then keeps the
+   * role's account but signs it in again for every context, and when the worker ends writes one
+   * session no context used, for the tools that walk as the role (`app:map --actor`).
+   */
+  singleUseSessions?: boolean;
+  /**
    * Prepare every browser context of the pack, signed in or not: cookies that dismiss a welcome or
    * consent banner, a language. Runs before the first page opens.
    */

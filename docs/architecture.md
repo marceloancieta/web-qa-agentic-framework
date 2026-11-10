@@ -205,6 +205,10 @@ web-qa-agentic-framework/
 - Juice Shop: sign-up and login through its REST API put the token in storage; the pack's
   `app.json` `cookies` dismiss the welcome and cookie banners, so no test clicks them away.
 - SauceDemo has no API: the session cookie and the cart in `localStorage` are injected.
+- Spree signs staff in through its admin API, whose refresh cookie works for one context: the
+  provider declares `singleUseSessions`, so the core keeps the account but signs in again for each
+  context, and writes one unused session for the tools when the worker ends
+  (`helpers/session-store.ts`).
 - **Rule:** only the feature under test goes through the UI. One case per pack proves the UI login,
   with credentials created during the run, so no password ends up in a trace.
 - Optional independent oracle: check through `api/` what the UI claims to have done; an error toast

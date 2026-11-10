@@ -14,7 +14,9 @@
  *
  * The walk is read-only by construction: every request that is not a GET, HEAD or OPTIONS is
  * aborted (and listed under `blocked_writes`), every request to another origin is aborted, and the
- * walk only navigates; it never clicks, types or submits. Every context gets the pack's app.json
+ * walk only navigates; it never clicks, types or submits. The one exception is a session renewal
+ * the pack declares in app.json `app_map.session_writes` (a token refresh the page sends when it
+ * loads), which changes no data, like the login. Every context gets the pack's app.json
  * `cookies` (dismissed banners, a fixed language), so the map shows the page a test sees.
  * `--actor <role>` walks signed in, with the newest browser state an actor fixture wrote for that
  * role (session storage included), adding the routes of app.json `app_map.actors.<role>.start`;
@@ -43,6 +45,8 @@ import { REPO_ROOT } from './lib/cli.mjs';
 import { packEntry } from './lib/qa-config.mjs';
 
 const READ_METHODS = new Set(['GET', 'HEAD', 'OPTIONS']);
+const SETTLE_MS = 300;
+const SETTLE_TRIES = 10;
 const LANDMARKS = new Set([
   'banner',
   'navigation',
@@ -155,6 +159,22 @@ function readFields(page) {
   );
 }
 
+/**
+ * The accessibility tree of the page once it stops changing: the same snapshot twice in a row,
+ * SETTLE_MS apart, or the last one after SETTLE_TRIES. A page its scripts render can show its
+ * heading a moment before its form, after the network has gone quiet.
+ */
+export async function settledSnapshot(page) {
+  let previous = await page.locator('body').ariaSnapshot();
+  for (let tries = 0; tries < SETTLE_TRIES; tries++) {
+    await new Promise((done) => setTimeout(done, SETTLE_MS));
+    const current = await page.locator('body').ariaSnapshot();
+    if (current === previous) return current;
+    previous = current;
+  }
+  return previous;
+}
+
 function readLinks(page) {
   return page.evaluate(() => Array.from(document.querySelectorAll('a[href]')).map((a) => a.href));
 }
@@ -168,9 +188,16 @@ export async function walk({
   state,
   sessionStorage = [],
   cookies = {},
+  sessionWrites = [],
   log = () => {},
 }) {
   const origin = new URL(baseUrl).origin;
+  const renewals = new Set(
+    sessionWrites.map((write) => {
+      const [method, path] = write.split(' ');
+      return `${method.toUpperCase()} ${normalizePath(path)}`;
+    }),
+  );
   const excluded = exclude.map((pattern) => new RegExp(pattern));
   const isExcluded = (route) => excluded.some((pattern) => pattern.test(route));
   const browser = await chromium.launch();
@@ -193,7 +220,10 @@ export async function walk({
     const url = new URL(request.url());
     if (url.origin !== origin) return route.abort('blockedbyclient');
     if (!READ_METHODS.has(request.method())) {
-      blockedWrites.add(`${request.method()} ${normalizePath(url.pathname)}`);
+      const write = `${request.method()} ${normalizePath(url.pathname)}`;
+      // A renewal of the session the pack declares changes no data, like the login.
+      if (renewals.has(write)) return route.continue();
+      blockedWrites.add(write);
       return route.abort('blockedbyclient');
     }
     return route.continue();
@@ -214,7 +244,15 @@ export async function walk({
       });
       await page.goto(`${origin}${route}`, { waitUntil: 'load' });
       await page.waitForLoadState('networkidle', { timeout: 5_000 }).catch(() => {});
-      const summary = summarizeSnapshot(await page.locator('body').ariaSnapshot());
+      // A page its scripts render can still be empty when the network first goes quiet: wait for a
+      // heading or the main landmark, then for the requests the rendered page starts.
+      await page
+        .locator('h1, h2, [role="heading"], main, [role="main"]')
+        .first()
+        .waitFor({ timeout: 5_000 })
+        .catch(() => {});
+      await page.waitForLoadState('networkidle', { timeout: 5_000 }).catch(() => {});
+      const summary = summarizeSnapshot(await settledSnapshot(page));
       const links = new Set();
       for (const href of await readLinks(page)) {
         const url = new URL(href);
@@ -298,6 +336,7 @@ export async function mapPack({ root = REPO_ROOT, pack, actor, state, maxPages =
     state: session?.storageState,
     sessionStorage: session?.sessionStorage,
     cookies: app.cookies ?? {},
+    sessionWrites: app.app_map?.session_writes ?? [],
     log,
   });
   const map = { pack, app_version: app.version, ...(actor ? { actor } : {}), ...walked };
