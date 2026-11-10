@@ -9,7 +9,7 @@ of skills, agents, rules and hooks, and when to use a skill or an agent, are in
 
 - **The session probe.** A session starts by reporting the configuration in effect, whether
   dependencies are installed, and whether each pack's application answers. If an application is
-  down, start it (`npm run juice-shop:up`) or check the network before asking for a phase: a phase
+  down, start it (`npm run juice-shop:up`, `npm run spree:up`) or check the network before asking for a phase: a phase
   never designs from a story or an old screenshot instead of the application
   ([reachability](../../.claude/rules/reachability.md)).
 - **Credentials stay out of the conversation.** `secret-guard` refuses a prompt or a tool call that

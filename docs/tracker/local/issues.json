@@ -1,5 +1,5 @@
 {
-  "next": 44,
+  "next": 45,
   "issues": {
     "LOCAL-1": {
       "title": "Basket: a customer can read another customer's basket by its id",
@@ -480,6 +480,17 @@
       "labels": [
         "ui",
         "severity:S4"
+      ],
+      "status": "open",
+      "category": "open",
+      "comments": []
+    },
+    "LOCAL-44": {
+      "title": "Spree: dashboard documents carry no Content-Security-Policy or Permissions-Policy",
+      "body": "**What happens:** the documents of the Spree admin dashboard (`/dashboard` and every route under it,\none application shell) carry no Content-Security-Policy and no Permissions-Policy header.\nX-Frame-Options (`SAMEORIGIN`), X-Content-Type-Options (`nosniff`) and Referrer-Policy\n(`strict-origin-when-cross-origin`) are present. The admin API (`/api/v3/admin/...`) does send\n`Permissions-Policy: camera=(), microphone=(), geolocation=()`; no response sends a\nContent-Security-Policy.\n\n**What should happen:** every document carries a Content-Security-Policy and a Permissions-Policy,\nas the security header rules of the framework require (`helpers/security-headers.ts`, ADR 0011).\nThe dashboard holds a staff session, so a policy that limits scripts matters more there than on a\nstorefront.\n\n**Steps:**\n1. Start the pack's application (`npm run spree:up`).\n2. Request `<base_url>/dashboard` (or `<base_url>/dashboard/login`) and read the response headers.\n3. Content-Security-Policy and Permissions-Policy are missing.\n\n**Devices:** any; the headers come from the server. The sweep fails the same way on desktop Chromium\nand mobile Chrome.\n\n**Severity:** S3. Nothing a user sees changes; the missing policies widen what a script injection\nin the dashboard could do with a staff session.\n\n**Evidence:** the security headers sweep (`apps/spree/specs/security/headers.spec.ts`) fails on `/`\nanonymous with an empty baseline on spree-desktop-chromium and spree-mobile-chrome, 2026-11-10\n(Spree 6.0.3, image pinned in `docker/compose.yml`); the response headers of `/dashboard`,\n`/dashboard/login`, `/up` and `/api/v3/admin/auth/providers` read the same day.\n",
+      "labels": [
+        "ui",
+        "severity:S3"
       ],
       "status": "open",
       "category": "open",

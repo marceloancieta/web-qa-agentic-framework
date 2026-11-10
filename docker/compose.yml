@@ -20,6 +20,48 @@ services:
       retries: 40
       start_period: 15s
 
+  # Spree Commerce (FUT-01): its API and admin dashboard in one image, on a database of its own.
+  # `npm run spree:up` starts both, signs the admin of SPREE_ADMIN_EMAIL in and loads the sample
+  # data once (scripts/spree-up.mjs); it also gives SPREE_SECRET_KEY_BASE a new value for the
+  # start, so no key is kept in the repository.
+  spree:
+    image: ghcr.io/spree/spree:6.0.3@sha256:1c20d3b14c7a36ac54666054a3ddd67a4e4941a0ea0a5b9fe2a8d84fe51433de
+    depends_on:
+      spree-db:
+        condition: service_healthy
+    ports:
+      - '127.0.0.1:3100:3000'
+    environment:
+      DATABASE_URL: postgres://postgres@spree-db:5432/spree_production
+      SECRET_KEY_BASE: ${SPREE_SECRET_KEY_BASE:-}
+      SPREE_HOST: localhost:3100
+      RAILS_FORCE_SSL: 'false'
+      RAILS_ASSUME_SSL: 'false'
+      # Spree limits sign-ins, token refreshes and API calls per client IP; every worker of a run
+      # shares one IP, so the limits a public store needs would fail a parallel run.
+      SPREE_RATE_LIMIT_LOGIN: '1000'
+      SPREE_RATE_LIMIT_REFRESH: '1000'
+      SPREE_RATE_LIMIT_PER_KEY: '100000'
+    healthcheck:
+      test: ['CMD', 'curl', '-fsS', '-o', '/dev/null', 'http://localhost:3000/up']
+      interval: 3s
+      timeout: 4s
+      retries: 60
+      start_period: 20s
+
+  # Spree's database, reachable on the compose network only. The local trust login needs no
+  # password; nothing outside the network can connect.
+  spree-db:
+    image: postgres:18-alpine@sha256:123b17998ccaf47e53b502e8c6a1e79afd8f579c6f3eec83c563da026f957395
+    environment:
+      POSTGRES_HOST_AUTH_METHOD: trust
+      PGDATA: /var/lib/postgresql/18/docker
+    healthcheck:
+      test: ['CMD', 'pg_isready', '-h', '127.0.0.1', '-U', 'postgres']
+      interval: 3s
+      timeout: 4s
+      retries: 20
+
   # The image of the container lanes (ADR 0009): the Playwright release of package.json, pinned by
   # digest. `npm run lanes:visual` runs the visual lane in it; the repository is mounted as is.
   playwright:

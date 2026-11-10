@@ -7,8 +7,9 @@ from another.
 - **Check before a phase calls a system.** The session probe reports, for each pack the active
   environment configures, whether its base URL and its login page answer. `npm test` checks again in
   each pack's `preflight-<pack>` project, and `npm run app:map` fails when a route does not load.
-- **A local pack that is down is started, not worked around.** Juice Shop runs in Docker:
-  `npm run juice-shop:up` starts the container and waits until it is healthy. If Docker itself is not
+- **A local pack that is down is started, not worked around.** Juice Shop and Spree run in Docker:
+  `npm run juice-shop:up` and `npm run spree:up` start their containers and wait until they are
+  healthy; `spree:up` also makes its admin and loads its sample data. If Docker itself is not
   running, say so and wait for the user.
 - **Stop on a connection failure**: a refused connection, a timeout, a DNS or TLS error, a page that
   never loads. Name the system that did not answer and what to check (`QA_ENV`, the pack's entry

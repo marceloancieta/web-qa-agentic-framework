@@ -12,7 +12,7 @@ commits and docs stay valid. The design behind the items is in [`architecture.md
   `ADR NNNN` = a recorded decision.
 - **Prefixes**: `REPO` repository setup · `CORE` execution core · `GATE` linters, gates and lanes ·
   `TM` test management and trackers · `PROC` agentic process · `JS` the Juice Shop pack · `SD` the
-  SauceDemo pack · `AGT` agents · `CI` continuous integration · `DOC` documentation and release ·
+  SauceDemo pack · `SP` the Spree pack · `AGT` agents · `CI` continuous integration · `DOC` documentation and release ·
   `FUT` later work.
 - **Stage** groups the items of v0.1.0 into the order they are built (W1 to W9). Each stage ends with
   `npm run gates` green, the secret and denylist scans clean, and its commits on `main` (ADR 0006).
@@ -45,7 +45,7 @@ Every item of v0.1.0 is done; each is in **Done**.
 
 | Id | Item | Origin | Status |
 |---|---|---|---|
-| FUT-01 | Toolshop pack (Practice Software Testing, local Docker): authorization in the UI by role, `data-test` attributes. | plan | todo |
+| FUT-01 | Spree pack (Spree Commerce admin dashboard, local Docker): the application started, seeded and signed in by `npm run spree:up`, then authorization in the UI by role. | plan | in-progress |
 | FUT-04 | i18n: projects per `locale` and `timezoneId`, pseudo-localization, right-to-left. | practice | todo |
 | FUT-05 | Design-token checks from the pack's `design-tokens.json`; `prefers-reduced-motion` emulation. | plan | todo |
 | FUT-07 | TOTP two-factor login and a mail-catcher pattern (Mailpit). | plan | todo |
