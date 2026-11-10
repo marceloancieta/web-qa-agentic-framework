@@ -1,8 +1,10 @@
 # Publishes `create-web-qa` from a release tag (FUT-12), with npm trusted publishing: npm trusts this
 # workflow file through GitHub's OIDC token, so no npm token is stored anywhere, and the package
-# carries a provenance statement that links it to this run and the tagged commit. The job waits in
-# the `npm` environment until the owner approves it. CONTRIBUTING (releasing) owns the order of the
-# release steps; docs/repository-settings.md (Publishing) records the setup on npm and on GitHub.
+# carries a provenance statement that links it to this run and the tagged commit. Two approvals by
+# the owner: the job waits in the `npm` environment, and the version it stages reaches the registry
+# only once the owner approves it on npm with two-factor authentication (CI-09), which no token of
+# this workflow can do. CONTRIBUTING (releasing) owns the order of the release steps;
+# docs/repository-settings.md (Publishing) records the setup on npm and on GitHub.
 #
 # Only the framework's repository publishes: a repository created from it keeps this file, but its
 # tags skip the job, so GitHub never creates the environment there.
@@ -24,8 +26,9 @@ jobs:
     # The repository packages/create-web-qa/package.json names (a test keeps them equal).
     if: ${{ github.repository == 'marceloancieta/web-qa-agentic-framework' }}
     runs-on: ubuntu-24.04
-    # Leaves room for the read-back's wait (create:readback, 15 minutes) after the steps before it.
-    timeout-minutes: 30
+    # Leaves room for the read-back's wait for the approval on npm (create:readback, 30 minutes)
+    # after the steps before it.
+    timeout-minutes: 45
     environment: npm
     permissions:
       contents: read
@@ -48,7 +51,7 @@ jobs:
           package-manager-cache: false
 
       # Nothing else is installed: a job that can publish runs no dependency's install script, and
-      # the three scripts below import only Node and scripts/lib. Trusted publishing needs npm 11.5.1
+      # the three scripts below import only Node and scripts/lib. Staged publishing needs npm 11.15.0
       # or later, newer than the npm that Node 22 bundles; Dependabot does not read this pin.
       - name: Install a pinned npm
         run: npm install --global npm@11.21.0
@@ -57,13 +60,16 @@ jobs:
       - name: Build the package from the tag
         run: npm run create:pack -- --tag "$TAG"
 
-      # The package's prepublishOnly refuses a folder built without --tag.
-      - name: Publish with provenance
+      # Stages the version (npm stage publish, npm 11.15.0 or later); it waits on npm, out of the
+      # registry, for the owner's approval. The package's prepublishOnly refuses a folder built
+      # without --tag, as it does for a direct publish.
+      - name: Stage with provenance
         run: npm run create:publish
 
-      # A failure here comes after a good publish, which a re-run cannot repeat: its message says to
+      # Waits for the owner to approve the staged version on npm, then reads it back. A failure here
+      # comes after a good stage, which a re-run cannot repeat: its message says how to approve and
       # read the version back by hand instead.
-      - name: Read the published version back
+      - name: Read the approved version back
         run: npm run create:readback -- --tag "$TAG"
 
   # What a reader of the repository's page sees: the tag's changelog section as a GitHub release. It

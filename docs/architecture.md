@@ -245,7 +245,9 @@ web-qa-agentic-framework/
   The gates scan the whole history for secrets, denylisted terms and the wording of every commit
   message. `create-web-qa` is published from a release tag by
   [`.github/workflows/publish.yml`](../.github/workflows/publish.yml) with npm trusted publishing
-  and provenance, after the owner approves it, and the job installs no dependency.
+  and provenance, after the owner approves it; the version is only staged, and reaches the registry
+  when the owner approves it again on npm with two-factor authentication. The job installs no
+  dependency.
 - Advisory review: on each pull request with the `ANTHROPIC_API_KEY` secret, Claude reads the diff
   against [`.github/pr-review-rubric.md`](../.github/pr-review-rubric.md), which leaves out what the
   gates check, and posts one comment (`npm run review:pr`,
