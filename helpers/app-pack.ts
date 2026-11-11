@@ -43,6 +43,13 @@ export interface AppManifest {
     start?: string[];
     exclude?: string[];
     actors?: Record<string, { start?: string[] }>;
+    /**
+     * Requests the read-only walk lets through although they are not reads, as `METHOD /path`:
+     * only those that renew the session and change no data, such as a token refresh the page
+     * makes when it loads (`.claude/rules/modes.md`, what counts as reading). The path must name
+     * the session (auth, session, token, refresh, login).
+     */
+    session_writes?: string[];
   };
 }
 
@@ -58,6 +65,9 @@ const HOST = /^[a-z0-9.-]+(?::\d+)?$/i;
 const COOKIE_NAME = /^[!#$%&'*+.^_`|~0-9A-Za-z-]+$/;
 const SESSION_LIKE = /session|token|auth|jwt|sid|csrf/i;
 const ROLE = /^[a-z][a-z0-9-]*$/;
+/** A session renewal the app map may send: a write method and a path that names the session. */
+const SESSION_WRITE =
+  /^(?:POST|PUT|PATCH) \/[^\s?#]*(?:auth|session|token|refresh|login)[^\s?#]*$/i;
 
 const isWholeNumber = (value: unknown, min: number) =>
   typeof value === 'number' && Number.isInteger(value) && value >= min;
@@ -105,6 +115,13 @@ export function manifestProblems(manifest: Partial<AppManifest>, dirName: string
     for (const route of routes) {
       if (!route.startsWith('/'))
         problems.push(`${key} has "${route}", which does not start with /`);
+    }
+  }
+  for (const write of manifest.app_map?.session_writes ?? []) {
+    if (!SESSION_WRITE.test(write)) {
+      problems.push(
+        `app_map.session_writes has "${write}", which is not "POST|PUT|PATCH /path" naming the session (auth, session, token, refresh, login)`,
+      );
     }
   }
   for (const pattern of manifest.app_map?.exclude ?? []) {

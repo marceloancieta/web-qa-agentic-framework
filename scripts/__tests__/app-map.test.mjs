@@ -162,6 +162,23 @@ test('the walk maps every reachable route read-only, and never leaves the origin
   }
 });
 
+test('a session renewal the pack declares reaches the server; every other write stays blocked', async () => {
+  const app = await serve();
+  try {
+    const map = await walk({ baseUrl: app.url, start: ['/'], sessionWrites: ['post /api/visits'] });
+    assert.ok(app.hits.includes('POST /api/visits'), 'the declared write was blocked');
+    assert.deepEqual(map.blocked_writes, []);
+    const other = await walk({
+      baseUrl: app.url,
+      start: ['/'],
+      sessionWrites: ['POST /api/other'],
+    });
+    assert.deepEqual(other.blocked_writes, ['POST /api/visits']);
+  } finally {
+    app.close();
+  }
+});
+
 test("the walk carries the pack's cookies and the actor's session storage", async () => {
   const app = await serve();
   try {

@@ -44,13 +44,8 @@ import {
   violationReport,
   type BaselineComparison,
 } from '../helpers/accessibility';
-import {
-  existingAccount,
-  storageStatePath,
-  type Account,
-  type ActorProvider,
-  type SignedIn,
-} from '../helpers/actors';
+import { storageStatePath, type Account, type ActorProvider } from '../helpers/actors';
+import { sessionStore, type Session } from '../helpers/session-store';
 import { contextCookies, loadAppPack, type AppPack } from '../helpers/app-pack';
 import {
   actorConfig,
@@ -182,13 +177,6 @@ export interface ActorOptions {
   account?: Account;
 }
 
-interface Session {
-  account: Account;
-  signedIn: SignedIn;
-  file: string | null;
-  provisioned: boolean;
-}
-
 export interface CoreWorkerFixtures {
   qa: QaRuntime;
   app: AppPack;
@@ -275,78 +263,42 @@ export function createTest(provider: ActorProvider) {
     sessions: [
       async ({ qa, authDir, redaction, playwright }, use, workerInfo) => {
         const api = await newApiContext(playwright, { baseURL: `${qa.baseUrl}/` });
-        const open = new Map<string, Promise<Session>>();
-        const started: [string, Promise<Session>][] = [];
-        const context = (role: string) => ({ api, qa, role, worker: workerInfo.workerIndex });
-        const start = async (role: string, fresh: boolean, built?: Account): Promise<Session> => {
-          const config = actorConfig(qa, role);
-          if (!config) throw new Error('The anonymous actor has no session.');
-          if (fresh && config.account !== 'provisioned') {
-            throw new Error(
-              `Actor "${role}" uses an existing account; only a provisioned role can be fresh.`,
+        const store = sessionStore({
+          provider,
+          contextOf: (role) => ({ api, qa, role, worker: workerInfo.workerIndex }),
+          configOf: (role) => actorConfig(qa, role),
+          learn(secrets) {
+            redaction.knownSecrets.push(...secrets);
+            // The redaction reporter removes them from Playwright's own artifacts after the run.
+            for (const secret of secrets) rememberSecret(secret);
+          },
+          write(role, signedIn) {
+            const file = storageStatePath(authDir, qa, role, workerInfo.workerIndex);
+            mkdirSync(dirname(file), { recursive: true });
+            // The session storage goes into the file too, so a tool that walks as this role
+            // (app:map --actor) restores the whole session; Playwright reads only cookies and
+            // origins.
+            writeFileSync(
+              file,
+              JSON.stringify({
+                ...signedIn.storageState,
+                sessionStorage: signedIn.sessionStorage ?? [],
+              }),
             );
-          }
-          let account: Account;
-          if (config.account === 'existing') account = existingAccount(config, role);
-          else if (provider.provision)
-            account = await provider.provision({
-              ...context(role),
-              ...(built ? { account: built } : {}),
-            });
-          else
-            throw new Error(
-              `Actor "${role}" is provisioned, but the pack's provider cannot create accounts.`,
-            );
-          redaction.knownSecrets.push(account.password);
-          const signedIn = await provider.signIn({ ...context(role), account });
-          redaction.knownSecrets.push(...(signedIn.secrets ?? []));
-          // The redaction reporter removes them from Playwright's own artifacts after the run.
-          for (const secret of [account.password, ...(signedIn.secrets ?? [])])
-            rememberSecret(secret);
-          // A fresh session is never written: the file of the role stays the worker's shared one,
-          // which tools that walk as the role read.
-          if (fresh) return { account, signedIn, file: null, provisioned: true };
-          const file = storageStatePath(authDir, qa, role, workerInfo.workerIndex);
-          mkdirSync(dirname(file), { recursive: true });
-          // The session storage goes into the file too, so a tool that walks as this role (app:map
-          // --actor) restores the whole session; Playwright reads only cookies and origins.
-          writeFileSync(
-            file,
-            JSON.stringify({
-              ...signedIn.storageState,
-              sessionStorage: signedIn.sessionStorage ?? [],
-            }),
-          );
-          return { account, signedIn, file, provisioned: config.account === 'provisioned' };
-        };
+            return file;
+          },
+        });
         try {
           await use({
-            get(role) {
-              if (!open.has(role)) {
-                const pending = start(role, false);
-                open.set(role, pending);
-                started.push([role, pending]);
-              }
-              return open.get(role) as Promise<Session>;
-            },
-            fresh(role, built) {
-              const pending = start(role, true, built);
-              started.push([role, pending]);
-              return pending;
-            },
+            get: (role) => store.get(role),
+            fresh: (role, built) => store.fresh(role, built),
           });
         } finally {
-          for (const [role, pending] of started) {
-            const session = await pending.catch(() => null);
-            if (session?.provisioned && provider.remove) {
-              await provider.remove({
-                ...context(role),
-                account: session.account,
-                session: session.signedIn,
-              });
-            }
+          try {
+            await store.close();
+          } finally {
+            await api.dispose();
           }
-          await api.dispose();
         }
       },
       { scope: 'worker' },

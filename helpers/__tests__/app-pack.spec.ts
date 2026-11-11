@@ -93,3 +93,23 @@ test('pack cookies: plain names and values, never a session; actor routes start 
   ]);
   expect(contextCookies({}, 'http://shop.test')).toEqual([]);
 });
+
+test('the app map lets through only writes that name the session', () => {
+  const problems = (session_writes: string[]) =>
+    manifestProblems({ ...valid, app_map: { session_writes } }, 'shop');
+  expect(
+    problems(['POST /api/v3/admin/auth/refresh', 'put /session', 'PATCH /oauth/token']),
+  ).toEqual([]);
+  const bad = [
+    'POST /api/orders',
+    'DELETE /auth/session',
+    'GET /auth/refresh',
+    'POST auth/refresh',
+  ];
+  expect(problems(bad)).toEqual(
+    bad.map(
+      (write) =>
+        `app_map.session_writes has "${write}", which is not "POST|PUT|PATCH /path" naming the session (auth, session, token, refresh, login)`,
+    ),
+  );
+});

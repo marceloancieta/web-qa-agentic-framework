@@ -4,20 +4,109 @@
   "routes": [
     {
       "route": "/",
-      "title": "Spree Admin",
+      "title": "Welcome back · Spree Admin",
       "landmarks": [
         "region \"Notifications\""
       ],
-      "headings": [],
-      "interactive": [],
-      "fields": [],
+      "headings": [
+        "h1 Welcome back"
+      ],
+      "interactive": [
+        "button \"Sign in\"",
+        "link \"Forgot password?\"",
+        "textbox \"Email\"",
+        "textbox \"Password\""
+      ],
+      "fields": [
+        {
+          "tag": "input",
+          "type": "email",
+          "label": "Email",
+          "constraints": {}
+        },
+        {
+          "tag": "input",
+          "type": "password",
+          "label": "Password",
+          "constraints": {}
+        }
+      ],
+      "api_calls": [
+        "GET /api/v3/admin/auth/providers",
+        "GET /api/v3/admin/auth/setup",
+        "POST /api/v3/admin/auth/refresh"
+      ],
+      "links": [
+        "/dashboard/forgot-password"
+      ]
+    },
+    {
+      "route": "/dashboard/forgot-password",
+      "title": "Reset your password · Spree Admin",
+      "landmarks": [
+        "region \"Notifications\""
+      ],
+      "headings": [
+        "h1 Reset your password"
+      ],
+      "interactive": [
+        "button \"Send reset link\"",
+        "link \"Back to sign in\"",
+        "textbox \"Email\""
+      ],
+      "fields": [
+        {
+          "tag": "input",
+          "type": "email",
+          "label": "Email",
+          "constraints": {}
+        }
+      ],
       "api_calls": [
         "POST /api/v3/admin/auth/refresh"
       ],
-      "links": []
+      "links": [
+        "/dashboard/login"
+      ]
+    },
+    {
+      "route": "/dashboard/login",
+      "title": "Welcome back · Spree Admin",
+      "landmarks": [
+        "region \"Notifications\""
+      ],
+      "headings": [
+        "h1 Welcome back"
+      ],
+      "interactive": [
+        "button \"Sign in\"",
+        "link \"Forgot password?\"",
+        "textbox \"Email\"",
+        "textbox \"Password\""
+      ],
+      "fields": [
+        {
+          "tag": "input",
+          "type": "email",
+          "label": "Email",
+          "constraints": {}
+        },
+        {
+          "tag": "input",
+          "type": "password",
+          "label": "Password",
+          "constraints": {}
+        }
+      ],
+      "api_calls": [
+        "GET /api/v3/admin/auth/providers",
+        "GET /api/v3/admin/auth/setup",
+        "POST /api/v3/admin/auth/refresh"
+      ],
+      "links": [
+        "/dashboard/forgot-password"
+      ]
     }
   ],
-  "blocked_writes": [
-    "POST /api/v3/admin/auth/refresh"
-  ]
+  "blocked_writes": []
 }

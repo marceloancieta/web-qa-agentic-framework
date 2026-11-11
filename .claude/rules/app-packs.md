@@ -31,7 +31,7 @@ that does. ADR 0005 gives the layers, ADR 0008 the configuration.
 
 | Path | Holds |
 |---|---|
-| `app.json` | name and version (part of every case identity), title, `login_path`, `testIdAttribute`, `breakpoints`, `third_party_hosts`, `secret_keys` and `identity_fields` for redaction, `workers`, `visual` settings, `cookies` every context starts with (banners, language; never a session), `app_map` routes, with the routes only a role reaches under `app_map.actors`; checked by `loadAppPack` (`helpers/app-pack.ts`) whenever Playwright loads its configuration, so every run and `npm run gates` refuse a broken one |
+| `app.json` | name and version (part of every case identity), title, `login_path`, `testIdAttribute`, `breakpoints`, `third_party_hosts`, `secret_keys` and `identity_fields` for redaction, `workers`, `visual` settings, `cookies` every context starts with (banners, language; never a session), `app_map` routes, with the routes only a role reaches under `app_map.actors` and the session renewals the walk may send under `app_map.session_writes`; checked by `loadAppPack` (`helpers/app-pack.ts`) whenever Playwright loads its configuration, so every run and `npm run gates` refuse a broken one |
 | `README.md` | the map of the pack: how to run it, its sessions, its layout, facts about the application |
 | `fixtures.ts` | the pack's `test`: `createTest(provider)` with its way of creating and signing in accounts, plus one fixture per role |
 | `api/` | thin clients over `APIRequestContext` that prepare and verify state |
