@@ -81,7 +81,7 @@
     "gates": "npm run lint && npm run format:check && npm run types:check && npm run config:check && npm run test:hooks && npm run test:scripts && npm run lint:qa && npm run coverage:status && npm run traceability && npm run cited-status -- --offline && npm run test:unit && npm run scan:denylist:self-test && npm run scan:denylist && npm run scan:denylist:history && npm run lint:docs:history && npm run scan:secrets"
   },
   "devDependencies": {
-    "@anthropic-ai/sdk": "^0.135.0",
+    "@anthropic-ai/sdk": "^1.3.0",
     "@axe-core/playwright": "^4.14.0",
     "@eslint/js": "^10.0.1",
     "@playwright/test": "^1.64.1",
