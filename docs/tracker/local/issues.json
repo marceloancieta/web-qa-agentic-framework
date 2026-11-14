@@ -1,5 +1,5 @@
 {
-  "next": 50,
+  "next": 51,
   "issues": {
     "LOCAL-1": {
       "title": "Basket: a customer can read another customer's basket by its id",
@@ -549,6 +549,17 @@
     "LOCAL-49": {
       "title": "Spree product page: the Shop location links omit /dashboard and land on a 404",
       "body": "**What happens.** On a Spree dashboard product page, the \"Shop location\" links (three on the page, in the stock part) point to `/<store id>/settings/stock-locations?edit=<stock location id>`, without the `/dashboard` prefix. Pressing one loads that address as a new document, which answers `404`; the page is blank.\n\n**What should happen.** The link opens `/dashboard/<store id>/settings/stock-locations?edit=<stock location id>`, which answers 200 and shows the stock locations.\n\n**Steps**\n1. Sign in as the admin at `<base_url>/dashboard/login`.\n2. Open Products and any product.\n3. Press \"Shop location\": the address becomes `<base_url>/<store id>/settings/stock-locations?edit=…`, the document answers 404 and the page is blank.\n\n**Devices.** desktop-chromium and mobile-chrome (local environment, Spree 6.0.3). Reproduced on both.\n\n**Siblings checked.** No other link outside `/dashboard` on the products list, stock items, settings, stock locations or orders pages.\n\n**Evidence.** Throwaway probe spec, 2026-11-14: the links' `href`, the document request after the click (`404 /<store id>/settings/stock-locations`) and the empty page; first seen in the admin app map, 2026-11-10 (`apps/spree/docs/app-notes.md`). No trace kept.\n\n**Severity S3**: a broken link with a way around (Settings → Stock locations).\n",
+      "labels": [
+        "ui",
+        "severity:S3"
+      ],
+      "status": "open",
+      "category": "open",
+      "comments": []
+    },
+    "LOCAL-50": {
+      "title": "Spree login: the lockout message tells which emails have a staff account",
+      "body": "**What happens.** On the Spree admin login, five wrong passwords lock a staff account, and the next attempt gets \"Account temporarily locked. Try again later.\". An email that has no account never gets that message: after five refused attempts, the sixth still gets \"Invalid email or password\". Comparing the two answers tells which emails belong to a staff member.\n\n**What should happen.** An unknown email and a known one get the same answer at every attempt, so the page does not reveal which accounts exist (contract `apps/spree/docs/features/login.md` REQ-LOGIN-04, the generic refusal; gap G3; OWASP ASVS V2.2.1/V3 on generic authentication responses).\n\n**Steps**\n1. Open `<base_url>/dashboard/login`.\n2. Sign in five times with an email that has no account and any password: each gets \"Invalid email or password\".\n3. Sign in a sixth time with the same email: still \"Invalid email or password\".\n4. Do the same with a staff member's email: the sixth attempt gets \"Account temporarily locked. Try again later.\".\n\n**Devices.** desktop-chromium and mobile-chrome (local environment, Spree 6.0.3). Reproduced on both.\n\n**Evidence.** The cases TC-LOGIN-06 (a staff account of the case's own: the lockout message after five) and TC-LOGIN-08 (an unknown email: the refusal after five), run on 2026-11-14; TC-LOGIN-08's failure context shows the refusal paragraph on the sixth attempt. No trace attached.\n\n**Severity S3**: it discloses which emails are staff accounts, but finding out locks the real account for 30 minutes on every probe, which is visible and slows enumeration down.\n",
       "labels": [
         "ui",
         "severity:S3"

@@ -43,7 +43,10 @@
                 "account": "existing",
                 "username_env": "SPREE_ADMIN_EMAIL",
                 "password_env": "SPREE_ADMIN_PASSWORD"
-              }
+              },
+              "staff": { "account": "provisioned" },
+              "orders-reader": { "account": "provisioned" },
+              "catalog-editor": { "account": "provisioned" }
             },
             "default_actor": "admin"
           },

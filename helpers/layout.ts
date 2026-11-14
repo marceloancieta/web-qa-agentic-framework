@@ -21,6 +21,27 @@ export async function horizontalOverflow(page: Page): Promise<number> {
 }
 
 /**
+ * How far the page scrolls sideways around `content`, in CSS pixels: the document, and every
+ * element around `content` (itself included) that scrolls sideways, such as an application shell.
+ * A scroller inside `content` is the content's own (a wide table that scrolls in its container on
+ * a narrow screen) and does not count, which is what sets this apart from `horizontalOverflow`.
+ */
+export async function pageOverflow(content: Locator): Promise<number> {
+  return content.first().evaluate((element) => {
+    const scrolls = (e: Element) => ['auto', 'scroll'].includes(getComputedStyle(e).overflowX);
+    const around: Element[] = [document.documentElement];
+    for (
+      let e: Element | null = element;
+      e && e !== document.documentElement;
+      e = e.parentElement
+    ) {
+      if (scrolls(e)) around.push(e);
+    }
+    return Math.max(0, ...around.map((e) => e.scrollWidth - e.clientWidth));
+  });
+}
+
+/**
  * `horizontalOverflow` read once for a value kept for later, when a retrying assertion cannot wait
  * for it: 0 as soon as a read gives 0, otherwise the last read of `ms`. A shell can measure a few
  * pixels wider for a moment while a page settles, and a lasting overflow stays through the window.

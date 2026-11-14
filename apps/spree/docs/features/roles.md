@@ -22,9 +22,9 @@ needs, so that the dashboard shows them those sections and the store refuses the
 | REQ-ROLES-03 | A role that can read a section sees its data: `read_orders` lists the orders (`#R1001`, `#R1002` of the sample data), `read_products` lists the products. | probe, 2026-11-10 |
 | REQ-ROLES-04 | A section a role cannot read shows none of its data, even when its address is opened directly: the table stays without rows. | probe (`/products`, `/customers`, `/settings/staff`, `/settings/roles` as the orders role), 2026-11-10 |
 | REQ-ROLES-05 | The store refuses the data of a section a role cannot read: the admin API answers `403` for it (orders role: products, customers, staff, roles; catalog role: orders, customers, staff, roles), and `200` for the role's own section. | probe, 2026-11-10 |
-| REQ-ROLES-06 | The settings a role sees are limited to its permissions: the catalog role's settings list "Imports" and "Roles" only, and the orders role has no Settings link. | probe, 2026-11-10 |
+| REQ-ROLES-06 | The settings a role sees are limited to its permissions: the catalog role's settings list "Imports" only, and the orders role has no Settings link. | probe, 2026-11-10; TC-ROLES-08 run, desktop Chromium and Pixel 7, 2026-11-14 (the probe's "Roles" was not seen again) |
 | REQ-ROLES-07 | Only the admin manages the staff: Staff lists the members with "Invite teammate" and Roles lists the roles with "Add role" for the admin, and the API refuses both lists to a role without the staff permissions (`403`). | admin app map; probe (the API answers to reads), 2026-11-10 |
-| REQ-ROLES-08 | A staff member whose account is removed can no longer sign in, and a role still held by a member cannot be removed without removing them first. | Spree's role model (`ensure_can_be_deleted`); not observed (A2) |
+| REQ-ROLES-08 | A staff member the admin removes from the store keeps an account that still signs in, but reaches no store: the page says "You don't have access to any store" and shows none of its data. A role still held by a member cannot be removed without removing them first. | Spree's role model (`ensure_can_be_deleted`); TC-ROLES-10 and TC-ROLES-11 runs, desktop Chromium and Pixel 7, 2026-11-14 |
 
 ## Acceptance criteria
 
@@ -35,8 +35,8 @@ needs, so that the dashboard shows them those sections and the store refuses the
   no product appears, and the products API answers `403` for their session (REQ-ROLES-04,
   REQ-ROLES-05).
 - **Given** a staff member whose role reads and writes products, **when** they open the dashboard,
-  **then** the sidebar shows Home, Products and Settings, and their settings hold "Imports" and
-  "Roles" only (REQ-ROLES-02, REQ-ROLES-06).
+  **then** the sidebar shows Home, Products and Settings, and their settings hold "Imports"
+  only (REQ-ROLES-02, REQ-ROLES-06).
 - **Given** the admin, **when** they open the dashboard, **then** every section is in the sidebar,
   and Staff and Roles offer "Invite teammate" and "Add role" (REQ-ROLES-01, REQ-ROLES-07).
 
@@ -115,7 +115,7 @@ it holds the same links per role is not observed yet (A1).
 | What | Route | Device | Date |
 |---|---|---|---|
 | Orders role: sidebar Home, Orders; Orders lists `#R1001`, `#R1002`; `/products`, `/customers`, `/settings/staff`, `/settings/roles` show their headings, write controls and no rows | the routes above | desktop Chromium | 2026-11-10 |
-| Catalog role: sidebar Home, Products, Settings; Products lists the products with "Add product"; `/orders` shows "New Order" and no rows; settings list "Imports" and "Roles" | the routes above | desktop Chromium | 2026-11-10 |
+| Catalog role: sidebar Home, Products, Settings; Products lists the products with "Add product"; `/orders` shows "New Order" and no rows; settings list "Imports" and "Roles" (seen once; the 2026-11-14 runs list "Imports" only) | the routes above | desktop Chromium | 2026-11-10 |
 | API as the orders role: orders `200`; products, customers, admin_users, roles `403`. As the catalog role: products `200`; orders, customers, admin_users, roles `403` | `/api/v3/admin/*` | API | 2026-11-10 |
 | Admin sidebar: Home, Orders 3, Products, Inventory, Customers, Companies, Sellers, Loyalty, Promotions, Reports, Settings | `/dashboard/<store id>` | desktop Chromium | 2026-11-10 |
 
@@ -141,9 +141,9 @@ desktop Chromium and Pixel 7 and filed on 2026-11-14.
 
 ## Assumptions to confirm
 
-- A1: the mobile sidebar behind "Toggle Sidebar" holds the same links per role; automate watches it
-  on mobile Chrome.
-- A2: REQ-ROLES-08 comes from Spree's model, not from a look: a removed member's sign-in and the
-  refusal to remove a held role are watched in automate.
-- A3: G1 and G2 go to `qa-report-bug` for triage before design: hiding a control is a usability
-  matter while the server refuses the write, and a security one if it accepts it.
+- A1, settled on 2026-11-14: below 768 px the sidebar opens from "Toggle Sidebar" as the dialog
+  "Sidebar" and holds the same links per role (TC-ROLES-02, TC-ROLES-03 on mobile Chrome).
+- A2, settled on 2026-11-14: a removed member still signs in and reaches no store, and a held role
+  is refused (TC-ROLES-10, TC-ROLES-11); REQ-ROLES-08 says so.
+- A3, settled on 2026-11-14: the server refuses the write (`403`), so G1 is a usability defect;
+  G1 and G2 were filed as `LOCAL-47` and `LOCAL-48`.

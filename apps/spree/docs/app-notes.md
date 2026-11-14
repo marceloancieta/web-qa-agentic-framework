@@ -48,3 +48,21 @@ messages, how sessions work, what is safe to change. Each one says how it was ob
   `404`; pressing the "Shop location" link loads that address and the page stays blank. Seen in the
   admin app map, 2026-11-10; confirmed on desktop Chromium and Pixel 7 and filed as `LOCAL-49`,
   2026-11-14.
+- Below 768 px the sidebar is a dialog, "Sidebar", that "Toggle Sidebar" opens; from 768 px up it
+  is on the page, with "Settings" in a list of its own below the other sections. Read in the
+  dashboard's code (`max-width: 767px`) and on desktop Chromium and Pixel 7, 2026-11-14.
+- On narrow screens a section's table scrolls sideways inside a container of its own (409 px on
+  Orders at Pixel 7); the page itself does not scroll. Observed 2026-11-14.
+- The admin API and the products list order the products differently, so a case matches a row
+  against the store's product names rather than one name.
+- Removing a member (`DELETE /api/v3/admin/admin_users/<id>`) takes them out of the store, not out
+  of Spree: they still sign in and land on "You don't have access to any store". Observed on
+  desktop Chromium and Pixel 7, 2026-11-14.
+- An email field with a malformed address is stopped by the browser's own `type=email` check
+  before the page validates it; the page's "Invalid email address" shows for an empty field only.
+  Observed on desktop Chromium and Pixel 7, 2026-11-14.
+- A refused section asks for more than its list: Products, opened by the orders reader, is refused
+  `products`, `custom_field_definitions`, `markets` and `dashboard/counters` (`403` each), and shows
+  no message (`LOCAL-48`); `channels`, `reporting/schema` and `POST reporting/query` are refused too
+  when the pages ask for them before the next page loads. Observed on desktop Chromium and Pixel 7,
+  2026-11-14.
