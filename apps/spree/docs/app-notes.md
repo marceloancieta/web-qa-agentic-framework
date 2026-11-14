@@ -45,4 +45,6 @@ messages, how sessions work, what is safe to change. Each one says how it was ob
 - The home dashboard reads its reports with `POST /api/v3/admin/reporting/query`, which the app
   map blocks as a write; its charts are empty in the map.
 - Product pages link to `/store_<id>/settings/stock-locations`, without `/dashboard`, which answers
-  `404`. Seen in the admin app map, 2026-11-10; not filed yet.
+  `404`; pressing the "Shop location" link loads that address and the page stays blank. Seen in the
+  admin app map, 2026-11-10; confirmed on desktop Chromium and Pixel 7 and filed as `LOCAL-49`,
+  2026-11-14.

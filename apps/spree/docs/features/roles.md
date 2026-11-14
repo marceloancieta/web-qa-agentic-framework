@@ -121,12 +121,13 @@ it holds the same links per role is not observed yet (A1).
 
 ## Gaps and discrepancies
 
-Each gap was searched in the local tracker on 2026-11-10; none covers them.
+Each gap was searched in the local tracker on 2026-11-10; none covers them. Both were confirmed on
+desktop Chromium and Pixel 7 and filed on 2026-11-14.
 
 | # | Gap | Source | Issue |
 |---|---|---|---|
-| G1 | The write controls are shown whatever the role may write: the orders role (`read_orders` only) sees "New Order" on Orders and "Add product" on Products; the catalog role sees "New Order". What pressing them does is not observed. | probe, 2026-11-10 | searched, none |
-| G2 | A section the role cannot read, opened by its address, says nothing: its heading and controls appear over an empty table that looks like a loading one, with no message that access is refused. | probe, 2026-11-10 | searched, none |
+| G1 | The write controls are shown whatever the role may write: the orders role (`read_orders` only) sees "New Order" on Orders and "Add product" on Products; the catalog role sees "New Order". Pressing "New Order" or "Add product" opens the full form; the store still refuses the write (`403` "Missing permission: write_orders" through the API), so it is a wrong state, not a bypass. What the form shows on a refused submit is not observed. | probe, 2026-11-10 and 2026-11-14 | `LOCAL-47` |
+| G2 | A section the role cannot read, opened by its address, says nothing: its heading and controls appear over an empty table that looks like a loading one, with no message that access is refused. | probe, 2026-11-10 and 2026-11-14 | `LOCAL-48` |
 
 ## Out of scope
 

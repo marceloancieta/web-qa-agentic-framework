@@ -1,0 +1,30 @@
+# TC-ROLES-07: what the admin API answers each role for each section's list (REQ-ROLES-05).
+# Observed through the API on 2026-11-10 (contract measurements).
+conditions:
+  role: [admin, orders_reader, catalog_editor]
+  section: [orders, products, customers, admin_users, roles]
+actions:
+  api: [allowed, refused]
+rules:
+  - when: { role: admin, section: '-' }
+    then: { api: allowed }
+  - when: { role: orders_reader, section: orders }
+    then: { api: allowed }
+  - when: { role: orders_reader, section: products }
+    then: { api: refused }
+  - when: { role: orders_reader, section: customers }
+    then: { api: refused }
+  - when: { role: orders_reader, section: admin_users }
+    then: { api: refused }
+  - when: { role: orders_reader, section: roles }
+    then: { api: refused }
+  - when: { role: catalog_editor, section: orders }
+    then: { api: refused }
+  - when: { role: catalog_editor, section: products }
+    then: { api: allowed }
+  - when: { role: catalog_editor, section: customers }
+    then: { api: refused }
+  - when: { role: catalog_editor, section: admin_users }
+    then: { api: refused }
+  - when: { role: catalog_editor, section: roles }
+    then: { api: refused }

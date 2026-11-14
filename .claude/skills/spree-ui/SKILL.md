@@ -55,6 +55,11 @@ dashboard's sidebar sits behind "Toggle Sidebar".
 | Key | What | Cases armed with it |
 |---|---|---|
 | `LOCAL-44` | dashboard documents carry no Content-Security-Policy or Permissions-Policy | the security headers sweep (`headers-known.json`) |
+| `LOCAL-45` | login: the refusal and field messages are not announced to screen readers (S2) | none yet; LOGIN cases at design |
+| `LOCAL-46` | login: Email and Password have no `autocomplete` and no `required` (S3) | none yet; LOGIN cases at design |
+| `LOCAL-47` | write controls shown to roles that cannot write; the store refuses the write (S3) | none yet; ROLES cases at design |
+| `LOCAL-48` | a section the role cannot read shows an empty table with no refusal message (S3) | none yet; ROLES cases at design |
+| `LOCAL-49` | product pages' "Shop location" links omit `/dashboard` and land on a 404 (S3) | none |
 
 ## Accessibility baseline
 

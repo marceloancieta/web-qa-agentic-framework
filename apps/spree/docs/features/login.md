@@ -147,12 +147,13 @@ runs as `not-webkit`.
 ## Gaps and discrepancies
 
 Each gap was searched in the local tracker on 2026-11-10; the only Spree issue there is `LOCAL-44`
-(security headers), which covers none of them.
+(security headers), which covers none of them. G1 and G2 were confirmed on desktop Chromium and
+Pixel 7 and filed on 2026-11-14.
 
 | # | Gap | Source | Issue |
 |---|---|---|---|
-| G1 | The refusal and lockout messages are plain paragraphs with no `alert` or `status` role; a screen reader may not announce them (WCAG 2.1 SC 4.1.3). Whether the field messages are tied to their fields (`aria-describedby`) is not known yet. | probe accessibility tree, 2026-11-10 | searched, none |
-| G2 | Email and Password have no `autocomplete` value (WCAG 2.1 SC 1.3.5 for the email) and no `required`. | app map and live look, 2026-11-10 | searched, none |
+| G1 | The refusal and lockout messages are plain paragraphs with no `alert` or `status` role and outside the page's live regions, so a screen reader does not announce them (WCAG 2.1 SC 4.1.3). The field messages are not tied to their fields: the fields get `aria-invalid` but no `aria-describedby`. | probe accessibility tree, 2026-11-10 and 2026-11-14 | `LOCAL-45` |
+| G2 | Email and Password have no `autocomplete` value (WCAG 2.1 SC 1.3.5 for the email) and no `required`. | app map and live look, 2026-11-10; probe, 2026-11-14 | `LOCAL-46` |
 | G3 | Whether five wrong passwords for an unknown email also end with the lockout message; if they do not, the message tells an attacker that the account exists. | not observed | searched, none |
 | G4 | Back after "Log out" left the probe's page on `about:blank`, because the dashboard was its first page; what Back shows after a longer history is not known. | probe, 2026-11-10 | searched, none |
 
