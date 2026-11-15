@@ -11,6 +11,7 @@ machine ([running tests](running-tests.md)).
 | Install | `npm ci`, then the browsers: `npm run ci:browsers:no-deps`, or `npm run ci:browsers` with `BROWSER_DEPS` |
 | Gates | `npm run gates` |
 | Suite | Juice Shop, then the suite in `SHARDS` shards, one after another, each adding its blob report |
+| Spree | `npm run ci:spree`: Spree started empty in the build's compose project, its admin the placeholder `admin@example.test` with a password generated for the build when the agent names none, then the Spree pack's specs, adding their blob report; `npm run spree:down` removes it when the build ends |
 | Lanes | the accessibility, visual, ZAP and destructive lanes, the destructive one last, since it restarts Juice Shop |
 | Report | `npm run ci:merge`, the quality gate over the suite and the lanes, then `npm run tm:report`, to Allure TestOps when the build names its token ([below](#reporting-to-allure-testops)) |
 | Cited keys | instead of the stages above, in a build the weekly timer starts or one with `FLAKE_LANE`: `npm run cited-status -- --online`, which reads a tracker reached over the network and skips, saying so, one kept in the repository. The tracker's variables come from the agent's environment; a failure marks the build failed and the lanes still run |

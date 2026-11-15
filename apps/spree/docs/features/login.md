@@ -19,7 +19,7 @@ that I can work on the store, and I sign out when I am done.
 |---|---|---|
 | REQ-LOGIN-01 | A staff member with the right email and password signs in on `/dashboard/login` and lands on the store's dashboard, `/dashboard/<store id>`, whose heading is "Dashboard". | app map as `admin` (the dashboard after sign-in); the probe's sign-ins through the admin API, 2026-11-10 (A1) |
 | REQ-LOGIN-02 | Sign in with both fields empty shows "Invalid email address" under Email and "Password is required" under Password, marks both fields invalid and sends no request. | probe, 2026-11-10 |
-| REQ-LOGIN-03 | An email without the shape of an address shows "Invalid email address" and sends no request. | probe, 2026-11-10 |
+| REQ-LOGIN-03 | An email without the shape of an address is refused by the browser's own check of the Email field (`type=email`), which reports the field invalid; the page shows no message of its own and sends no request. | probe, 2026-11-10; TC-LOGIN-03 run, 2026-11-14 (`qa-member`, `qa-member@`, `@example.test`) |
 | REQ-LOGIN-04 | An unknown email and a wrong password get the same message, "Invalid email or password", and the page stays on `/dashboard/login`. | probe, 2026-11-10 |
 | REQ-LOGIN-05 | While the sign-in request runs, the button reads "Signing in…" and is disabled. | probe, 2026-11-10 |
 | REQ-LOGIN-06 | After five wrong passwords for one account, the account is locked for 30 minutes: even the right password gets "Account temporarily locked. Try again later." | probe, 2026-11-10; Spree configuration (`max_failed_login_attempts` 5, `lockout_duration` 1800 s) |
@@ -77,7 +77,7 @@ that I can work on the store, and I sign out when I am done.
 
 | Field | HTML constraints (app map) | Beyond them |
 |---|---|---|
-| Email | `type=email`; no `required`, `autocomplete` or length limit | checked in the page when "Sign in" is pressed: empty or malformed gives "Invalid email address" and `aria-invalid` |
+| Email | `type=email`; no `required`, `autocomplete` or length limit | checked by the browser first (`type=email`): a malformed address stops the submit there, with the browser's own message; then by the page when "Sign in" is pressed: empty gives "Invalid email address" and `aria-invalid` |
 | Password | `type=password`; no `required`, `autocomplete` or length limit | empty gives "Password is required" and `aria-invalid` |
 
 "Sign in" is enabled until it is pressed; the page checks both fields before it sends anything. The
@@ -89,7 +89,7 @@ differs only for a locked account.
 | State | What the page shows | How a case reaches it |
 |---|---|---|
 | initial | both fields empty, Email focused, "Sign in" enabled | open `/dashboard/login` |
-| invalid | the field messages under the fields, both marked invalid | "Sign in" with an empty or malformed field |
+| invalid | the field messages under the fields, both marked invalid; a malformed email is stopped by the browser instead | "Sign in" with an empty field |
 | waiting | "Signing in…", disabled | any sign-in with valid fields, until the answer |
 | refused | "Invalid email or password" above the fields | a wrong pair, with a staff account of the case's own |
 | locked | "Account temporarily locked. Try again later." | five wrong passwords, then any, with an account of the case's own |
@@ -147,13 +147,14 @@ runs as `not-webkit`.
 ## Gaps and discrepancies
 
 Each gap was searched in the local tracker on 2026-11-10; the only Spree issue there is `LOCAL-44`
-(security headers), which covers none of them.
+(security headers), which covers none of them. G1 and G2 were confirmed on desktop Chromium and
+Pixel 7 and filed on 2026-11-14.
 
 | # | Gap | Source | Issue |
 |---|---|---|---|
-| G1 | The refusal and lockout messages are plain paragraphs with no `alert` or `status` role; a screen reader may not announce them (WCAG 2.1 SC 4.1.3). Whether the field messages are tied to their fields (`aria-describedby`) is not known yet. | probe accessibility tree, 2026-11-10 | searched, none |
-| G2 | Email and Password have no `autocomplete` value (WCAG 2.1 SC 1.3.5 for the email) and no `required`. | app map and live look, 2026-11-10 | searched, none |
-| G3 | Whether five wrong passwords for an unknown email also end with the lockout message; if they do not, the message tells an attacker that the account exists. | not observed | searched, none |
+| G1 | The refusal and lockout messages are plain paragraphs with no `alert` or `status` role and outside the page's live regions, so a screen reader does not announce them (WCAG 2.1 SC 4.1.3). The field messages are not tied to their fields: the fields get `aria-invalid` but no `aria-describedby`. | probe accessibility tree, 2026-11-10 and 2026-11-14 | `LOCAL-45` |
+| G2 | Email and Password have no `autocomplete` value (WCAG 2.1 SC 1.3.5 for the email) and no `required`. | app map and live look, 2026-11-10; probe, 2026-11-14 | `LOCAL-46` |
+| G3 | Five wrong passwords lock a staff account and the next attempt gets the lockout message, but an unknown email keeps getting "Invalid email or password": the message tells an attacker which emails have an account. | TC-LOGIN-06 and TC-LOGIN-08 runs, desktop Chromium and Pixel 7, 2026-11-14 | `LOCAL-50` |
 | G4 | Back after "Log out" left the probe's page on `about:blank`, because the dashboard was its first page; what Back shows after a longer history is not known. | probe, 2026-11-10 | searched, none |
 
 ## Out of scope
@@ -169,10 +170,9 @@ Each gap was searched in the local tracker on 2026-11-10; the only Spree issue t
 
 ## Assumptions to confirm
 
-- A1: REQ-LOGIN-01 through the form. The probes signed in through the API, which is what the form
-  calls; automate watches the form do it with an account of its own.
-- A2: REQ-LOGIN-09 after the move to the login: a dashboard route opened afterwards should lead to
-  the login, since logout revokes the refresh cookie. Automate watches it.
+- A1, settled on 2026-11-14: the form signs a member in (TC-LOGIN-01).
+- A2, settled on 2026-11-14: after "Log out", a dashboard route leads to the login again
+  (TC-LOGIN-11).
 - A3: the cases that type a password use a provisioned staff actor that the pack's provider creates
   and removes through the admin API. The `admin` actor stays the only existing account.
 - A4: `SPREE_ADMIN_EMAIL` holds a placeholder address (`admin@example.test`): the dashboard shows

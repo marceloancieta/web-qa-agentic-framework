@@ -1,5 +1,5 @@
 {
-  "next": 45,
+  "next": 51,
   "issues": {
     "LOCAL-1": {
       "title": "Basket: a customer can read another customer's basket by its id",
@@ -488,6 +488,78 @@
     "LOCAL-44": {
       "title": "Spree: dashboard documents carry no Content-Security-Policy or Permissions-Policy",
       "body": "**What happens:** the documents of the Spree admin dashboard (`/dashboard` and every route under it,\none application shell) carry no Content-Security-Policy and no Permissions-Policy header.\nX-Frame-Options (`SAMEORIGIN`), X-Content-Type-Options (`nosniff`) and Referrer-Policy\n(`strict-origin-when-cross-origin`) are present. The admin API (`/api/v3/admin/...`) does send\n`Permissions-Policy: camera=(), microphone=(), geolocation=()`; no response sends a\nContent-Security-Policy.\n\n**What should happen:** every document carries a Content-Security-Policy and a Permissions-Policy,\nas the security header rules of the framework require (`helpers/security-headers.ts`, ADR 0011).\nThe dashboard holds a staff session, so a policy that limits scripts matters more there than on a\nstorefront.\n\n**Steps:**\n1. Start the pack's application (`npm run spree:up`).\n2. Request `<base_url>/dashboard` (or `<base_url>/dashboard/login`) and read the response headers.\n3. Content-Security-Policy and Permissions-Policy are missing.\n\n**Devices:** any; the headers come from the server. The sweep fails the same way on desktop Chromium\nand mobile Chrome.\n\n**Severity:** S3. Nothing a user sees changes; the missing policies widen what a script injection\nin the dashboard could do with a staff session.\n\n**Evidence:** the security headers sweep (`apps/spree/specs/security/headers.spec.ts`) fails on `/`\nanonymous with an empty baseline on spree-desktop-chromium and spree-mobile-chrome, 2026-11-10\n(Spree 6.0.3, image pinned in `docker/compose.yml`); the response headers of `/dashboard`,\n`/dashboard/login`, `/up` and `/api/v3/admin/auth/providers` read the same day.\n",
+      "labels": [
+        "ui",
+        "severity:S3"
+      ],
+      "status": "open",
+      "category": "open",
+      "comments": []
+    },
+    "LOCAL-45": {
+      "title": "Spree login: the refusal and field messages are not announced to screen readers",
+      "body": "**What happens.** On the Spree admin login, the messages a sign-in attempt produces are plain paragraphs: \"Invalid email or password\" after a refused sign-in, and \"Invalid email address\" / \"Password is required\" under the fields after an empty submit. None of them has an `alert` or `status` role or sits in a live region; the page's two `aria-live=\"polite\"` regions stay empty. Focus stays on \"Sign in\". The fields get `aria-invalid=\"true\"` but no `aria-describedby`, so their messages are not tied to them.\n\n**What should happen.** A screen reader announces the refusal and the field messages when they appear (WCAG 2.1 SC 4.1.3 Status Messages, AA), and each field message is associated with its field (SC 1.3.1, 3.3.1). Contract `apps/spree/docs/features/login.md` G1; rules REQ-LOGIN-02, REQ-LOGIN-04.\n\n**Steps**\n1. Open `<base_url>/dashboard/login` with a screen reader on.\n2. Press \"Sign in\" with both fields empty: nothing is announced.\n3. Type a staff email and a wrong password, press \"Sign in\": \"Invalid email or password\" appears and is not announced.\n\n**Devices.** desktop-chromium and mobile-chrome (local environment, Spree 6.0.3). Reproduced on both.\n\n**Evidence.** Throwaway probe spec, 2026-11-14: the accessibility tree of the form and the role/`aria-live` chain of the refusal paragraph (details in the first comment). No trace kept.\n\n**Severity S2**: screen-reader users get no feedback on the critical path (signing in).\n",
+      "labels": [
+        "ui",
+        "severity:S2"
+      ],
+      "status": "open",
+      "category": "open",
+      "comments": [
+        "Probe detail, 2026-11-14, desktop-chromium and mobile-chrome (same result).\n\n- After an empty submit, accessibility tree of the form:\n  `textbox \"Email\" [invalid]` → `paragraph: Invalid email address`; `textbox \"Password\" [invalid]` → `paragraph: Password is required`.\n- Inputs after the empty submit: `aria-invalid=\"true\"`, `aria-describedby` absent, `required` absent.\n- After a wrong password (one attempt, the probe's own staff account): `paragraph: Invalid email or password` above the fields; its ancestor chain is `p > div > form > div > div > div`, with no `role` or `aria-live` on any of them.\n- Elements with `role=alert|status` or `aria-live` on the page, before and after: two, both `aria-live=\"polite\"` (one is `region \"Notifications\"`), both empty.\n"
+      ]
+    },
+    "LOCAL-46": {
+      "title": "Spree login: Email and Password have no autocomplete, and neither is required",
+      "body": "**What happens.** On the Spree admin login, the Email input (`type=email`) and the Password input (`type=password`) carry no `autocomplete` attribute, and neither has `required` or `aria-required`.\n\n**What should happen.** The email field, which collects the user's own address, declares its purpose, `autocomplete=\"email\"` or `\"username\"` (WCAG 2.1 SC 1.3.5 Identify Input Purpose, AA); the password field declares `autocomplete=\"current-password\"` so password managers fill it reliably; both fields are exposed as required, since the form refuses to submit without them (REQ-LOGIN-02). Contract `apps/spree/docs/features/login.md` G2.\n\n**Steps**\n1. Open `<base_url>/dashboard/login`.\n2. Inspect the Email and Password inputs: no `autocomplete`, no `required`, no `aria-required`.\n\n**Devices.** desktop-chromium and mobile-chrome (local environment, Spree 6.0.3). Reproduced on both.\n\n**Evidence.** Throwaway probe spec, 2026-11-14, reading the inputs' attributes; also the app map (`apps/spree/docs/app-map.json`, `/dashboard/login`: `constraints: {}` on both fields). No trace kept.\n\n**Severity S3**: a WCAG AA failure with a way around; signing in still works and browsers still offer saved credentials from the input types.\n",
+      "labels": [
+        "ui",
+        "severity:S3"
+      ],
+      "status": "open",
+      "category": "open",
+      "comments": []
+    },
+    "LOCAL-47": {
+      "title": "Spree dashboard: write controls are shown to roles that cannot write",
+      "body": "**What happens.** The Spree dashboard shows write controls to staff whose role cannot write. A role with `read_orders` alone sees \"New Order\" on Orders, and on sections it opens by address \"Add product\" and \"Export\" (Products), \"New Customer\" and \"Export\" (Customers), \"Invite teammate\" (Staff). \"New Order\" and \"Add product\" open their full forms (`/orders/new`, `/products/new`). The server refuses the write: as the same role, `POST /api/v3/admin/orders` and `POST /api/v3/admin/products` answer `403` \"Missing permission: write_orders\" / \"write_products\".\n\n**What should happen.** A control the role has no permission for is hidden or disabled with a reason, as the sidebar already hides the sections the role cannot read (contract `apps/spree/docs/features/roles.md`, REQ-ROLES-02, G1). The store's refusal (REQ-ROLES-05) holds, so this is not an authorization bypass.\n\n**Steps**\n1. As the admin, create a role with only `read_orders` and a staff member in it (invitation, acceptance).\n2. Sign in as that staff member at `<base_url>/dashboard/login`.\n3. Open Orders: \"New Order\" is shown; press it: the New Order form opens.\n4. Open `<base_url>/dashboard/<store id>/products`: \"Add product\" is shown; press it: the New product form opens.\n\n**Devices.** desktop-chromium and mobile-chrome (local environment, Spree 6.0.3). Reproduced on both.\n\n**Not observed.** What the dashboard shows when such a form is filled and submitted (the API answer is 403).\n\n**Evidence.** Throwaway probe spec, 2026-11-14 (role, staff and data created and removed by the probe): the accessibility trees of both forms and the API answers (details in the first comment). No trace kept.\n\n**Severity S3**: a wrong state for one role, with no data at risk; the user learns only by trying.\n",
+      "labels": [
+        "ui",
+        "severity:S3"
+      ],
+      "status": "open",
+      "category": "open",
+      "comments": [
+        "Probe detail, 2026-11-14, desktop-chromium and mobile-chrome (same result), role `read_orders` only.\n\n- `/dashboard/<store id>/orders`: `button \"New Order\"` present (count 1). After pressing it: URL `/dashboard/<store id>/orders/new`, `heading \"New Order\" [level=1]`, `button \"New Order\" [disabled]` until the form is filled, customer, market, items, purchase order and notes fields enabled. Requests sent other than GET: none from the form (only a `POST /api/v3/admin/reporting/query` answered 403 by the home page).\n- `/dashboard/<store id>/products`: `button \"Add product\"` present (count 1). After pressing it: URL `/dashboard/<store id>/products/new`, `heading \"New product\" [level=1]`, `button \"Create product\" [disabled]`, Name, Description, variants and media editable. No write sent.\n- API with the role's own token: `POST /api/v3/admin/orders` → `403 {\"error\":{\"code\":\"access_denied\",\"message\":\"Missing permission: write_orders\"}}`; `POST /api/v3/admin/products` → `403 ... \"Missing permission: write_products\"`. Nothing was created.\n- Other write controls seen on sections opened by address: \"Export\", \"New Customer\" (Customers), \"Invite teammate\" (Staff).\n"
+      ]
+    },
+    "LOCAL-48": {
+      "title": "Spree dashboard: a section the role cannot read shows an empty table with no refusal message",
+      "body": "**What happens.** When a staff member opens by address a Spree dashboard section their role cannot read, the page shows the section's heading, description and buttons over an empty table, with no message. The list request is refused (`403`) and the page does not say so: it looks like a table still loading, or a store with no data.\n\n**What should happen.** The page tells the user they have no access to the section (or leads them away from it), instead of an empty table. Contract `apps/spree/docs/features/roles.md` G2; REQ-ROLES-04 holds (no data shown).\n\n**Steps**\n1. As the admin, create a role with only `read_orders` and a staff member in it (invitation, acceptance).\n2. Sign in as that staff member at `<base_url>/dashboard/login`.\n3. Open `<base_url>/dashboard/<store id>/products`, then `/customers`, `/settings/staff` and `/settings/roles`.\n\n**Devices.** desktop-chromium and mobile-chrome (local environment, Spree 6.0.3). Reproduced on both.\n\n**Evidence.** Throwaway probe spec, 2026-11-14 (role and staff created and removed by the probe): the refused request and the page text of each section, searched for an access message (details in the first comment). No trace kept.\n\n**Severity S3**: a wrong state with a way around (the sidebar does not offer these sections).\n",
+      "labels": [
+        "ui",
+        "severity:S3"
+      ],
+      "status": "open",
+      "category": "open",
+      "comments": [
+        "Probe detail, 2026-11-14, desktop-chromium and mobile-chrome (same result), role `read_orders` only. Each page waited for its refused request and for the network to go idle; its text was searched for \"permission\", \"access\", \"denied\", \"forbidden\", \"not authorized\", \"allowed\": no match on any.\n\n| Section | Refused request | What the page shows |\n|---|---|---|\n| `/products` | `GET /api/v3/admin/products` 403 | \"Products\", description, \"Export\", \"Add product\", the Status filter, the column headers, empty rows |\n| `/customers` | `GET /api/v3/admin/customers` 403 | \"Customers\", description, \"Export\", \"New Customer\", the column headers, empty rows |\n| `/settings/staff` | `GET /api/v3/admin/roles` 403 | \"Staff\", \"Manage admin teammates and roles\", \"Invite teammate\", the Members and Pending invitations tabs, nothing below |\n| `/settings/roles` | `GET /api/v3/admin/roles` 403 | \"Roles\", \"Define what each staff role can see and do\", nothing below |\n"
+      ]
+    },
+    "LOCAL-49": {
+      "title": "Spree product page: the Shop location links omit /dashboard and land on a 404",
+      "body": "**What happens.** On a Spree dashboard product page, the \"Shop location\" links (three on the page, in the stock part) point to `/<store id>/settings/stock-locations?edit=<stock location id>`, without the `/dashboard` prefix. Pressing one loads that address as a new document, which answers `404`; the page is blank.\n\n**What should happen.** The link opens `/dashboard/<store id>/settings/stock-locations?edit=<stock location id>`, which answers 200 and shows the stock locations.\n\n**Steps**\n1. Sign in as the admin at `<base_url>/dashboard/login`.\n2. Open Products and any product.\n3. Press \"Shop location\": the address becomes `<base_url>/<store id>/settings/stock-locations?edit=…`, the document answers 404 and the page is blank.\n\n**Devices.** desktop-chromium and mobile-chrome (local environment, Spree 6.0.3). Reproduced on both.\n\n**Siblings checked.** No other link outside `/dashboard` on the products list, stock items, settings, stock locations or orders pages.\n\n**Evidence.** Throwaway probe spec, 2026-11-14: the links' `href`, the document request after the click (`404 /<store id>/settings/stock-locations`) and the empty page; first seen in the admin app map, 2026-11-10 (`apps/spree/docs/app-notes.md`). No trace kept.\n\n**Severity S3**: a broken link with a way around (Settings → Stock locations).\n",
+      "labels": [
+        "ui",
+        "severity:S3"
+      ],
+      "status": "open",
+      "category": "open",
+      "comments": []
+    },
+    "LOCAL-50": {
+      "title": "Spree login: the lockout message tells which emails have a staff account",
+      "body": "**What happens.** On the Spree admin login, five wrong passwords lock a staff account, and the next attempt gets \"Account temporarily locked. Try again later.\". An email that has no account never gets that message: after five refused attempts, the sixth still gets \"Invalid email or password\". Comparing the two answers tells which emails belong to a staff member.\n\n**What should happen.** An unknown email and a known one get the same answer at every attempt, so the page does not reveal which accounts exist (contract `apps/spree/docs/features/login.md` REQ-LOGIN-04, the generic refusal; gap G3; OWASP ASVS V2.2.1/V3 on generic authentication responses).\n\n**Steps**\n1. Open `<base_url>/dashboard/login`.\n2. Sign in five times with an email that has no account and any password: each gets \"Invalid email or password\".\n3. Sign in a sixth time with the same email: still \"Invalid email or password\".\n4. Do the same with a staff member's email: the sixth attempt gets \"Account temporarily locked. Try again later.\".\n\n**Devices.** desktop-chromium and mobile-chrome (local environment, Spree 6.0.3). Reproduced on both.\n\n**Evidence.** The cases TC-LOGIN-06 (a staff account of the case's own: the lockout message after five) and TC-LOGIN-08 (an unknown email: the refusal after five), run on 2026-11-14; TC-LOGIN-08's failure context shows the refusal paragraph on the sixth attempt. No trace attached.\n\n**Severity S3**: it discloses which emails are staff accounts, but finding out locks the real account for 30 minutes on every probe, which is visible and slows enumeration down.\n",
       "labels": [
         "ui",
         "severity:S3"

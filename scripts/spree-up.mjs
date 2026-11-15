@@ -12,7 +12,9 @@
  *    which is the case only after a start from an empty database.
  *
  * The values reach the container as environment variables of `docker compose exec`, never as
- * arguments, which process lists and logs keep.
+ * arguments, which process lists and logs keep. On a CI agent (`CI` set) whose environment has no
+ * admin variables, the admin is the placeholder `admin@example.test` with a password generated for
+ * the run (`runEnv`); `npm run ci:spree` does the same and keeps the values for the specs.
  *
  * Exit codes: 0 ready; 1 a step failed; 2 a variable or the configuration is missing.
  */
@@ -40,6 +42,35 @@ export function adminVariables(entry) {
     );
   }
   return { email: actor.username_env, password: actor.password_env };
+}
+
+/** The admin's address on a CI agent that names none: a reserved domain, never a person's. */
+export const PLACEHOLDER_ADMIN = 'admin@example.test';
+
+/** A password for a run's admin: random, long, with every character class Spree may ask for. */
+export function runPassword() {
+  return `Qa-${randomBytes(18).toString('base64url')}-9a`;
+}
+
+/**
+ * The environment of a run on a CI agent, which starts an empty Spree whose admin can be anyone the
+ * run decides: `env` with the admin's variables filled when they are empty (the placeholder
+ * address, a password generated for the run and held in memory only), and which were filled. `env`
+ * itself is left as it is; a value it has, such as a local `.env`'s, is kept.
+ */
+export function runEnv(env, entry, password = runPassword) {
+  const names = adminVariables(entry);
+  const filled = [];
+  const next = { ...env };
+  if (!next[names.email]?.trim()) {
+    next[names.email] = PLACEHOLDER_ADMIN;
+    filled.push(names.email);
+  }
+  if (!next[names.password]?.trim()) {
+    next[names.password] = password();
+    filled.push(names.password);
+  }
+  return { env: next, filled };
 }
 
 // Runs in the container with `bin/rails runner`. It reads the admin from SPREE_UP_ADMIN_EMAIL and
@@ -155,7 +186,20 @@ function main() {
     console.error(`spree-up: ${error.message}`);
     return 2;
   }
-  const { code, lines } = spreeUp({ env: process.env, entry, io: dockerIo() });
+  // On a CI agent the admin may be made up for the run (`runEnv`); elsewhere a missing variable is
+  // named and nothing starts.
+  let env = process.env;
+  if (process.env['CI']) {
+    let filled;
+    try {
+      ({ env, filled } = runEnv(process.env, entry));
+    } catch (error) {
+      console.error(`spree-up: ${error.message}`);
+      return 2;
+    }
+    if (filled.length > 0) console.log(`spree-up: set for this run only: ${filled.join(', ')}`);
+  }
+  const { code, lines } = spreeUp({ env, entry, io: dockerIo() });
   for (const line of lines) (code === 0 ? console.log : console.error)(`spree-up: ${line}`);
   return code;
 }

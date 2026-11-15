@@ -55,6 +55,27 @@ export function cancelledByPage(errorText: string | undefined): boolean {
 }
 
 /**
+ * Whether an uncaught error is WebKit's report of a same-origin fetch the page could not read to the
+ * end: "Fetch API cannot load <url> due to access control checks.", whose message carries the URL
+ * from its host on ("/localhost:3100/api/..."). WebKit says so when a navigation cuts a fetch off
+ * (a framework's retry of a refused list, still in flight when the next page opens). A same-origin
+ * request never fails access control, and the request checks below judge the request itself, so
+ * the error says nothing more. One that names another origin is a real access control refusal and
+ * stays a problem.
+ */
+export function cutOffSameOriginFetch(message: string, pageUrl: string): boolean {
+  const named = /^(?:Fetch API cannot load )?(\S+) due to access control checks\.?$/.exec(message);
+  if (!named?.[1]) return false;
+  // The host-first form ("/host:port/path") becomes protocol-relative before it is resolved.
+  const raw = /^\/[^/]/.test(named[1]) ? `/${named[1]}` : named[1];
+  try {
+    return sameOrigin(new URL(raw, pageUrl).href, pageUrl);
+  } catch {
+    return false;
+  }
+}
+
+/**
  * The URLs a console error blames on a request that never got an answer: every error object it
  * describes (see describeErrorObjects) with `status: 0` and a `url`, resolved against the page's
  * address. Null when the message describes no error object, or any of them is not of that kind, so a
@@ -131,6 +152,7 @@ export function watchPageHealth(page: Page, options: PageHealthOptions = {}): Pa
     }
   });
   page.on('pageerror', (error) => {
+    if (cutOffSameOriginFetch(error.message, page.url())) return;
     seen.push({ kind: 'uncaught-error', detail: error.message });
   });
   page.on('requestfailed', (request) => {

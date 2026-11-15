@@ -43,7 +43,10 @@
                 "account": "existing",
                 "username_env": "SPREE_ADMIN_EMAIL",
                 "password_env": "SPREE_ADMIN_PASSWORD"
-              }
+              },
+              "staff": { "account": "provisioned" },
+              "orders-reader": { "account": "provisioned" },
+              "catalog-editor": { "account": "provisioned" }
             },
             "default_actor": "admin"
           },
@@ -126,6 +129,22 @@
                 }
               }
             }
+          },
+          "spree": {
+            "base_url": "http://localhost:3100",
+            "allow_writes": true,
+            "recovery": { "command": "docker compose -f docker/compose.yml restart spree" },
+            "actors": {
+              "admin": {
+                "account": "existing",
+                "username_env": "SPREE_ADMIN_EMAIL",
+                "password_env": "SPREE_ADMIN_PASSWORD"
+              },
+              "staff": { "account": "provisioned" },
+              "orders-reader": { "account": "provisioned" },
+              "catalog-editor": { "account": "provisioned" }
+            },
+            "default_actor": "admin"
           }
         }
       }

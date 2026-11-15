@@ -16,6 +16,25 @@ export interface AdminSignIn {
 export class AuthApi {
   constructor(private readonly api: APIRequestContext) {}
 
+  /**
+   * The address of the member whose session this context holds, or null without one. It trades the
+   * context's refresh cookie for an access token, as the dashboard does on a page load, so with a
+   * page's own request context (`page.request`) it reads the page's session; the rotated cookie
+   * goes back into the same context, which the page shares.
+   */
+  async whoami(): Promise<string | null> {
+    const refresh = await this.api.post('api/v3/admin/auth/refresh');
+    if (refresh.status() === 401) return null;
+    if (!refresh.ok()) throw new Error(`Spree session refresh answered ${refresh.status()}.`);
+    const { token } = (await refresh.json()) as { token: string };
+    const me = await this.api.get('api/v3/admin/me', {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    if (!me.ok()) throw new Error(`Spree admin me answered ${me.status()}.`);
+    const body = (await me.json()) as { email?: string; user?: { email?: string } };
+    return body.email ?? body.user?.email ?? null;
+  }
+
   async login(account: Account): Promise<AdminSignIn> {
     const response = await this.api.post('api/v3/admin/auth/login', {
       data: { email: account.username, password: account.password },

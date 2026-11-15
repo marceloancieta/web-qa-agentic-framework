@@ -6,9 +6,9 @@ digest). The storefront is not part of the pack.
 
 Created by `npm run scaffold:app`. Still to fill in, through the phases:
 
-- [ ] `app.json`: layout `breakpoints`, `third_party_hosts` to block, extra `secret_keys` and
-      `identity_fields`
-- [ ] `fixtures.ts`: staff of limited roles, provisioned through the admin API
+- [x] `app.json`: the `sidebar` breakpoint (768 px)
+- [ ] `app.json`: `third_party_hosts` to block, extra `secret_keys` and `identity_fields`
+- [x] `fixtures.ts`: staff of limited roles, provisioned through the admin API
 
 ## Features
 
@@ -21,8 +21,14 @@ Created by `npm run scaffold:app`. Still to fill in, through the phases:
 
 | Path | Holds |
 |---|---|
-| `fixtures.ts` | the `admin` actor, signed in through the admin API, once per context (`singleUseSessions`) |
-| `api/auth-api.ts` | the admin sign-in: the access token and the single-use refresh cookie |
+| `fixtures.ts` | the `admin` actor, and the provisioned `staff`, `orders-reader` and `catalog-editor` (a role, an invitation and its acceptance through the admin API, removed when the worker ends), each signed in through the admin API once per context (`singleUseSessions`) |
+| `api/auth-api.ts` | the admin sign-in, the access token and the single-use refresh cookie; `whoami` reads a context's session |
+| `api/staff-api.ts`, `api/catalog-api.ts` | roles, invitations and members; the status of a section's list; the products' names |
+| `builders/staff-builder.ts` | members, their names and roles, each actor's permissions, unknown addresses |
+| `pages/`, `components/` | the login, a dashboard section, the settings, the page of a member without a store; the sidebar and the user menu |
+| `mocks/auth-mocks.ts` | a delayed sign-in answer, and a count of the sign-ins sent |
+| `rules/TC-ROLES-07.yaml` | the admin API's answer per role and section |
+| `registry/`, `specs/login/`, `specs/roles/` | the LOGIN and ROLES cases and their specs |
 | `docs/app-map.json`, `docs/app-map.admin.json` | the app maps, anonymous and as the admin |
 | `docs/app-notes.md` | sessions, the store's ids, the sample data, page behaviour |
 

@@ -11,6 +11,7 @@ import {
   animationsFinished,
   clippedText,
   horizontalOverflow,
+  pageOverflow,
   settledHorizontalOverflow,
   pastTheWidth,
   textSpill,
@@ -161,6 +162,37 @@ test('sideways scroll inside a container counts, and what cannot scroll does not
     #content { width: 650px; height: 10px; }
   </style></head><body><div id="content"></div></body></html>`);
   expect(await horizontalOverflow(page), 'the body as the scroller').toBe(250);
+});
+
+test('the page around the content counts, a scroller inside the content does not', async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 400, height: 300 });
+  const layout = (shell: string, table: string) =>
+    page.setContent(`<!doctype html><html lang="en"><head><title>Page</title><style>
+      html, body { margin: 0; overflow: hidden; }
+      #shell { width: 400px; height: 300px; overflow: ${shell}; }
+      #banner { width: 400px; height: 10px; }
+      #scroller { overflow-x: auto; }
+      #table { width: ${table}; height: 10px; }
+    </style></head><body><div id="shell"><main><div id="banner"></div>
+      <div id="scroller"><div id="table"></div></div></main></div></body></html>`);
+  const main = page.locator('main');
+
+  await layout('auto', '650px');
+  expect(await horizontalOverflow(page), 'every scroller counts').toBe(250);
+  expect(await pageOverflow(main), "the table's own scroller does not").toBe(0);
+
+  await page.evaluate(() => {
+    const banner = document.getElementById('banner');
+    if (banner) banner.style.width = '700px';
+  });
+  expect(await pageOverflow(main), 'a shell around the content that scrolls').toBe(300);
+
+  await page.setContent(`<!doctype html><html lang="en"><head><title>Wide</title><style>
+    body { margin: 0; } #wide { width: 650px; height: 10px; }
+  </style></head><body><main><div id="wide"></div></main></body></html>`);
+  expect(await pageOverflow(main), 'the document itself').toBe(250);
 });
 
 test('animations are waited for until they end, and an endless one does not hold the wait', async ({

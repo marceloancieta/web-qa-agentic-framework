@@ -45,4 +45,33 @@ messages, how sessions work, what is safe to change. Each one says how it was ob
 - The home dashboard reads its reports with `POST /api/v3/admin/reporting/query`, which the app
   map blocks as a write; its charts are empty in the map.
 - Product pages link to `/store_<id>/settings/stock-locations`, without `/dashboard`, which answers
-  `404`. Seen in the admin app map, 2026-11-10; not filed yet.
+  `404`; pressing the "Shop location" link loads that address and the page stays blank. Seen in the
+  admin app map, 2026-11-10; confirmed on desktop Chromium and Pixel 7 and filed as `LOCAL-49`,
+  2026-11-14. The app map leaves links outside `/dashboard` out (`app_map.exclude` `^/store_`), so
+  the sweeps over the map no longer open that empty 404, and leaves out `/rails/` links too, which
+  download files (the store's handbook PDF) instead of opening pages; rewritten 2026-11-14.
+- The settings page shows its "Settings navigation" from 1024 px up (`hidden … lg:block` in the
+  dashboard's code); below that, its cards in the main region are the only list. Observed on the
+  tablet project (810 px), 2026-11-14.
+- Below 768 px the sidebar is a dialog, "Sidebar", that "Toggle Sidebar" opens; from 768 px up it
+  is on the page, with "Settings" in a list of its own below the other sections. Read in the
+  dashboard's code (`max-width: 767px`) and on desktop Chromium and Pixel 7, 2026-11-14.
+- On narrow screens a section's table scrolls sideways inside a container of its own (409 px on
+  Orders at Pixel 7); the page itself does not scroll. Observed 2026-11-14.
+- The admin API and the products list order the products differently, so a case matches a row
+  against the store's product names rather than one name.
+- Removing a member (`DELETE /api/v3/admin/admin_users/<id>`) takes them out of the store, not out
+  of Spree: they still sign in and land on "You don't have access to any store". Observed on
+  desktop Chromium and Pixel 7, 2026-11-14.
+- An email field with a malformed address is stopped by the browser's own `type=email` check
+  before the page validates it; the page's "Invalid email address" shows for an empty field only.
+  Observed on desktop Chromium and Pixel 7, 2026-11-14.
+- WebKit reports a fetch that a navigation cuts off as an uncaught error, "Fetch API cannot load
+  <url> due to access control checks."; the page health guard leaves it out for a same-origin URL
+  (`cutOffSameOriginFetch`). The dashboard retries a refused list, and the next page cuts the retry
+  off. Observed on desktop WebKit and the tablet, 2026-11-14.
+- A refused section asks for more than its list: Products, opened by the orders reader, is refused
+  `products`, `custom_field_definitions`, `markets` and `dashboard/counters` (`403` each), and shows
+  no message (`LOCAL-48`); `channels`, `reporting/schema` and `POST reporting/query` are refused too
+  when the pages ask for them before the next page loads. Observed on desktop Chromium and Pixel 7,
+  2026-11-14.
