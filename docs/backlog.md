@@ -45,7 +45,9 @@ Every item of v0.1.0 is done; each is in **Done**.
 
 | Id | Item | Origin | Status |
 |---|---|---|---|
-| FUT-01 | Spree pack (Spree Commerce admin dashboard, local Docker): the application started, seeded and signed in by `npm run spree:up`, then authorization in the UI by role. | plan | in-progress |
+| SP-01 | The accessibility sweep of the Spree pack runs in CI: the `lane` job starts Spree with `spree:up` and sweeps the `spree-*` projects against `apps/spree/a11y-known.json`, and the required check waits for it. | plan | todo |
+| SP-02 | A visual lane for the Spree pack: design and automate `@visual` cases for the sign-in and the staff roles with their baselines (the pack has none yet), then run them in the CI `lane (visual)` job. | plan | todo |
+| SP-03 | A ZAP baseline scan of the Spree pack: a disposable Spree the lane starts, `apps/spree/zap-known.json` for its known findings, and `npm run lanes:zap -- --pack spree` in the CI `zap` job. | plan | todo |
 | FUT-04 | i18n: projects per `locale` and `timezoneId`, pseudo-localization, right-to-left. | practice | todo |
 | FUT-05 | Design-token checks from the pack's `design-tokens.json`; `prefers-reduced-motion` emulation. | plan | todo |
 | FUT-07 | TOTP two-factor login and a mail-catcher pattern (Mailpit). | plan | todo |
@@ -151,3 +153,4 @@ Items no release holds yet; one moves into a release when its preconditions hold
 | GATE-14 | `lint-docs` closing-commit also reports a **Done** row that cites no hash: it read only the hashes a row cites, so a row moved with an empty **Closed by** cell passed. | `609db36` |
 | JS-08 | Automate the approved Juice Shop cases that had no spec yet, one feature at a time: checkout, login, sign-up, basket and search, each reviewed against its registry, run on the six device projects and published. | `dbe9ad1`, `2283c20`, `70533ef`, `f1a581a`, `1db0f2b` |
 | GATE-12 | The `browser-guard` hook holds an agent's browser tools (Playwright MCP, Claude in Chrome) to the browser limits of design in `.claude/rules/modes.md`: reads and navigation to the environments qa-config names pass, an upload is refused, and a call whose effect depends on the page (a click, typing, a key that activates, code run in the page, another origin, an unknown tool) asks the user, since a hook sees the arguments and not the page. | `7fd629b` |
+| FUT-01 | The Spree pack (Spree Commerce admin dashboard, local Docker): `npm run spree:up` starts the application, makes its admin and loads sample data; the admin sign-in and the staff roles have their contracts, 35 designed cases automated on the six device projects, published to test management, and a CI job (`spree`, GitHub Actions and Jenkins) that starts Spree and runs them. | `533cc3d`, `957b34a`, `c1ec5c5` |
