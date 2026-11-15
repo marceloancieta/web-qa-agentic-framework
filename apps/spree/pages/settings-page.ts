@@ -1,9 +1,9 @@
 // The settings of the store (`/dashboard/<store id>/settings`): the settings the member's role can
 // open, grouped under headings (Store, Selling, Developer...). The page shows each setting as a
 // card in its main region, a link named by the setting and its description ("Imports History of
-// CSV imports..."). From the `sidebar` breakpoint of app.json up, a "Settings navigation" beside
-// the cards, itself inside the main region, lists the same settings by name under "Back to
-// dashboard"; below it there is no navigation.
+// CSV imports..."). From the `settings_navigation` breakpoint of app.json up (the dashboard's
+// `lg`, 1024 px), a "Settings navigation" beside the cards, itself inside the main region, lists
+// the same settings by name under "Back to dashboard"; below it there is no navigation.
 
 import type { Locator, Page } from '@playwright/test';
 import type { AppPack } from '../../../helpers/app-pack';
@@ -17,8 +17,8 @@ export class SettingsPage {
 
   /** The settings page in the form the page's viewport shows. */
   static for(page: Page, storeId: string, app: Pick<AppPack, 'breakpoints'>): SettingsPage {
-    const from = app.breakpoints?.['sidebar'];
-    if (from === undefined) throw new Error('app.json has no breakpoints.sidebar.');
+    const from = app.breakpoints?.['settings_navigation'];
+    if (from === undefined) throw new Error('app.json has no breakpoints.settings_navigation.');
     return new SettingsPage(page, storeId, (page.viewportSize()?.width ?? 0) >= from);
   }
 

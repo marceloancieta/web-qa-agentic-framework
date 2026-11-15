@@ -118,6 +118,13 @@ export const provider: ActorProvider = {
   },
 };
 
+/**
+ * The console error Firefox logs when a navigation cuts off the dashboard's web fonts while they
+ * download: status 2152398850 is NS_BINDING_ABORTED, the request cancelled, not a broken font. A
+ * font that fails for any other reason keeps another status and still fails the case.
+ */
+export const ABORTED_FONT_DOWNLOAD = /downloadable font: download failed .*status=2152398850\b/;
+
 /** The ids `provision` gave a member, for a case that removes the member or the role itself. */
 export function provisionedIds(account: Account | null): { memberId: string; roleId: string } {
   if (!account?.id) throw new Error('The actor has no provisioned account.');

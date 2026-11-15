@@ -14,7 +14,7 @@ import { CatalogApi } from '../../api/catalog-api';
 import { StaffApi, type Section } from '../../api/staff-api';
 import { roleName } from '../../builders/staff-builder';
 import { Sidebar } from '../../components/sidebar';
-import { expect, provisionedIds, test, type Actor } from '../../fixtures';
+import { ABORTED_FONT_DOWNLOAD, expect, provisionedIds, test, type Actor } from '../../fixtures';
 import { LoginPage } from '../../pages/login-page';
 import { NoStorePage } from '../../pages/no-store-page';
 import { SettingsPage } from '../../pages/settings-page';
@@ -46,6 +46,8 @@ const ALL_SECTIONS = [
   'Reports',
   'Settings',
 ] as const;
+
+test.use({ pageHealth: { allowConsole: [ABORTED_FONT_DOWNLOAD] } });
 
 test.beforeEach(({ qa }) => {
   test.skip(!qa.allowWrites, 'the cases create roles and staff members; allow_writes is false');
@@ -324,6 +326,8 @@ test('TC-ROLES-14 a role without the write permission is offered no write contro
   ordersReader,
   catalogEditor,
 }) => {
+  // Two members, two sections and their lists: longer than one page's case on Firefox.
+  test.slow();
   const editor = await openDashboard(catalogEditor.page);
   expect(await editor.openAndWaitForList('products', LISTS['products']!)).toBe(ALLOWED);
   await expect(editor.control('Add product')).toBeVisible();

@@ -1,6 +1,7 @@
 import {
   cancelledByPage,
   checkOptions,
+  cutOffSameOriginFetch,
   healthReport,
   healthVerdict,
   unansweredRequestUrls,
@@ -33,6 +34,22 @@ test("a request the page cancels is not a failure in any engine; a mock's abort 
     expect(cancelledByPage(reason)).toBe(true);
   for (const reason of ['net::ERR_FAILED', 'net::ERR_INTERNET_DISCONNECTED', 'failed', undefined])
     expect(cancelledByPage(reason)).toBe(false);
+});
+
+test("WebKit's report of a same-origin fetch cut off is not a problem; another origin's still is", () => {
+  const page = 'http://localhost:3100/dashboard/store_1/products';
+  for (const message of [
+    '/localhost:3100/api/v3/admin/products?page=1 due to access control checks.',
+    'Fetch API cannot load http://localhost:3100/api/v3/admin/markets due to access control checks.',
+  ])
+    expect(cutOffSameOriginFetch(message, page), message).toBe(true);
+  for (const message of [
+    'Fetch API cannot load https://cdn.example.test/x.js due to access control checks.',
+    '/cdn.example.test/x.js due to access control checks.',
+    'TypeError: undefined is not an object',
+    'Load failed',
+  ])
+    expect(cutOffSameOriginFetch(message, page), message).toBe(false);
 });
 
 test('a healthy page has no problems, and a blocked-looking third party is not counted', async ({

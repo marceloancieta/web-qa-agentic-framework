@@ -3,14 +3,14 @@
   "version": "6.0.3",
   "title": "Spree Commerce admin",
   "login_path": "/dashboard/login",
-  "breakpoints": { "sidebar": 768 },
+  "breakpoints": { "sidebar": 768, "settings_navigation": 1024 },
   "third_party_hosts": [],
   "secret_keys": [],
   "identity_fields": [],
   "app_map": {
     "start": ["/", "/dashboard/login", "/dashboard/forgot-password"],
     "session_writes": ["POST /api/v3/admin/auth/refresh"],
-    "exclude": ["#main-content$", "/logout", "/sign-out"],
+    "exclude": ["#main-content$", "/logout", "/sign-out", "^/store_", "^/rails/"],
     "actors": {
       "admin": {
         "start": ["/dashboard"]

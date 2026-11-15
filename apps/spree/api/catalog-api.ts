@@ -3,6 +3,9 @@
 
 import type { APIRequestContext } from '@playwright/test';
 
+/** More pages than the sample data's 38 products fill; a store with more is not a test store. */
+const MAX_PAGES = 20;
+
 export class CatalogApi {
   constructor(private readonly api: APIRequestContext) {}
 
@@ -12,10 +15,16 @@ export class CatalogApi {
    * a row against the whole set rather than one name.
    */
   async productNames(): Promise<string[]> {
-    const response = await this.api.get('api/v3/admin/products', { params: { per_page: 100 } });
-    if (!response.ok()) throw new Error(`Spree products answered ${response.status()}.`);
-    const { data } = (await response.json()) as { data: { name: string }[] };
-    if (data.length === 0) throw new Error('The store has no product: load the sample data.');
-    return data.map(({ name }) => name);
+    // The list comes in pages whatever size is asked for: read them until one comes back empty.
+    const names: string[] = [];
+    for (let page = 1; page <= MAX_PAGES; page += 1) {
+      const response = await this.api.get('api/v3/admin/products', { params: { page } });
+      if (!response.ok()) throw new Error(`Spree products answered ${response.status()}.`);
+      const { data } = (await response.json()) as { data: { name: string }[] };
+      if (data.length === 0) break;
+      names.push(...data.map(({ name }) => name));
+    }
+    if (names.length === 0) throw new Error('The store has no product: load the sample data.');
+    return names;
   }
 }

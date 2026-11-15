@@ -14,7 +14,7 @@ import { becomesVisibleWithin } from '../../../../helpers/watch';
 import { AuthApi } from '../../api/auth-api';
 import { anUnknownEmail, staffName } from '../../builders/staff-builder';
 import { UserMenu } from '../../components/user-menu';
-import { expect, test, type Actor } from '../../fixtures';
+import { ABORTED_FONT_DOWNLOAD, expect, test, type Actor } from '../../fixtures';
 import { slowSignIn, watchSignIns } from '../../mocks/auth-mocks';
 import { LoginPage } from '../../pages/login-page';
 import { SectionPage, openDashboard, storeIdOf } from '../../pages/section-page';
@@ -28,6 +28,8 @@ const PASSWORD_MESSAGE = 'Password is required';
 const LOCK_AFTER = 5;
 // A sign-in answer took up to a few seconds on a local container busy with parallel workers.
 const ANSWER = { timeout: 15_000 };
+
+test.use({ pageHealth: { allowConsole: [ABORTED_FONT_DOWNLOAD] } });
 const ON_LOGIN = /\/dashboard\/login$/;
 // How long a watch waits for data that must not show: longer than a redirect takes.
 const SHOWN_WITHIN = 5_000;
@@ -50,6 +52,8 @@ async function ownStaff(actor: ActorOf, qa: { allowWrites: boolean }) {
 
 /** Send `times` refused sign-ins for `email`, each one answered before the next. */
 async function failSignIns(page: Page, login: LoginPage, email: string, times: number) {
+  // Five sign-ins answered one after the other take longer than one page's case on WebKit.
+  test.slow();
   const signIns = watchSignIns(page);
   for (let attempt = 1; attempt <= times; attempt += 1) {
     await login.signIn(email, generatedPassword());

@@ -1,8 +1,8 @@
 // The CI pipeline for Jenkins (CI-02, CI-04), the same steps as .github/workflows/ci.yml on one
-// agent: gates, the suite in shards one after another, the lanes, then the merged report, the
-// quality gate and the test-management report. Every step calls an npm script of package.json, apart
-// from the probes of the Node stage; scripts/__tests__/ci-files.test.mjs checks it. What an agent
-// needs and how the job is set up: docs/guides/jenkins.md.
+// agent: gates, the suite in shards one after another, the Spree pack, the lanes, then the merged
+// report, the quality gate and the test-management report. Every step calls an npm script of
+// package.json, apart from the probes of the Node stage; scripts/__tests__/ci-files.test.mjs checks
+// it. What an agent needs and how the job is set up: docs/guides/jenkins.md.
 //
 // One QA_RUN_ID covers the whole build. The build has its own compose project, so it never touches
 // a Juice Shop started by hand on the same Docker engine; both publish port 3000, so only one of
@@ -70,6 +70,7 @@ def withTestManagement(Closure body) {
 
 // Set once Juice Shop has been started; the post steps stop it only then.
 @Field boolean juiceShopStarted = false
+@Field boolean spreeStarted = false
 
 pipeline {
   // Parameters exist only after the first build has read this file; until then the label is empty.
@@ -168,6 +169,24 @@ pipeline {
               catchError(buildResult: 'FAILURE', stageResult: 'FAILURE') {
                 shell "npm test -- ${playwrightOptions()} --shard=${shard}/${total}"
               }
+            }
+          }
+        }
+      }
+    }
+
+    // The Spree pack (FUT-01): `ci:spree` starts Spree in the build's compose project, gives its admin
+    // a placeholder address and a password generated for the build when the agent names none, and
+    // runs the pack's specs. Its blob joins the shards' in the report.
+    stage('Spree') {
+      when { expression { !flakeBuild() } }
+      steps {
+        script {
+          spreeStarted = true
+          String workers = params.WORKERS?.trim()
+          withEnv(['QA_BLOB_REPORT=1', 'PWTEST_BLOB_DO_NOT_REMOVE=1', junitOf('spree')]) {
+            catchError(buildResult: 'FAILURE', stageResult: 'FAILURE') {
+              shell 'npm run ci:spree' + (workers ? " -- --workers=${workers}" : '')
             }
           }
         }
@@ -277,6 +296,9 @@ pipeline {
       script {
         if (juiceShopStarted) {
           shell(returnStatus: true, 'npm run juice-shop:down')
+        }
+        if (spreeStarted) {
+          shell(returnStatus: true, 'npm run spree:down')
         }
       }
     }
