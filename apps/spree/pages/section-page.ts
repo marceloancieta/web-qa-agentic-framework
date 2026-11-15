@@ -50,8 +50,9 @@ export class SectionPage {
 
   /** The address of `path` under the store, as the page shows it. */
   url(path = ''): RegExp {
+    const literal = (text: string) => text.replace(/[\\^$.*+?()[\]{}|/]/g, '\\$&');
     const tail = path ? `/${path}` : '';
-    return new RegExp(`/dashboard/${this.storeId}${tail.replace(/\//g, '\\/')}/?$`);
+    return new RegExp(`${literal(`/dashboard/${this.storeId}${tail}`)}/?$`);
   }
 
   heading(name: string): Locator {

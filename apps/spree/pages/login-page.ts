@@ -7,8 +7,24 @@ import type { Locator, Page } from '@playwright/test';
 export class LoginPage {
   constructor(private readonly page: Page) {}
 
+  /**
+   * Open the page and wait until its form is the one that stays: the dashboard asks for a session
+   * (`auth/refresh`), the store's setup and the sign-in providers, and draws the form again when
+   * they answer, emptying what was typed before. Once they have answered, the form puts the focus
+   * in Email (REQ-LOGIN-10). A slow engine filled the first form on a CI runner and pressed
+   * "Sign in" on an empty second one.
+   */
   async open(): Promise<void> {
+    const answered = ['refresh', 'setup', 'providers'].map((call) =>
+      this.page.waitForResponse((response) =>
+        new URL(response.url()).pathname.endsWith(`/api/v3/admin/auth/${call}`),
+      ),
+    );
     await this.page.goto('dashboard/login');
+    await Promise.all(answered);
+    await this.page.waitForFunction(
+      () => (document.activeElement as HTMLInputElement | null)?.type === 'email',
+    );
   }
 
   heading(): Locator {
