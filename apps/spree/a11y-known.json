@@ -1,1 +1,58 @@
-[]
+[
+  {
+    "rule": "button-name",
+    "target": "[data-slot=\"select-trigger\"]",
+    "route": "*",
+    "key": "LOCAL-51",
+    "expires": "2027-02-16"
+  },
+  {
+    "rule": "aria-progressbar-name",
+    "target": "[role=\"progressbar\"][data-slot=\"progress\"]",
+    "route": "*",
+    "key": "LOCAL-52",
+    "expires": "2027-02-16"
+  },
+  {
+    "rule": "nested-interactive",
+    "target": "[data-slot=\"media-thumbnail\"][role=\"button\"]",
+    "route": "*",
+    "key": "LOCAL-53",
+    "expires": "2027-02-16"
+  },
+  {
+    "rule": "nested-interactive",
+    "target": "[role=\"switch\"][aria-label^=\"Allow backorder\"]",
+    "route": "*",
+    "key": "LOCAL-54",
+    "expires": "2027-02-16"
+  },
+  {
+    "rule": "nested-interactive",
+    "target": "[data-slot=\"dropdown-menu-trigger\"][role=\"button\"]",
+    "route": "*",
+    "key": "LOCAL-55",
+    "expires": "2027-02-16"
+  },
+  {
+    "rule": "scrollable-region-focusable",
+    "target": ".\\@container\\/table-scroll",
+    "route": "*",
+    "key": "LOCAL-56",
+    "expires": "2027-02-16"
+  },
+  {
+    "rule": "button-name",
+    "target": "[data-slot=\"input-group-button\"]",
+    "route": "/dashboard/store_UkLWZg9DAJ/orders/new",
+    "key": "LOCAL-57",
+    "expires": "2027-02-16"
+  },
+  {
+    "rule": "color-contrast",
+    "target": ".text-muted-foreground\\/60",
+    "route": "/dashboard/store_UkLWZg9DAJ/settings/api-keys",
+    "key": "LOCAL-58",
+    "expires": "2027-02-16"
+  }
+]

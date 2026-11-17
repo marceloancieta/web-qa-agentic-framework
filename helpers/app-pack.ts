@@ -5,6 +5,10 @@
 import { existsSync, readdirSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 
+/** How the accessibility sweep reads that a route is ready (helpers/a11y-sweep.ts). */
+export type SweepReadyFrom = 'map' | 'headings';
+const SWEEP_READY_FROM: readonly SweepReadyFrom[] = ['map', 'headings'];
+
 export interface AppManifest {
   name: string;
   /** The application version the pack was written against; part of every case's identity. */
@@ -29,6 +33,15 @@ export interface AppManifest {
   /** Visual comparison settings: the share of pixels that may differ, and a stylesheet (relative to
    * the pack) that hides volatile parts before a screenshot. */
   visual?: { maxDiffPixelRatio?: number; stylePath?: string };
+  /**
+   * The accessibility sweep: `ready` is what tells it a route is ready to scan. `map` (the
+   * default) waits for the route's headings, named landmarks and own controls in its app map;
+   * `headings` waits for its headings only, for a shell whose controls change with the data, the
+   * date or the layout. `exclude` lists CSS selectors axe leaves out of every scan of the sweep,
+   * only for what axe cannot scan at all (a frame it never comes back from); a violation it can
+   * report goes in a11y-known.json instead.
+   */
+  a11y_sweep?: { ready?: SweepReadyFrom; exclude?: string[] };
   /**
    * Cookies every browser context of the pack starts with, name to value: a dismissed welcome or
    * consent banner, a fixed language. The test contexts and the app map's walk both get them. Never
@@ -140,6 +153,17 @@ export function manifestProblems(manifest: Partial<AppManifest>, dirName: string
     problems.push('visual.stylePath must be a .css file inside the pack');
   } else if (stylePath?.split('/').includes('..')) {
     problems.push('visual.stylePath must be a .css file inside the pack');
+  }
+  const ready = manifest.a11y_sweep?.ready;
+  if (ready !== undefined && !SWEEP_READY_FROM.includes(ready)) {
+    problems.push(`a11y_sweep.ready must be one of ${SWEEP_READY_FROM.join(', ')}`);
+  }
+  const exclude: unknown = manifest.a11y_sweep?.exclude;
+  if (
+    exclude !== undefined &&
+    !(Array.isArray(exclude) && exclude.every((s) => typeof s === 'string' && s.trim() !== ''))
+  ) {
+    problems.push('a11y_sweep.exclude must be a list of CSS selectors');
   }
   return problems;
 }

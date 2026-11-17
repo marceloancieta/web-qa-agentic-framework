@@ -2,11 +2,11 @@
 # commands install the toolchain (gitleaks for the secret scan). scripts/__tests__/ci-files.test.mjs
 # checks both. One QA_RUN_ID covers the shards, the lanes, the quality gate and the report.
 #
-#   gates → suite (sharded) ┐
-#         → spree pack      │
-#         → a11y lane       ├→ report: ci:merge → quality:gate over every report → tm:report
-#         → visual lane     │
-#         → destructive lane┘
+#   gates → suite (sharded)        ┐
+#         → spree pack             │
+#         → a11y lane (both packs) ├→ report: ci:merge → quality:gate over every report → tm:report
+#         → visual lane            │
+#         → destructive lane       ┘
 #         → zap lane: a ZAP baseline scan of a disposable Juice Shop the lane starts, judged by itself
 #   required: one verdict over all of the above, the check branch protection requires
 #   flake lane: weekly and on demand only
@@ -174,6 +174,12 @@ jobs:
       - name: Run the ${{ matrix.lane }} lane
         if: matrix.lane != 'visual'
         run: npm run lanes:${{ matrix.lane }} -- --project='juice-shop-*'
+      # The Spree pack's accessibility sweep (SP-01): `ci:spree` starts an empty Spree with an admin
+      # generated for the run, as the spree job does, and writes reports/lanes/a11y-spree.json. It
+      # also runs when the Juice Shop sweep failed.
+      - name: Run the a11y lane of the Spree pack
+        if: ${{ !cancelled() && matrix.lane == 'a11y' }}
+        run: npm run ci:spree -- --lane a11y
       - name: Run the visual lane
         if: matrix.lane == 'visual'
         run: npm run lanes:visual -- --project='juice-shop-*'
@@ -236,7 +242,7 @@ jobs:
           merge-multiple: true
       - run: npm run ci:merge
       - name: Quality gate over the suite and the lanes
-        run: npm run quality:gate -- --report reports/playwright.json --report reports/lanes/a11y.json --report reports/lanes/visual.json --report reports/lanes/destructive.json
+        run: npm run quality:gate -- --report reports/playwright.json --report reports/lanes/a11y.json --report reports/lanes/a11y-spree.json --report reports/lanes/visual.json --report reports/lanes/destructive.json
       - if: ${{ !cancelled() }}
         run: npm run tm:report
       - if: ${{ !cancelled() && !env.ACT }}

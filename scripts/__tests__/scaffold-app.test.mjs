@@ -59,7 +59,7 @@ test('the skeleton sweeps its own app maps, as thin as the worked pack', () => {
   const sweep = files['apps/book-store/specs/a11y/sweep.spec.ts'];
   assert.match(sweep, /sweepPlan\('book-store'\)/);
   assert.match(sweep, /tag: \['@regression', '@a11y-sweep'\]/);
-  assert.match(sweep, /await a11y\.expectNoNewViolations\(page\)/);
+  assert.match(sweep, /await a11y\.expectNoNewViolations\(page, \{ exclude: plan\.exclude \}\)/);
   assert.deepEqual(lintHarness(sweep, 'apps/book-store/specs/a11y/sweep.spec.ts'), []);
   const worked = readFileSync(
     join(import.meta.dirname, '..', '..', 'apps', 'juice-shop', 'specs', 'a11y', 'sweep.spec.ts'),

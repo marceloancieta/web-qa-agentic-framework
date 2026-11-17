@@ -75,3 +75,9 @@ messages, how sessions work, what is safe to change. Each one says how it was ob
   no message (`LOCAL-48`); `channels`, `reporting/schema` and `POST reporting/query` are refused too
   when the pages ask for them before the next page loads. Observed on desktop Chromium and Pixel 7,
   2026-11-14.
+- Every page has a "Notifications" region (`role=region`, `aria-live=polite`) that is empty, and so
+  not visible, until a toast arrives. The dashboard's controls carry run data in their names: the
+  date range of the dashboard ("Oct 16 – Nov 14"), the unread count of the notifications and the
+  progress of "Getting Started". With the sidebar out of the page below 768 px, the accessibility
+  sweep waits for each route's headings only (`a11y_sweep.ready` in `app.json`). Observed in the
+  first sweep, 2026-11-16, where every route waited on one of those marks.

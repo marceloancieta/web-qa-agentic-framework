@@ -113,6 +113,65 @@ test('without its own marks a route waits for its landmarks, then for any shared
   });
 });
 
+test('a pack that reads readiness from headings waits for them alone, then falls back', () => {
+  const shared = new Set(SHELL);
+  const entry = {
+    route: '/dashboard/products',
+    landmarks: ['main', 'navigation "Getting Started"', 'region "Notifications"'],
+    headings: ['h1 Products', 'h2 Signed in as <EMAIL>'],
+    interactive: [...SHELL, 'button "Oct 16 – Nov 14"', 'button "Getting Started 2/6"'],
+  };
+  expect(readyMarks(entry, shared, 'headings')).toEqual({
+    ready: [{ role: 'heading', name: 'Products', level: 1 }],
+    readyOn: 'every',
+  });
+  expect(readyMarks({ ...entry, headings: [] }, shared, 'headings')).toEqual({
+    ready: [{ role: 'main' }],
+    readyOn: 'every',
+  });
+  expect(readyMarks({ ...entry, headings: [], landmarks: [] }, shared, 'headings')).toEqual({
+    ready: [
+      { role: 'button', name: 'Open Sidenav' },
+      { role: 'button', name: 'Show/hide account menu' },
+    ],
+    readyOn: 'any',
+  });
+  expect(readyMarks(entry, shared).ready).toHaveLength(5);
+});
+
+test("the plan follows the pack's app.json, and a broken one is a problem", () => {
+  const root = packWith({
+    'app-map.json': {
+      routes: [route('/', { headings: ['h1 Home'], landmarks: ['main', 'region "Feedback"'] })],
+    },
+  });
+  const app = join(root, 'apps', 'shop', 'app.json');
+  const manifest = { name: 'shop', version: '1.0.0', title: 'Shop' };
+  expect(sweepPlan('shop', root).targets[0]?.ready).toHaveLength(2);
+  expect(sweepPlan('shop', root).exclude).toEqual([]);
+  const frame = 'iframe[title="Preview"]';
+  writeFileSync(
+    app,
+    JSON.stringify({ ...manifest, a11y_sweep: { ready: 'headings', exclude: [frame] } }),
+  );
+  expect(sweepPlan('shop', root)).toEqual({
+    targets: [
+      {
+        role: 'anonymous',
+        route: '/',
+        ready: [{ role: 'heading', name: 'Home', level: 1 }],
+        readyOn: 'every',
+      },
+    ],
+    exclude: [frame],
+    problems: [],
+  });
+  writeFileSync(app, JSON.stringify({ ...manifest, a11y_sweep: { ready: 'landmarks' } }));
+  const broken = sweepPlan('shop', root);
+  expect(broken.problems).toEqual([expect.stringMatching(/a11y_sweep\.ready must be one of/)]);
+  expect(broken.targets[0]?.ready).toHaveLength(2);
+});
+
 test('opening a target waits for its marks and fails when one never shows', async ({
   browser,
   fakeApp,

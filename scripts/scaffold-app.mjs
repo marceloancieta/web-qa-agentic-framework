@@ -173,7 +173,7 @@ test.describe('a11y sweep', { tag: ['@regression', '@a11y-sweep'] }, () => {
       test.skip(skip !== null, skip ?? '');
       const { page } = await actor(target.role);
       await openForSweep(page, target);
-      await a11y.expectNoNewViolations(page);
+      await a11y.expectNoNewViolations(page, { exclude: plan.exclude });
     });
   }
 });

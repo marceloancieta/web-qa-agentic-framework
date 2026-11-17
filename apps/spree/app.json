@@ -7,6 +7,7 @@
   "third_party_hosts": [],
   "secret_keys": [],
   "identity_fields": [],
+  "a11y_sweep": { "ready": "headings", "exclude": ["iframe[title=\"Email preview\"]"] },
   "app_map": {
     "start": ["/", "/dashboard/login", "/dashboard/forgot-password"],
     "session_writes": ["POST /api/v3/admin/auth/refresh"],
