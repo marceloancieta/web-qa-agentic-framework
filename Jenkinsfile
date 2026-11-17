@@ -203,6 +203,18 @@ pipeline {
             shell "npm run lanes:a11y -- ${playwrightOptions()}"
           }
         }
+        // The Spree pack's accessibility sweep (SP-01) on the Spree the Spree stage started: a second
+        // `ci:spree` keeps its data and sets the admin's password to the one this call holds. It
+        // writes reports/lanes/a11y-spree.json.
+        script {
+          spreeStarted = true
+          String workers = params.WORKERS?.trim()
+          withEnv([junitOf('a11y-spree')]) {
+            catchError(buildResult: 'FAILURE', stageResult: 'FAILURE') {
+              shell 'npm run ci:spree -- --lane a11y' + (workers ? " --workers=${workers}" : '')
+            }
+          }
+        }
         // The pinned container reaches Juice Shop on the compose network: the host publishes the
         // port on its loopback only, out of a container's reach.
         withEnv([junitOf('visual'), 'QA_JUICE_SHOP_BASE_URL=http://juice-shop:3000']) {
@@ -227,7 +239,7 @@ pipeline {
       when { expression { !flakeBuild() } }
       steps {
         shell 'npm run ci:merge'
-        shell 'npm run quality:gate -- --report reports/playwright.json --report reports/lanes/a11y.json --report reports/lanes/visual.json --report reports/lanes/destructive.json'
+        shell 'npm run quality:gate -- --report reports/playwright.json --report reports/lanes/a11y.json --report reports/lanes/a11y-spree.json --report reports/lanes/visual.json --report reports/lanes/destructive.json'
       }
       post {
         always {

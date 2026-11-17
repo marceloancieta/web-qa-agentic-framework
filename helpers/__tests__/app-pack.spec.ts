@@ -61,6 +61,29 @@ test('every problem of a manifest is reported at once', () => {
   ]);
 });
 
+test('the sweep reads a route as ready from its map or its headings, and excludes selectors', () => {
+  const base = { name: 'shop', version: '1.0.0', title: 'Shop' };
+  expect(manifestProblems({ ...base, a11y_sweep: { ready: 'map' } }, 'shop')).toEqual([]);
+  expect(manifestProblems({ ...base, a11y_sweep: { ready: 'headings' } }, 'shop')).toEqual([]);
+  expect(manifestProblems({ ...base, a11y_sweep: {} }, 'shop')).toEqual([]);
+  const wrong = { ...base, a11y_sweep: { ready: 'landmarks' } } as unknown as Parameters<
+    typeof manifestProblems
+  >[0];
+  expect(manifestProblems(wrong, 'shop')).toEqual([
+    'a11y_sweep.ready must be one of map, headings',
+  ]);
+  const frame = { ...base, a11y_sweep: { exclude: ['iframe[title="Preview"]'] } };
+  expect(manifestProblems(frame, 'shop')).toEqual([]);
+  for (const exclude of [[''], 'iframe', [3]]) {
+    const bad = { ...base, a11y_sweep: { exclude } } as unknown as Parameters<
+      typeof manifestProblems
+    >[0];
+    expect(manifestProblems(bad, 'shop')).toEqual([
+      'a11y_sweep.exclude must be a list of CSS selectors',
+    ]);
+  }
+});
+
 test('the manifest name must equal its folder, and loading names the file', () => {
   expect(manifestProblems(valid, 'store')).toEqual([
     'name "shop" must equal the folder name "store"',

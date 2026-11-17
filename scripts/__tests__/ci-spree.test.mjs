@@ -3,7 +3,8 @@
 // has; `npm run ci:spree` runs the pack's projects with them.
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { playwrightArgs } from '../ci-spree.mjs';
+import { join } from 'node:path';
+import { playwrightArgs, runPlan } from '../ci-spree.mjs';
 import { PLACEHOLDER_ADMIN, runEnv, runPassword } from '../spree-up.mjs';
 
 const ENTRY = {
@@ -56,4 +57,31 @@ test('each run gets its own long password with every character class', () => {
 
 test("the run selects the pack's projects and passes the caller's options on", () => {
   assert.deepEqual(playwrightArgs(['--workers=2']), ['test', '--project=spree-*', '--workers=2']);
+  assert.deepEqual(runPlan(['--workers=2']), {
+    lane: null,
+    args: ['test', '--project=spree-*', '--workers=2'],
+  });
+  assert.deepEqual(runPlan([]), { lane: null, args: ['test', '--project=spree-*'] });
+});
+
+test("a leading --lane runs that lane over the pack's projects, with a report of its own", () => {
+  const expected = {
+    lane: 'a11y',
+    args: ['a11y', '--project=spree-*', '--workers=2'],
+    report: join('reports', 'lanes', 'a11y-spree.json'),
+  };
+  assert.deepEqual(runPlan(['--lane', 'a11y', '--workers=2']), expected);
+  assert.deepEqual(runPlan(['--lane=a11y', '--workers=2']), expected);
+});
+
+test('a --lane that is not first, or names no lane, is refused', () => {
+  assert.match(runPlan(['--workers=2', '--lane', 'a11y']).refusal, /must come first/);
+  assert.match(runPlan(['--workers=2', '--lane=a11y']).refusal, /must come first/);
+  assert.match(runPlan(['--lane']).refusal, /needs a lane name, got ""/);
+  assert.match(runPlan(['--lane', '--workers=2']).refusal, /needs a lane name/);
+  assert.match(runPlan(['--lane=']).refusal, /needs a lane name/);
+});
+
+test('an option that only starts like --lane is passed to Playwright', () => {
+  assert.deepEqual(runPlan(['--lanes']).args, ['test', '--project=spree-*', '--lanes']);
 });

@@ -157,7 +157,9 @@ is the reference.
 The Spree pack runs in a job of its own, `npm run ci:spree` with `QA_BLOB_REPORT=1`: on an agent
 whose environment has no `SPREE_ADMIN_*` values, it starts an empty Spree whose admin is the
 placeholder `admin@example.test` with a password generated for the run and held in memory, then runs
-the pack's specs with the same values. Its blob joins the shards' in `ci:merge`.
+the pack's specs with the same values. Its blob joins the shards' in `ci:merge`. The `a11y` entry of
+the `lane` job sweeps it too, with `npm run ci:spree -- --lane a11y`, which runs that lane over the
+`spree-*` projects and writes `reports/lanes/a11y-spree.json` for the quality gate.
 
 ## The workflows on your machine
 
