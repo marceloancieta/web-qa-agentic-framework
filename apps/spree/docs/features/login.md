@@ -127,7 +127,7 @@ runs as `not-webkit`.
 | responsive | applies | no horizontal scroll at any project; the same form at every width |
 | perf | applies | the waiting state of "Sign in" appears and goes away |
 | security | applies | password masked; the same message for an unknown email and a wrong password; the lockout; protected routes; logout; nothing typed reaches the URL |
-| layout | applies | the page health guard on every case |
+| layout | applies | the page health guard on every case; the visual cases of SP-02 compare the login in its initial, invalid and refused states |
 | navigation | applies | the redirect from a protected route; logout; reload keeps the session |
 | a11y | applies | axe against the baseline; keyboard order and visible focus; field errors marked `aria-invalid` |
 | content | n/a: the page shows no text the user typed back to them, and its messages never repeat the email |

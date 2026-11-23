@@ -105,7 +105,7 @@ it holds the same links per role is not observed yet (A1).
 | responsive | applies | the sidebar per role on every device project (A1) |
 | perf | n/a: the sections' loading states belong to the sections, not to roles; the refused table looks like a loading one forever (G2), which is a finding, not a timing |
 | security | applies | each role sees and receives only its sections, through the UI and the API; a direct address shows no refused data |
-| layout | applies | the page health guard on every case; a refused section must not break the page |
+| layout | applies | the page health guard on every case; a refused section must not break the page; the visual cases of SP-02 compare the sidebar per role and the page of a removed member |
 | navigation | applies | the sidebar per role; a refused section opened by its address |
 | a11y | n/a: the dashboard's accessibility is the same for every role; the axe sweep over the admin map covers it, and the login contract owns the keyboard of the sign-in |
 | content | n/a: no text the user wrote is shown back by this feature |
