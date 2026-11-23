@@ -13,12 +13,20 @@
 // narrow layout hides some of them). Then it waits until its accessibility tree stops changing,
 // for what the map cannot name: a CAPTCHA question or a list that arrives after the headings.
 //
+// A pack whose shell changes with the data, the date or the layout (counters and date ranges in
+// control names, a sidebar a narrow screen leaves out, a toast region that is empty until a toast
+// arrives) sets `a11y_sweep.ready` to `headings` in its app.json: its routes are ready on their
+// headings alone, then fall back as above when they have none. Its `a11y_sweep.exclude` lists
+// what axe cannot scan at all, such as a frame it never comes back from; the plan carries it and
+// every scan of the sweep leaves it out.
+//
 // The plan is read while Playwright collects the tests, so it never throws: a map that is missing
 // or broken comes back as a problem, which the spec turns into a failing test.
 
-import { readdirSync, readFileSync } from 'node:fs';
+import { existsSync, readdirSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { expect, type Page } from '@playwright/test';
+import { loadAppPack, type SweepReadyFrom } from './app-pack';
 import { deviceProjects } from '../scripts/lib/devices.mjs';
 import { packRoles, runSet } from '../scripts/lib/run-matrix.mjs';
 import { ANONYMOUS_ACTOR, loadRuntime, loadSettings, projectPack, REPO_ROOT } from './config';
@@ -42,6 +50,8 @@ export interface SweepTarget {
 
 export interface SweepPlan {
   targets: SweepTarget[];
+  /** What axe leaves out of every scan of the sweep (app.json `a11y_sweep.exclude`). */
+  exclude: string[];
   /** Why the sweep cannot be planned in full; each one should fail the lane. */
   problems: string[];
 }
@@ -70,10 +80,15 @@ function parseNamed(line: string): ReadyMark | null {
 const usable = (mark: ReadyMark | null): mark is ReadyMark =>
   mark !== null && !PLACEHOLDER.test(mark.name ?? '');
 
-/** The marks of one map entry; `shared` holds the interactive lines every route of the map has. */
+/**
+ * The marks of one map entry; `shared` holds the interactive lines every route of the map has.
+ * `from` is the pack's `a11y_sweep.ready`: `map` reads every kind of mark, `headings` only the
+ * headings before the fallbacks.
+ */
 export function readyMarks(
   entry: MapRoute,
   shared: ReadonlySet<string>,
+  from: SweepReadyFrom = 'map',
 ): Pick<SweepTarget, 'ready' | 'readyOn'> {
   const headings = (entry.headings ?? []).flatMap((line) => {
     const match = HEADING.exec(line);
@@ -84,7 +99,10 @@ export function readyMarks(
     .filter((line) => !shared.has(line))
     .map(parseNamed)
     .filter(usable);
-  const specific = [...headings.filter(usable), ...landmarks.filter((mark) => mark.name), ...own];
+  const specific =
+    from === 'headings'
+      ? headings.filter(usable)
+      : [...headings.filter(usable), ...landmarks.filter((mark) => mark.name), ...own];
   if (specific.length > 0) return { ready: specific, readyOn: 'every' };
   const unnamed = landmarks.filter((mark) => !mark.name);
   if (unnamed.length > 0) return { ready: unnamed, readyOn: 'every' };
@@ -111,10 +129,25 @@ function readMap(file: string): { routes: MapRoute[] } | string {
   return { routes: routes as MapRoute[] };
 }
 
-function targetsOf(role: string, routes: MapRoute[]): SweepTarget[] {
+function targetsOf(role: string, routes: MapRoute[], from: SweepReadyFrom): SweepTarget[] {
   const [first, ...rest] = routes.map((entry) => new Set(entry.interactive ?? []));
   const shared = new Set([...(first ?? [])].filter((line) => rest.every((set) => set.has(line))));
-  return routes.map((entry) => ({ role, route: entry.route, ...readyMarks(entry, shared) }));
+  return routes.map((entry) => ({ role, route: entry.route, ...readyMarks(entry, shared, from) }));
+}
+
+/** The pack's `a11y_sweep` settings, the defaults without an app.json; a broken one is a problem. */
+function sweepSettings(
+  pack: string,
+  root: string,
+): { from: SweepReadyFrom; exclude: string[] } | string {
+  const dir = join(root, 'apps', pack);
+  if (!existsSync(join(dir, 'app.json'))) return { from: 'map', exclude: [] };
+  try {
+    const settings = loadAppPack(dir).a11y_sweep;
+    return { from: settings?.ready ?? 'map', exclude: settings?.exclude ?? [] };
+  } catch (error) {
+    return (error as Error).message;
+  }
 }
 
 /**
@@ -123,12 +156,16 @@ function targetsOf(role: string, routes: MapRoute[]): SweepTarget[] {
  */
 export function sweepPlan(pack: string, root = REPO_ROOT): SweepPlan {
   const docs = join(root, 'apps', pack, 'docs');
-  const plan: SweepPlan = { targets: [], problems: [] };
+  const settings = sweepSettings(pack, root);
+  const { from, exclude } =
+    typeof settings === 'string' ? { from: 'map' as const, exclude: [] } : settings;
+  const plan: SweepPlan = { targets: [], exclude, problems: [] };
+  if (typeof settings === 'string') plan.problems.push(settings);
   const anonymous = readMap(join(docs, 'app-map.json'));
   if (typeof anonymous === 'string') {
     plan.problems.push(`${anonymous}; write it with npm run app:map -- --pack ${pack} --write`);
   } else {
-    plan.targets.push(...targetsOf(ANONYMOUS_ACTOR, anonymous.routes));
+    plan.targets.push(...targetsOf(ANONYMOUS_ACTOR, anonymous.routes, from));
   }
   let files: string[] = [];
   try {
@@ -141,7 +178,7 @@ export function sweepPlan(pack: string, root = REPO_ROOT): SweepPlan {
     if (!role) continue;
     const map = readMap(join(docs, file));
     if (typeof map === 'string') plan.problems.push(map);
-    else plan.targets.push(...targetsOf(role, map.routes));
+    else plan.targets.push(...targetsOf(role, map.routes, from));
   }
   return plan;
 }
