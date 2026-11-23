@@ -41,9 +41,9 @@ Designed from the contract of 2026-11-10, with its gaps G1 and G2 filed as `LOCA
 | TC-ROLES-13 | Orders and a refused section have no horizontal scroll for the orders-reader | REQ-ROLES-03 | boundary-value | low | @regression @responsive | all | published | specs/roles/roles.spec.ts | |
 | TC-ROLES-14 | a role without the write permission is offered no write control: the orders-reader sees no "New Order" on Orders, while the catalog-editor sees "Add product" on Products | REQ-ROLES-02 | error-guessing | medium | @regression @navigation @known-gap | all | published | specs/roles/roles.spec.ts | LOCAL-47 |
 | TC-ROLES-15 | a section the role cannot read, opened by its address, says that access is refused instead of showing an empty table | REQ-ROLES-04 | error-guessing | medium | @regression @navigation @known-gap | all | published | specs/roles/roles.spec.ts | LOCAL-48 |
-| TC-ROLES-16 | the orders-reader's sidebar looks as designed, with Home and Orders only, opened through "Toggle Sidebar" where the device hides it, and the member's name masked | REQ-ROLES-02 | equivalence-partition | low | @regression @visual @layout | all | approved | | |
-| TC-ROLES-17 | the catalog-editor's sidebar looks as designed, with Home, Products and Settings only, opened through "Toggle Sidebar" where the device hides it, and the member's name masked | REQ-ROLES-02 | equivalence-partition | low | @regression @visual @layout | all | approved | | |
-| TC-ROLES-18 | the page a member removed from the store reaches after signing in looks as designed: "You don't have access to any store" and no store data, with the member's name masked | REQ-ROLES-08 | state-transition | low | @regression @visual @layout | all | approved | | |
+| TC-ROLES-16 | the orders-reader's sidebar looks as designed, with Home and Orders only, opened through "Toggle Sidebar" where the device hides it, and the member's name masked | REQ-ROLES-02 | equivalence-partition | low | @regression @visual @layout | all | automated | specs/visual/roles.spec.ts | |
+| TC-ROLES-17 | the catalog-editor's sidebar looks as designed, with Home, Products and Settings only, opened through "Toggle Sidebar" where the device hides it, and the member's name masked | REQ-ROLES-02 | equivalence-partition | low | @regression @visual @layout | all | automated | specs/visual/roles.spec.ts | |
+| TC-ROLES-18 | the page a member removed from the store reaches after signing in looks as designed: "You don't have access to any store" and no store data, with the member's name masked | REQ-ROLES-08 | state-transition | low | @regression @visual @layout | all | automated | specs/visual/roles.spec.ts | |
 
 ## Notes
 
@@ -65,11 +65,14 @@ Designed from the contract of 2026-11-10, with its gaps G1 and G2 filed as `LOCA
   project.
 - **Known gaps.** TC-ROLES-14 and TC-ROLES-15 assert what the gaps say should happen and run armed
   with their keys. Neither presses a write control: the store refuses the write (`403`, LOCAL-47).
-- **Visual (SP-02, drafted 2026-11-23).** TC-ROLES-16 and TC-ROLES-17 compare the sidebar alone,
-  not the whole page: the dashboard beside it holds charts, a date range and counts that change with
-  every run. The member's name in the user menu is made per run, so the page object masks it.
-  TC-ROLES-18 needs a member of its own, removed before the case signs in, as TC-ROLES-10 does. The
-  admin's sidebar and a refused section are left out: the admin's carries counts of the sample data,
+- **Visual (SP-02, drafted 2026-11-23).** TC-ROLES-16 and TC-ROLES-17 compare the sidebar
+  without the dashboard beside it, which holds charts, a date range and counts that change with
+  every run: below the breakpoint the dialog "Sidebar" alone, from it up the page with the dashboard
+  masked (an element screenshot of the column waited in WebKit for a box that never held still). The
+  member's name in the user menu is made per run, so the page object masks it. TC-ROLES-18 needs a
+  member of its own, removed before the case signs in, as TC-ROLES-10 does; its "Signed in as" line
+  is masked and cut to one line's height by the pack's `visual.css`, since an address made per run
+  wrapped on some runs and moved the card. The admin's sidebar and a refused section are left out: the admin's carries counts of the sample data,
   and a refused section shows the empty table of `LOCAL-48`, which a baseline would freeze as
   designed.
 - **Not here.** `LOCAL-49` (product pages' "Shop location" links land on a 404) belongs to the

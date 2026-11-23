@@ -16,6 +16,13 @@
  * set, still decides. A second call on a running Spree keeps its data: spree-up only sets the
  * admin's password to the one this run holds.
  *
+ * `--lane visual` runs the visual lane (`scripts/visual-lane.mjs`) in the pinned container (SP-02),
+ * as `npm run lanes:visual` does, with three differences: the container reaches Spree on the compose
+ * network (`CONTAINER_BASE_URL`), since a Linux agent publishes its port on 127.0.0.1 only; the
+ * admin's variables and the report's path reach the container by name (`docker compose run -e NAME`
+ * passes this process's value, so no value is written into a command line or a file); and the
+ * report is reports/lanes/visual-spree.json.
+ *
  * Exit codes: 2 the configuration or the arguments are wrong; otherwise spree-up's code when it
  * failed, then the code of the Playwright run or the lane.
  */
@@ -25,9 +32,12 @@ import { join } from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { REPO_ROOT } from './lib/cli.mjs';
 import { loadLocalEnv } from './lib/env.mjs';
-import { packEntry } from './lib/qa-config.mjs';
+import { packEntry, packVariable } from './lib/qa-config.mjs';
 import { exitCodeOf, spawnFailure } from './lib/spawn.mjs';
-import { PACK, runEnv } from './spree-up.mjs';
+import { PACK, SERVICE, adminVariables, runEnv } from './spree-up.mjs';
+
+/** Where the container lanes reach Spree: its compose service, on the port it listens on. */
+export const CONTAINER_BASE_URL = `http://${SERVICE}:3000`;
 
 /** The Playwright arguments of the pack's run: its projects, then what the caller passed. */
 export function playwrightArgs(extra) {
@@ -53,12 +63,33 @@ export function runPlan(args) {
   return {
     lane,
     args: [lane, `--project=${PACK}-*`, ...rest],
-    report: join('reports', 'lanes', `${lane}-${PACK}.json`),
+    // Forward slashes on every host: the visual lane reads it inside a Linux container.
+    report: `reports/lanes/${lane}-${PACK}.json`,
   };
 }
 
-function run(label, args, env) {
-  const result = spawnSync(process.execPath, args, { cwd: REPO_ROOT, env, stdio: 'inherit' });
+/**
+ * The `docker` arguments of the visual lane over the pack's projects: the lane's container, with
+ * each of `variables` passed by name from this process's environment, then `extra`.
+ */
+export function visualLaneArgs(variables, extra) {
+  return [
+    'compose',
+    '-f',
+    join('docker', 'compose.yml'),
+    'run',
+    '--rm',
+    ...variables.flatMap((name) => ['-e', name]),
+    'playwright',
+    'node',
+    'scripts/visual-lane.mjs',
+    `--project=${PACK}-*`,
+    ...extra,
+  ];
+}
+
+function run(label, args, env, command = process.execPath) {
+  const result = spawnSync(command, args, { cwd: REPO_ROOT, env, stdio: 'inherit' });
   const failure = spawnFailure(result);
   if (failure) console.error(`ci-spree: ${label} ${failure}`);
   return exitCodeOf(result);
@@ -73,9 +104,11 @@ function main() {
   loadLocalEnv();
   let env;
   let filled;
+  let admin;
   try {
     const { entry } = packEntry(PACK, REPO_ROOT);
     ({ env, filled } = runEnv(process.env, entry));
+    admin = adminVariables(entry);
   } catch (error) {
     console.error(`ci-spree: ${error.message}`);
     return 2;
@@ -83,6 +116,20 @@ function main() {
   if (filled.length > 0) console.log(`ci-spree: set for this run only: ${filled.join(', ')}`);
   const up = run('spree-up', [join(REPO_ROOT, 'scripts', 'spree-up.mjs')], env);
   if (up !== 0) return up;
+  if (plan.lane === 'visual') {
+    const baseUrl = packVariable(PACK, 'BASE_URL');
+    const variables = [admin.email, admin.password, baseUrl, 'QA_JSON_REPORT'];
+    return run(
+      'lane visual',
+      visualLaneArgs(variables, plan.args.slice(2)),
+      {
+        ...env,
+        [baseUrl]: CONTAINER_BASE_URL,
+        QA_JSON_REPORT: env.QA_JSON_REPORT || plan.report,
+      },
+      'docker',
+    );
+  }
   if (plan.lane) {
     const lanes = join(REPO_ROOT, 'scripts', 'lanes.mjs');
     return run(`lane ${plan.lane}`, [lanes, ...plan.args], {

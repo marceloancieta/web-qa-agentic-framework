@@ -187,6 +187,13 @@ jobs:
           # The lane runs in the pinned container, which reaches Juice Shop on the compose network:
           # Linux publishes the port on 127.0.0.1 only, out of a container's reach.
           QA_JUICE_SHOP_BASE_URL: http://juice-shop:3000
+      # The Spree pack's visual cases (SP-02): `ci:spree` starts an empty Spree with an admin
+      # generated for the run and runs the visual lane over the `spree-*` projects in the pinned
+      # container, which reaches Spree on the compose network. It writes
+      # reports/lanes/visual-spree.json, and also runs when the Juice Shop comparison failed.
+      - name: Run the visual lane of the Spree pack
+        if: ${{ !cancelled() && matrix.lane == 'visual' }}
+        run: npm run ci:spree -- --lane visual
       - if: ${{ always() && !env.ACT }}
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
@@ -242,7 +249,7 @@ jobs:
           merge-multiple: true
       - run: npm run ci:merge
       - name: Quality gate over the suite and the lanes
-        run: npm run quality:gate -- --report reports/playwright.json --report reports/lanes/a11y.json --report reports/lanes/a11y-spree.json --report reports/lanes/visual.json --report reports/lanes/destructive.json
+        run: npm run quality:gate -- --report reports/playwright.json --report reports/lanes/a11y.json --report reports/lanes/a11y-spree.json --report reports/lanes/visual.json --report reports/lanes/visual-spree.json --report reports/lanes/destructive.json
       - if: ${{ !cancelled() }}
         run: npm run tm:report
       - if: ${{ !cancelled() && !env.ACT }}

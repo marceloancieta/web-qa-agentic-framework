@@ -7,6 +7,7 @@
   "third_party_hosts": [],
   "secret_keys": [],
   "identity_fields": [],
+  "visual": { "stylePath": "visual.css" },
   "a11y_sweep": { "ready": "headings", "exclude": ["iframe[title=\"Email preview\"]"] },
   "app_map": {
     "start": ["/", "/dashboard/login", "/dashboard/forgot-password"],

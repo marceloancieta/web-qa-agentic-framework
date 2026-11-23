@@ -222,6 +222,16 @@ pipeline {
             shell "npm run lanes:visual -- ${playwrightOptions()}"
           }
         }
+        // The Spree pack's visual cases (SP-02) on the same Spree, in the pinned container, which
+        // reaches Spree on the compose network. It writes reports/lanes/visual-spree.json.
+        script {
+          String workers = params.WORKERS?.trim()
+          withEnv([junitOf('visual-spree')]) {
+            catchError(buildResult: 'FAILURE', stageResult: 'FAILURE') {
+              shell 'npm run ci:spree -- --lane visual' + (workers ? " --workers=${workers}" : '')
+            }
+          }
+        }
         // The ZAP baseline lane scans a disposable Juice Shop it starts and removes in a compose
         // project of its own, never the build's.
         catchError(buildResult: 'FAILURE', stageResult: 'FAILURE') {
@@ -239,7 +249,7 @@ pipeline {
       when { expression { !flakeBuild() } }
       steps {
         shell 'npm run ci:merge'
-        shell 'npm run quality:gate -- --report reports/playwright.json --report reports/lanes/a11y.json --report reports/lanes/a11y-spree.json --report reports/lanes/visual.json --report reports/lanes/destructive.json'
+        shell 'npm run quality:gate -- --report reports/playwright.json --report reports/lanes/a11y.json --report reports/lanes/a11y-spree.json --report reports/lanes/visual.json --report reports/lanes/visual-spree.json --report reports/lanes/destructive.json'
       }
       post {
         always {

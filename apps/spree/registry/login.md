@@ -47,9 +47,9 @@ Designed from the contract of 2026-11-10, with its gaps G1 and G2 filed as `LOCA
 | TC-LOGIN-18 | the login page, in its initial, invalid and refused states, has no axe violation beyond the baseline | REQ-LOGIN-02 | use-case | medium | @regression @a11y | all | published | specs/login/login.spec.ts | |
 | TC-LOGIN-19 | the refusal message is announced (an `alert` or `status` role, or a live region) and each field message is tied to its field through `aria-describedby` | REQ-LOGIN-04 | error-guessing | high | @regression @a11y @known-gap | all | published | specs/login/login.spec.ts | LOCAL-45 |
 | TC-LOGIN-20 | Email declares its purpose (`autocomplete` `email` or `username`), Password declares `current-password`, and both are exposed as required | REQ-LOGIN-02 | error-guessing | medium | @regression @a11y @known-gap | all | published | specs/login/login.spec.ts | LOCAL-46 |
-| TC-LOGIN-21 | the login page looks as designed when it opens: the Spree logo, the heading, Email, Password, "Sign in" and "Forgot password?", with Email focused | | use-case | low | @regression @visual @layout | all | approved | | |
-| TC-LOGIN-22 | after "Sign in" with both fields empty, the page looks as designed with "Invalid email address" under Email, "Password is required" under Password and both fields marked invalid | REQ-LOGIN-02 | state-transition | low | @regression @visual @layout | all | approved | | |
-| TC-LOGIN-23 | after a sign-in refused for <UNKNOWN_EMAIL>, the page looks as designed with "Invalid email or password" and the fields keeping their layout | REQ-LOGIN-04 | state-transition | low | @regression @visual @layout | all | approved | | |
+| TC-LOGIN-21 | the login page looks as designed when it opens: the heading, Email, Password, "Sign in" and "Forgot password?", with Email focused | | use-case | low | @regression @visual @layout | all | automated | specs/visual/login.spec.ts | |
+| TC-LOGIN-22 | after "Sign in" with both fields empty, the page looks as designed with "Invalid email address" under Email, "Password is required" under Password and both fields marked invalid | REQ-LOGIN-02 | state-transition | low | @regression @visual @layout | all | automated | specs/visual/login.spec.ts | |
+| TC-LOGIN-23 | after a sign-in refused for <UNKNOWN_EMAIL>, the page looks as designed with "Invalid email or password" and the fields keeping their layout | REQ-LOGIN-04 | state-transition | low | @regression @visual @layout | all | automated | specs/visual/login.spec.ts | |
 
 ## Notes
 
@@ -76,8 +76,10 @@ Designed from the contract of 2026-11-10, with its gaps G1 and G2 filed as `LOCA
 - **TC-LOGIN-17** covers the layout dimension with the page health guard as its subject.
 - **Visual (SP-02, drafted 2026-11-23).** TC-LOGIN-21 to TC-LOGIN-23 compare the login in its three
   states with a baseline per device project, rendered in the pinned container and run by the visual
-  lane only. The page shows no run data, so nothing is masked; the form's text and the caret are
-  frozen by the visual fixture. TC-LOGIN-21 cites no rule: the page as it opens is a layout check, not
+  lane only. TC-LOGIN-21 and TC-LOGIN-22 type nothing, so nothing is masked; TC-LOGIN-23 masks the
+  two fields, which hold the run's address and password. The caret and the animations are frozen by
+  the visual fixture. The Spree panel beside the form shows on the desktop projects only, so no
+  title claims it. TC-LOGIN-21 cites no rule: the page as it opens is a layout check, not
   a business rule. TC-LOGIN-23 uses <UNKNOWN_EMAIL>, so no account is refused or locked. The
   dashboard after sign-in is left out: its charts, date range and counts change with every run.
 - **Known gaps.** TC-LOGIN-19 and TC-LOGIN-20 assert what the gaps say should happen and run

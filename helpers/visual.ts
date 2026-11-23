@@ -10,8 +10,13 @@ import type { AppPack } from './app-pack';
 
 export const DEFAULT_MAX_DIFF_PIXEL_RATIO = 0.01;
 
-/** How long a whole-page comparison may take: tall pages on WebKit outlast the 5 s default. */
-export const WHOLE_PAGE_SCREENSHOT_TIMEOUT_MS = 20_000;
+/**
+ * How long a comparison may take. WebKit outlasts the 5 s default on a tall page, and on a desktop
+ * project that renders at twice the pixels (a dashboard of the Spree pack took longer than 5 s to
+ * give two equal shots in the pinned image). Only the wait grows: a page that differs from its
+ * baseline still fails, once the time is up.
+ */
+export const SCREENSHOT_TIMEOUT_MS = 20_000;
 
 /** The `toHaveScreenshot` options for a pack, with the regions to mask for this comparison. */
 export function screenshotOptions(
