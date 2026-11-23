@@ -1,0 +1,16 @@
+/*
+ * Applied in every visual comparison of the pack (app.json `visual.stylePath`): parts whose layout
+ * changes between two runs of the same build.
+ *
+ * "Signed in as <address>" on the page of a member who belongs to no store (TC-ROLES-18). The
+ * address is made per run, and its length sits at the edge of the card's column, so the line wraps
+ * onto a second one on some runs and not on others, and the centred card moves by a line. The page
+ * object masks the text; cut to the height of one line, it keeps the same height on every run.
+ * The line still wraps inside the card's width: kept from wrapping, the address widened the card
+ * past a phone's screen. The paragraph has no role, class or test id of its own: it is the second
+ * paragraph after the page's heading.
+ */
+h1 + p + p {
+  height: 1lh !important;
+  overflow: hidden !important;
+}

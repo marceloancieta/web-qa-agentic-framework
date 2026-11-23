@@ -4,7 +4,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { join } from 'node:path';
-import { playwrightArgs, runPlan } from '../ci-spree.mjs';
+import { CONTAINER_BASE_URL, playwrightArgs, runPlan, visualLaneArgs } from '../ci-spree.mjs';
 import { PLACEHOLDER_ADMIN, runEnv, runPassword } from '../spree-up.mjs';
 
 const ENTRY = {
@@ -68,7 +68,7 @@ test("a leading --lane runs that lane over the pack's projects, with a report of
   const expected = {
     lane: 'a11y',
     args: ['a11y', '--project=spree-*', '--workers=2'],
-    report: join('reports', 'lanes', 'a11y-spree.json'),
+    report: 'reports/lanes/a11y-spree.json',
   };
   assert.deepEqual(runPlan(['--lane', 'a11y', '--workers=2']), expected);
   assert.deepEqual(runPlan(['--lane=a11y', '--workers=2']), expected);
@@ -84,4 +84,34 @@ test('a --lane that is not first, or names no lane, is refused', () => {
 
 test('an option that only starts like --lane is passed to Playwright', () => {
   assert.deepEqual(runPlan(['--lanes']).args, ['test', '--project=spree-*', '--lanes']);
+});
+
+test('the visual lane runs in the lane container, which gets the variables by name only', () => {
+  const plan = runPlan(['--lane', 'visual', '--workers=2']);
+  assert.equal(plan.report, 'reports/lanes/visual-spree.json');
+  const args = visualLaneArgs(['SHOP_ADMIN_USER', 'SHOP_ADMIN_PASS'], plan.args.slice(2));
+  assert.deepEqual(args, [
+    'compose',
+    '-f',
+    join('docker', 'compose.yml'),
+    'run',
+    '--rm',
+    '-e',
+    'SHOP_ADMIN_USER',
+    '-e',
+    'SHOP_ADMIN_PASS',
+    'playwright',
+    'node',
+    'scripts/visual-lane.mjs',
+    '--project=spree-*',
+    '--workers=2',
+  ]);
+  assert.ok(
+    args.every((arg) => !arg.includes('=') || arg.startsWith('--')),
+    'no variable is passed with its value on the command line',
+  );
+});
+
+test('the container reaches Spree by its compose service', () => {
+  assert.equal(CONTAINER_BASE_URL, 'http://spree:3000');
 });

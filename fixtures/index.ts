@@ -83,7 +83,7 @@ import {
   fitViewportToContent,
   imagesLoaded,
   screenshotOptions,
-  WHOLE_PAGE_SCREENSHOT_TIMEOUT_MS,
+  SCREENSHOT_TIMEOUT_MS,
 } from '../helpers/visual';
 import {
   budgetFor,
@@ -427,9 +427,9 @@ export function createTest(provider: ActorProvider) {
         await imagesLoaded(page);
         const options = {
           ...screenshotOptions(app, mask),
-          // A whole page is many screens tall on a phone, and WebKit takes longer than the
-          // default 5 s to render two equal shots of it.
-          ...(wholePage ? { timeout: WHOLE_PAGE_SCREENSHOT_TIMEOUT_MS } : {}),
+          // WebKit takes longer than the default 5 s to render two equal shots of a tall page, or
+          // of a page at twice the pixels.
+          timeout: SCREENSHOT_TIMEOUT_MS,
         };
         try {
           // The negated form fails on a missing baseline and never writes one, in any update mode.

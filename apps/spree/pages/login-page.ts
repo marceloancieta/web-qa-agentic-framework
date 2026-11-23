@@ -103,6 +103,14 @@ export class LoginPage {
     return field.and(this.page.locator(':required, [aria-required="true"]')); // attributes only
   }
 
+  /**
+   * What a screenshot of a refused sign-in masks: the two fields, which hold the address made for
+   * the run and the dots of a password generated for it.
+   */
+  typedValues(): Locator[] {
+    return [this.email(), this.password()];
+  }
+
   async signIn(email: string, password: string): Promise<void> {
     await this.email().fill(email);
     await this.password().fill(password);

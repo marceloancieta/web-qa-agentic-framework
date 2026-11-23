@@ -17,6 +17,16 @@ export class NoStorePage {
     return this.page.getByRole('button', { name: 'Sign out' });
   }
 
+  /** "Signed in as <address>": the member's address, made per run. */
+  signedInAs(): Locator {
+    return this.page.getByText(/^Signed in as /);
+  }
+
+  /** What a screenshot of the page masks: the member's address. */
+  masks(): Locator[] {
+    return [this.signedInAs()];
+  }
+
   /** Text on the page, such as an order number that must not be there. */
   text(value: string): Locator {
     return this.page.getByText(value);
