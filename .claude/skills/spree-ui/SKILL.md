@@ -64,8 +64,18 @@ dashboard's sidebar sits behind "Toggle Sidebar".
 | `LOCAL-48` | a section the role cannot read shows an empty table with no refusal message (S3) | TC-ROLES-15 |
 | `LOCAL-49` | product pages' "Shop location" links omit `/dashboard` and land on a 404 (S3) | none |
 | `LOCAL-50` | login: the lockout message tells which emails have a staff account (S3) | TC-LOGIN-08 |
+| `LOCAL-51` | tables: the "Rows per page" select has no accessible name (S2) | the accessibility sweep (`a11y-known.json`) |
+| `LOCAL-52` | reports and dashboard: the progress bars have no accessible name (S2) | the accessibility sweep (`a11y-known.json`) |
+| `LOCAL-53` | product page: the media thumbnails are buttons that contain other controls (S2) | the accessibility sweep (`a11y-known.json`) |
+| `LOCAL-54` | product page: the backorder switches of the stock table sit inside another control (S2) | the accessibility sweep (`a11y-known.json`) |
+| `LOCAL-55` | settings: the collapsed sidebar wraps each section link in a menu button (S2) | the accessibility sweep (`a11y-known.json`) |
+| `LOCAL-56` | tables on narrow screens: a table that scrolls sideways cannot be scrolled with the keyboard (S2) | the accessibility sweep (`a11y-known.json`) |
+| `LOCAL-57` | new order: the button of a combobox field has no accessible name (S3) | the accessibility sweep (`a11y-known.json`) |
+| `LOCAL-58` | API keys: the "Never" of the last-used column has too little contrast (S3) | the accessibility sweep (`a11y-known.json`) |
 | `LOCAL-59` | not a defect: ZAP rule 10096 reads constants of the dashboard bundle as Unix timestamps | the ZAP lane (`zap-known.json`) |
 
 ## Accessibility baseline
 
-`a11y-known.json` is empty: the axe sweep has not run on the pack yet.
+`a11y-known.json` holds what the axe sweep of the app maps found when it first ran (SP-01): one
+entry per rule and target, each with the key above, the route it applies to (`*` for every route)
+and an expiry. The sweep fails on a violation the file does not list.
