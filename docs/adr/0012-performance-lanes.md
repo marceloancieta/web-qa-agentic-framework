@@ -22,10 +22,11 @@ for every environment is either too loose locally or too tight in CI.
 .performance`, ADR 0008): measured numbers change with the place, which is what qa-config holds.
 `web_vitals.budgets` has a `default` and an entry per device project for what differs on it (merged
 over the default); `lighthouse` has the routes, the number of runs and the minimum score of each
-category per form factor. A pack without them is skipped with the reason, never passed. The example
-starts from the "good" thresholds of the Core Web Vitals (LCP 2.5 s, CLS 0.1, INP 200 ms), lowered
-where a page measures far below them and raised for a device whose medians come close, and sets
-the Lighthouse minimums below the scores it measured locally.
+category per form factor. A pack without them is skipped with the reason, never passed. The `local` entries of the
+example start from the "good" thresholds of the Core Web Vitals (LCP 2.5 s, CLS 0.1, INP 200 ms),
+lowered where a page measures far below them and raised for a device whose medians come close, and
+set the Lighthouse minimums below the scores measured locally. The `ci` entries are calibrated on
+what the `performance` job measured on the runner (see Calibration).
 
 **Web vitals without a library.** A recorder added to the context before the page loads keeps the
 browser's own entries; `helpers/web-vitals.ts` derives LCP (the last candidate before the first
@@ -63,6 +64,17 @@ desktop and times three visits of its login page, a handful of page loads a pers
 of the workflow and in the weekly Jenkins build, outside the required check. A budget is calibrated
 on what that job reports on the runner before it gates a change; moving the web vitals lane into the
 lane matrix is then one line.
+
+## Calibration
+
+On 2026-11-24 the `ci` budgets of Juice Shop were set from three `performance` runs (two weekly,
+one on demand, 2026-11-16 to 2026-11-24), none of them retried. The rule: a timing budget is about
+twice the slowest median measured on the device project, rounded up; a Lighthouse minimum sits about
+ten points below the lowest score of one run. CLS keeps the "good" threshold, since `/#/search`
+shifts by the same amount on every visit, and best practices keep theirs, since a new Chromium can
+add a deprecation finding without the page changing. The old budgets were three to four times the
+slowest median and would not have noticed a page twice as slow. The lane stays weekly; GATE-15 moves
+it into the lane matrix once it has passed three more weekly runs on these budgets.
 
 ## Consequences
 

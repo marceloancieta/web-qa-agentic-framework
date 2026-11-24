@@ -116,16 +116,16 @@
               "web_vitals": {
                 "samples": 5,
                 "budgets": {
-                  "default": { "lcp_ms": 2500, "cls": 0.1, "inp_ms": 200 },
-                  "mobile-chrome": { "lcp_ms": 3000 }
+                  "default": { "lcp_ms": 1500, "cls": 0.1, "inp_ms": 100 },
+                  "mobile-chrome": { "lcp_ms": 1800 }
                 }
               },
               "lighthouse": {
                 "routes": ["/#/search", "/#/login"],
                 "runs": 3,
                 "min_scores": {
-                  "desktop": { "performance": 70, "accessibility": 85, "best-practices": 90 },
-                  "mobile": { "performance": 20, "accessibility": 85, "best-practices": 90 }
+                  "desktop": { "performance": 85, "accessibility": 90, "best-practices": 90 },
+                  "mobile": { "performance": 50, "accessibility": 90, "best-practices": 90 }
                 }
               }
             }
