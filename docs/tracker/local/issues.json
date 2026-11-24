@@ -1,5 +1,5 @@
 {
-  "next": 59,
+  "next": 60,
   "issues": {
     "LOCAL-1": {
       "title": "Basket: a customer can read another customer's basket by its id",
@@ -671,6 +671,17 @@
       "comments": [
         "**axe detail** (rule `color-contrast`: Elements must meet minimum color contrast ratio thresholds), run `b6dc052b`, 2026-11-16.\n\nElement, as axe reported it on `/dashboard/store_<id>/settings/api-keys`:\n\n```html\n<span class=\"text-muted-foreground/60\">Never</span>\n```\n\naxe summary:\n\n```\nFix any of the following:\n  Element has insufficient color contrast of 2.38 (foreground color: #aba7a3, background color: #ffffff, font size: 9.8pt (13px), font weight: normal). Expected contrast ratio of 4.5:1\n```\n\nProjects: spree-desktop-chromium. 2 element(s) on 1 route(s):\n\n- `/dashboard/store_<id>/settings/api-keys`\n"
       ]
+    },
+    "LOCAL-59": {
+      "title": "Spree: ZAP rule 10096 reads constants of the dashboard bundle as Unix timestamps (scanner false positive)",
+      "body": "**What happens:** ZAP's passive rule 10096 (Timestamp Disclosure - Unix, risk Low) fires five times on the\ndashboard bundle `<base_url>/dashboard/assets/index-BB-SYoe3.js` of Spree 6.0.3. The evidence is five\nten-digit numbers in the minified code: 1502002290, 1770035416, 1804603682, 1958414417 and 1990404162.\n\n**What should happen:** the rule reports a server time that leaks. These numbers are constants of the\nbundle, not times: they are the same on every request, two of them \"evaluate\" to 2032 and 2033, and the\nfile is a static asset built once for the image. Nothing about the server or its clock is disclosed.\n\n**Classification:** a false positive of the scanner, not a defect of Spree. It is filed so that\n`apps/spree/zap-known.json` can accept the alert with a key and an expiry, and so it is looked at again\nwhen Spree ships a new dashboard bundle (the file name changes with its content).\n\n**Steps:** `npm run lanes:zap -- --pack spree` (a disposable Spree from docker/compose.yml, the spider on\n`<base_url>/`, then the passive scan). The alert appears under \"new\" until the known entry is added.\n\n**Devices and browsers:** none; ZAP's spider and passive scan, ZAP 2.17.0 of docker/compose.yml.\n\n**Evidence:** `reports/zap/spree.json` and `reports/zap/spree-messages.har` of the local scan of\n2026-11-24 (12 GET requests, no other method).\n",
+      "labels": [
+        "security",
+        "type:false-positive"
+      ],
+      "status": "open",
+      "category": "open",
+      "comments": []
     }
   }
 }

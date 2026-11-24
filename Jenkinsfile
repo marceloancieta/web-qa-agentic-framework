@@ -232,10 +232,13 @@ pipeline {
             }
           }
         }
-        // The ZAP baseline lane scans a disposable Juice Shop it starts and removes in a compose
-        // project of its own, never the build's.
+        // The ZAP baseline lane scans a disposable copy of each local pack, which it starts and
+        // removes in a compose project of its own, never the build's.
         catchError(buildResult: 'FAILURE', stageResult: 'FAILURE') {
           shell 'npm run lanes:zap -- --pack juice-shop'
+        }
+        catchError(buildResult: 'FAILURE', stageResult: 'FAILURE') {
+          shell 'npm run lanes:zap -- --pack spree'
         }
         withEnv([junitOf('destructive')]) {
           catchError(buildResult: 'FAILURE', stageResult: 'FAILURE') {

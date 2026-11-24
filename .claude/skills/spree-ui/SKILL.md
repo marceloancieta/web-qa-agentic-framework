@@ -48,19 +48,23 @@ dashboard's sidebar sits behind "Toggle Sidebar".
   own, made and removed through the admin API. Take the store's route from the page a sign-in lands
   on. Wait for a page's rows or form, not only its heading.
 - Run: `spree:up` before a run; it clears the admin's lockout. The pack's recovery restarts the
-  container, which keeps the database.
+  container, which keeps the database. `npm run lanes:zap -- --pack spree` never scans that Spree:
+  it starts `spree-scan` on a database of its own (`spree-scan-db`), empty and on no host port, and
+  removes both afterwards. The dashboard is a single-page application, so the spider, which runs no
+  script, reaches its documents and assets only.
 
 ## Known defects
 
 | Key | What | Cases armed with it |
 |---|---|---|
-| `LOCAL-44` | dashboard documents carry no Content-Security-Policy or Permissions-Policy | the security headers sweep (`headers-known.json`) |
+| `LOCAL-44` | dashboard documents carry no Content-Security-Policy or Permissions-Policy | the security headers sweep (`headers-known.json`), the ZAP lane (`zap-known.json`) |
 | `LOCAL-45` | login: the refusal and field messages are not announced to screen readers (S2) | TC-LOGIN-19 |
 | `LOCAL-46` | login: Email and Password have no `autocomplete` and no `required` (S3) | TC-LOGIN-20 |
 | `LOCAL-47` | write controls shown to roles that cannot write; the store refuses the write (S3) | TC-ROLES-14 |
 | `LOCAL-48` | a section the role cannot read shows an empty table with no refusal message (S3) | TC-ROLES-15 |
 | `LOCAL-49` | product pages' "Shop location" links omit `/dashboard` and land on a 404 (S3) | none |
 | `LOCAL-50` | login: the lockout message tells which emails have a staff account (S3) | TC-LOGIN-08 |
+| `LOCAL-59` | not a defect: ZAP rule 10096 reads constants of the dashboard bundle as Unix timestamps | the ZAP lane (`zap-known.json`) |
 
 ## Accessibility baseline
 

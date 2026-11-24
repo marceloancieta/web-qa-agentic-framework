@@ -7,7 +7,7 @@
 #         → a11y lane (both packs) ├→ report: ci:merge → quality:gate over every report → tm:report
 #         → visual lane            │
 #         → destructive lane       ┘
-#         → zap lane: a ZAP baseline scan of a disposable Juice Shop the lane starts, judged by itself
+#         → zap lane: ZAP baseline scans of a disposable Juice Shop and Spree, judged by themselves
 #   required: one verdict over all of the above, the check branch protection requires
 #   flake lane: weekly and on demand only
 #   performance: the web vitals and Lighthouse lanes, weekly and on demand only
@@ -205,13 +205,13 @@ jobs:
           retention-days: 14
 
   # The ZAP baseline lane (ADR 0011): a spider and a passive scan, a few minutes beside the suite's
-  # shards. The lane starts its own disposable Juice Shop and removes it. Its verdict is its own exit
-  # code against apps/juice-shop/zap-known.json; it writes no Playwright report, so the quality gate
-  # does not read it.
+  # shards. For each pack the lane starts a disposable copy (Spree with a database of its own) and
+  # removes it. Its verdict is its own exit code against apps/<pack>/zap-known.json; it writes no
+  # Playwright report, so the quality gate does not read it.
   zap:
     needs: gates
     runs-on: ubuntu-24.04
-    timeout-minutes: 15
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
@@ -219,8 +219,12 @@ jobs:
           node-version: 22
           cache: npm
       - run: npm ci
-      - name: Run the ZAP baseline lane
+      - name: Run the ZAP baseline lane on Juice Shop
         run: npm run lanes:zap -- --pack juice-shop
+      # Each scan writes its own files in reports/zap, so one that failed leaves its evidence.
+      - name: Run the ZAP baseline lane on Spree
+        if: ${{ !cancelled() }}
+        run: npm run lanes:zap -- --pack spree
       - if: ${{ always() && !env.ACT }}
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
