@@ -3,7 +3,7 @@
 [![CI](https://github.com/marceloancieta/web-qa-agentic-framework/actions/workflows/ci.yml/badge.svg)](https://github.com/marceloancieta/web-qa-agentic-framework/actions/workflows/ci.yml)
 [![License: Apache-2.0](https://img.shields.io/badge/license-Apache--2.0-blue.svg)](LICENSE)
 [![Node](https://img.shields.io/badge/node-%3E%3D22-339933.svg)](https://nodejs.org/)
-[![Playwright](https://img.shields.io/badge/playwright-1.64-2EAD33.svg)](https://playwright.dev/)
+[![Playwright](https://img.shields.io/badge/playwright-1.65-2EAD33.svg)](https://playwright.dev/)
 
 A framework for testing web user interfaces with Playwright and TypeScript, driven by a five-phase
 process (intake, design, automate, publish, run) with a human review gate after each phase, and
