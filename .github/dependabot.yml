@@ -28,6 +28,11 @@ updates:
       # desktop Firefox. The 1.65 releases are skipped until one carries a Firefox with the fix.
       - dependency-name: '@playwright/test'
         versions: ['1.65.x']
+      # typescript-eslint 8.74.0 accepts `typescript >=4.8.4 <6.1.0`, so `npm ci` refuses TypeScript
+      # 7 (ERESOLVE). TypeScript 7 is skipped until a typescript-eslint release accepts it; then
+      # `scripts/lib/corpus.mjs`, which reads specs with the compiler API, is checked with it too.
+      - dependency-name: 'typescript'
+        versions: ['7.x']
     open-pull-requests-limit: 5
 
   - package-ecosystem: github-actions
