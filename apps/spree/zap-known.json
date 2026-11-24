@@ -1,0 +1,16 @@
+[
+  {
+    "plugin": "10038",
+    "name": "Content Security Policy (CSP) Header Not Set",
+    "key": "LOCAL-44",
+    "expires": "2027-02-10",
+    "reason": "Spree's dashboard documents send no CSP; the headers sweep keeps the same gap in headers-known.json."
+  },
+  {
+    "plugin": "10096",
+    "name": "Timestamp Disclosure - Unix",
+    "key": "LOCAL-59",
+    "expires": "2027-02-24",
+    "reason": "A false positive: the numbers are constants of the dashboard bundle, not server times."
+  }
+]

@@ -133,7 +133,7 @@ test('a pack without a disposable copy, or with one that publishes a port, is re
   assert.match(refusal({ ...SERVICES, 'juice-shop-scan': { ...scan, expose: [] } }), /exposed/);
 });
 
-test('compose: the copy runs the image and health check of the application, on no host port', () => {
+test('compose: each copy runs the image and health check of its application, on no host port', () => {
   const services = compose();
   assert.deepEqual(applicationsOf(services), ['juice-shop', 'spree', 'spree-db']);
   assert.deepEqual(scanServiceOf(services, 'juice-shop'), { name: 'juice-shop-scan', port: 3000 });
@@ -141,6 +141,19 @@ test('compose: the copy runs the image and health check of the application, on n
   assert.equal(scan.image, services['juice-shop'].image);
   assert.deepEqual(scan.healthcheck, services['juice-shop'].healthcheck);
   assert.equal(scan.ports, undefined);
+  // Spree's copy brings a database of its own, so the scan never touches the data of spree-db.
+  assert.deepEqual(scanServiceOf(services, 'spree'), { name: 'spree-scan', port: 3000 });
+  const spree = services['spree-scan'];
+  assert.equal(spree.image, services.spree.image);
+  assert.deepEqual(spree.healthcheck, services.spree.healthcheck);
+  assert.equal(spree.ports, undefined);
+  assert.deepEqual(Object.keys(spree.depends_on), ['spree-scan-db']);
+  assert.match(spree.environment.DATABASE_URL, /@spree-scan-db:/);
+  assert.equal(spree.environment.SECRET_KEY_BASE, undefined);
+  const database = services['spree-scan-db'];
+  assert.equal(database.image, services['spree-db'].image);
+  assert.deepEqual(database.profiles, ['zap']);
+  assert.equal(database.ports, undefined);
   const zap = services[ZAP_SERVICE];
   assert.match(zap.image, /^zaproxy\/zap-stable:\d+\.\d+\.\d+@sha256:[0-9a-f]{64}$/);
   assert.deepEqual(zap.profiles, ['zap']);

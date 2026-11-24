@@ -46,7 +46,7 @@ Every item of v0.1.0 is done; each is in **Done**.
 | Id | Item | Origin | Status |
 |---|---|---|---|
 | GATE-15 | The web vitals lane gates changes: the `ci` budgets of Juice Shop are calibrated on the weekly `performance` runs (ADR 0012, Calibration), and once three more weekly runs pass on them, `lanes:web-vitals` moves into the CI lane matrix and the Jenkins lanes stage, so a page that slows past its budget fails the required check. | ADR 0012 | in-progress |
-| SP-03 | A ZAP baseline scan of the Spree pack: a disposable Spree the lane starts, `apps/spree/zap-known.json` for its known findings, and `npm run lanes:zap -- --pack spree` in the CI `zap` job. | plan | todo |
+| SP-03 | A ZAP baseline scan of the Spree pack: a disposable Spree the lane starts, `apps/spree/zap-known.json` for its known findings, and `npm run lanes:zap -- --pack spree` in the CI `zap` job. | plan | in-progress |
 | FUT-04 | i18n: projects per `locale` and `timezoneId`, pseudo-localization, right-to-left. | practice | todo |
 | FUT-05 | Design-token checks from the pack's `design-tokens.json`; `prefers-reduced-motion` emulation. | plan | todo |
 | FUT-07 | TOTP two-factor login and a mail-catcher pattern (Mailpit). | plan | todo |
