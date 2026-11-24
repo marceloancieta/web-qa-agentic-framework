@@ -23,6 +23,11 @@ updates:
     ignore:
       - dependency-name: '@types/node'
         update-types: [version-update:semver-major]
+      # Playwright 1.65 ships Firefox 159 (build 1572), whose page crashes while axe reads
+      # `aria-labelledby` (microsoft/playwright#43967): the a11y lane and TC-SEARCH-20 fail on
+      # desktop Firefox. The 1.65 releases are skipped until one carries a Firefox with the fix.
+      - dependency-name: '@playwright/test'
+        versions: ['1.65.x']
     open-pull-requests-limit: 5
 
   - package-ecosystem: github-actions
