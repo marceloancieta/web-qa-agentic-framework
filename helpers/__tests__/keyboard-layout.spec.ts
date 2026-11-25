@@ -94,6 +94,17 @@ test('a focus indicator is visible unless the page removed it', async ({ page })
   expect(await hasVisibleFocus(page.getByRole('button', { name: 'Sign in' }))).toBe(false);
 });
 
+test('a focus indicator that fades in is read once its transition has finished', async ({
+  page,
+}) => {
+  await page.setContent(`<!doctype html><html lang="en"><head><title>Fade</title><style>
+    button { outline: none; box-shadow: 0 0 0 0 #1a73e8; transition: box-shadow 100ms linear 400ms; }
+    button:focus { box-shadow: 0 0 0 3px #1a73e8; }
+    </style></head><body><main><button>Reset password</button></main></body></html>`);
+  // Read at once, the shadow is still exactly its resting value: the transition waits 400 ms.
+  expect(await hasVisibleFocus(page.getByRole('button', { name: 'Reset password' }))).toBe(true);
+});
+
 test("a focus indicator drawn on the field's wrapper is seen by rendering, not by the element's style", async ({
   page,
 }) => {

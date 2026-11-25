@@ -135,7 +135,7 @@ test('a pack without a disposable copy, or with one that publishes a port, is re
 
 test('compose: each copy runs the image and health check of its application, on no host port', () => {
   const services = compose();
-  assert.deepEqual(applicationsOf(services), ['juice-shop', 'spree', 'spree-db']);
+  assert.deepEqual(applicationsOf(services), ['juice-shop', 'spree', 'spree-db', 'mailpit']);
   assert.deepEqual(scanServiceOf(services, 'juice-shop'), { name: 'juice-shop-scan', port: 3000 });
   const scan = services['juice-shop-scan'];
   assert.equal(scan.image, services['juice-shop'].image);

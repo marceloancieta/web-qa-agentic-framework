@@ -76,6 +76,7 @@ const test = createTest(provider).extend<object, { fakeApp: FakeApp & { close():
           baseUrl: fakeApp.url,
           allowWrites: true,
           recovery: null,
+          mailCatcher: null,
           // The unit project has no device, so its own name keys the budget.
           performance: {
             web_vitals: { samples: 3, budgets: { unit: { lcp_ms: 2500, cls: 0.1, inp_ms: 200 } } },

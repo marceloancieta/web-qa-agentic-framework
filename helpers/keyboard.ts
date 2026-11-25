@@ -98,10 +98,16 @@ export async function findFocusTrap(page: Page, maxSteps = 50): Promise<FocusSto
 /**
  * Whether focusing the element changes how it is drawn (outline, box shadow, border or
  * background). A focus indicator that equals the resting style is invisible to keyboard users.
+ * Each style is read once the element's transitions have finished: a focus ring that fades in
+ * (`transition: box-shadow 100ms`) still holds its resting value right after the focus moves, and a
+ * slower engine read it there.
  */
 export async function hasVisibleFocus(locator: Locator): Promise<boolean> {
   const style = () =>
-    locator.evaluate((element) => {
+    locator.evaluate(async (element) => {
+      // Reading the style starts any transition the focus change caused; then wait for it.
+      void getComputedStyle(element).boxShadow;
+      await Promise.allSettled(element.getAnimations().map((animation) => animation.finished));
       const computed = getComputedStyle(element);
       return [
         computed.outlineStyle,

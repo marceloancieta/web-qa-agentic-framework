@@ -12,9 +12,10 @@ shows authorization in the UI by role, and a session that cannot be shared betwe
 
 ## Before you start
 
-- Reachability: `npm run spree:up` starts Spree and its database, makes the admin of
-  `SPREE_ADMIN_EMAIL` and `SPREE_ADMIN_PASSWORD` and loads the sample data once; `npm run spree:down`
-  removes both containers. The application answers on `http://localhost:3100`.
+- Reachability: `npm run spree:up` starts Spree, its database and the mail catcher (Mailpit), makes
+  the admin of `SPREE_ADMIN_EMAIL` and `SPREE_ADMIN_PASSWORD` and loads the sample data once;
+  `npm run spree:down` removes the three containers. The application answers on
+  `http://localhost:3100`, the mail catcher on `http://localhost:8025` (qa-config `mail_catcher`).
 - Configuration: the pack's entry under `app.environments.<env>.packs.spree` in qa-config.
 - The pack's map: `apps/spree/README.md`; the app maps: `apps/spree/docs/app-map.json` and
   `apps/spree/docs/app-map.admin.json`.
@@ -46,7 +47,11 @@ dashboard's sidebar sits behind "Toggle Sidebar".
   admin: a lockout or a revoked session stops every worker.
 - Automate: a case that types a password, fails a sign-in or signs out uses a staff account of its
   own, made and removed through the admin API. Take the store's route from the page a sign-in lands
-  on. Wait for a page's rows or form, not only its heading.
+  on. Wait for a page's rows or form, not only its heading. Mail is read with the `mail` fixture
+  (ADR 0014): a provisioned member already has an invitation email, so pick messages by subject, and
+  pass `except` when the case asks for a second email of the same kind. The reset email's link lacks
+  `/dashboard` (LOCAL-67): `ResetPasswordPage.openLink` opens its token on the dashboard's page until
+  that is fixed.
 - Run: `spree:up` before a run; it clears the admin's lockout. The pack's recovery restarts the
   container, which keeps the database. `npm run lanes:zap -- --pack spree` never scans that Spree:
   it starts `spree-scan` on a database of its own (`spree-scan-db`), empty and on no host port, and
@@ -58,8 +63,8 @@ dashboard's sidebar sits behind "Toggle Sidebar".
 | Key | What | Cases armed with it |
 |---|---|---|
 | `LOCAL-44` | dashboard documents carry no Content-Security-Policy or Permissions-Policy | the security headers sweep (`headers-known.json`), the ZAP lane (`zap-known.json`) |
-| `LOCAL-45` | login: the refusal and field messages are not announced to screen readers (S2) | TC-LOGIN-19 |
-| `LOCAL-46` | login: Email and Password have no `autocomplete` and no `required` (S3) | TC-LOGIN-20 |
+| `LOCAL-45` | login: the refusal and field messages are not announced to screen readers (S2) | TC-LOGIN-19, TC-PWRESET-22 |
+| `LOCAL-46` | login: Email and Password have no `autocomplete` and no `required` (S3) | TC-LOGIN-20, TC-PWRESET-23 |
 | `LOCAL-47` | write controls shown to roles that cannot write; the store refuses the write (S3) | TC-ROLES-14 |
 | `LOCAL-48` | a section the role cannot read shows an empty table with no refusal message (S3) | TC-ROLES-15 |
 | `LOCAL-49` | product pages' "Shop location" links omit `/dashboard` and land on a 404 (S3) | none |
@@ -73,6 +78,9 @@ dashboard's sidebar sits behind "Toggle Sidebar".
 | `LOCAL-57` | new order: the button of a combobox field has no accessible name (S3) | the accessibility sweep (`a11y-known.json`) |
 | `LOCAL-58` | API keys: the "Never" of the last-used column has too little contrast (S3) | the accessibility sweep (`a11y-known.json`) |
 | `LOCAL-59` | not a defect: ZAP rule 10096 reads constants of the dashboard bundle as Unix timestamps | the ZAP lane (`zap-known.json`) |
+| `LOCAL-67` | password reset: the link in the email omits `/dashboard` and answers 404, like `LOCAL-49` (S2) | TC-PWRESET-05 |
+| `LOCAL-68` | reset password page: no heading, and the title does not name the page (S3) | TC-PWRESET-21 |
+| `LOCAL-69` | reset password page: a dead link shows the form and is refused only on submit (S4) | TC-PWRESET-24 |
 
 ## Accessibility baseline
 

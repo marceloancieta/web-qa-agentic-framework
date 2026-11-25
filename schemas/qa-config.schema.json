@@ -447,6 +447,23 @@
           "type": "string",
           "pattern": "^[a-z][a-z0-9-]*$"
         },
+        "mail_catcher": {
+          "description": "The mail catcher that receives every email the pack's application sends in this environment, read by helpers/mail-catcher.ts (FUT-07, ADR 0014). A case reads only mail sent to an address it created, and only from a catcher that delivers nothing onwards; never set it to a real inbox. A pack without it has no case that reads mail.",
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["provider", "base_url"],
+          "properties": {
+            "provider": {
+              "description": "The catcher's kind: its HTTP API decides how messages are searched and read.",
+              "enum": ["mailpit"]
+            },
+            "base_url": {
+              "description": "Where the catcher's HTTP API answers, such as http://localhost:8025.",
+              "type": "string",
+              "format": "uri"
+            }
+          }
+        },
         "performance": {
           "description": "The pack's performance budgets in this environment. Measured numbers depend on the machine and the network, so each environment sets its own; a pack without them is skipped by the web vitals lane and left out by the Lighthouse lane, with the reason. Never set them for a production host.",
           "type": "object",

@@ -10,7 +10,7 @@
   "visual": { "stylePath": "visual.css" },
   "a11y_sweep": { "ready": "headings", "exclude": ["iframe[title=\"Email preview\"]"] },
   "app_map": {
-    "start": ["/", "/dashboard/login", "/dashboard/forgot-password"],
+    "start": ["/", "/dashboard/login", "/dashboard/forgot-password", "/dashboard/reset-password"],
     "session_writes": ["POST /api/v3/admin/auth/refresh"],
     "exclude": ["#main-content$", "/logout", "/sign-out", "^/store_", "^/rails/"],
     "actors": {

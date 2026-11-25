@@ -39,7 +39,13 @@ const config = {
       local: { packs: { shop } },
       ci: {
         projects: ['desktop-webkit', 'tablet'],
-        packs: { shop: { ...shop, default_actor: 'admin' } },
+        packs: {
+          shop: {
+            ...shop,
+            default_actor: 'admin',
+            mail_catcher: { provider: 'mailpit', base_url: 'http://localhost:8025/' },
+          },
+        },
       },
     },
   },
@@ -81,6 +87,12 @@ test('a pack: base URL without trailing slash, the override variable, the defaul
   expect(local.allowWrites).toBe(true);
   expect(local.defaultActor).toBe('customer');
   expect(loadRuntime('shop', { QA_ENV: 'ci' }, root).defaultActor).toBe('admin');
+  // The mail catcher is per environment: none here, one in ci, its URL without the trailing slash.
+  expect(local.mailCatcher).toBeNull();
+  expect(loadRuntime('shop', { QA_ENV: 'ci' }, root).mailCatcher).toEqual({
+    provider: 'mailpit',
+    base_url: 'http://localhost:8025',
+  });
   expect(packVariable('juice-shop', 'BASE_URL')).toBe('QA_JUICE_SHOP_BASE_URL');
   expect(loadRuntime('shop', { QA_SHOP_BASE_URL: 'http://shop.test//' }, root).baseUrl).toBe(
     'http://shop.test',

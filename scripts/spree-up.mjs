@@ -2,9 +2,11 @@
 /**
  * `npm run spree:up`: starts the Spree pack's application (FUT-01) and makes it ready to test.
  *
- * 1. Starts the `spree` and `spree-db` services of docker/compose.yml and waits until both are
- *    healthy, unless `spree` already is: a running Spree keeps its data and its sessions. A start
- *    gives SPREE_SECRET_KEY_BASE a new random value, so no key is kept in the repository.
+ * 1. Starts the `spree` service of docker/compose.yml with the services it depends on (`spree-db`,
+ *    and `mailpit`, the mail catcher every email of Spree goes to) and waits until they are
+ *    healthy, unless `spree` and `mailpit` already are: a running Spree keeps its data and its
+ *    sessions. A start gives SPREE_SECRET_KEY_BASE a new random value, so no key is kept in the
+ *    repository.
  * 2. Signs the admin actor in Spree's terms: the admin user of the configured variables exists, has
  *    the admin role of the default store, has the password of its variable and is not locked out.
  *    The variable names come from the `admin` actor of the pack in qa-config.
@@ -31,6 +33,8 @@ import { exitCodeOf, spawnFailure } from './lib/spawn.mjs';
 export const PACK = 'spree';
 export const ACTOR = 'admin';
 export const SERVICE = 'spree';
+/** The mail catcher Spree sends to (FUT-07); a Spree started without it would send nowhere. */
+export const MAIL_SERVICE = 'mailpit';
 const COMPOSE = ['compose', '-f', join('docker', 'compose.yml')];
 
 /** The names of the variables that hold the admin's email and password, from the pack's actor. */
@@ -151,10 +155,11 @@ export function dockerIo() {
   const docker = (args, options = {}) =>
     spawnSync('docker', [...COMPOSE, ...args], { cwd: REPO_ROOT, encoding: 'utf8', ...options });
   return {
-    healthy: () => {
-      const run = docker(['ps', '--format', '{{.Health}}', SERVICE]);
-      return run.status === 0 && run.stdout.trim() === 'healthy';
-    },
+    healthy: () =>
+      [SERVICE, MAIL_SERVICE].every((service) => {
+        const run = docker(['ps', '--format', '{{.Health}}', service]);
+        return run.status === 0 && run.stdout.trim() === 'healthy';
+      }),
     up: (extra) => {
       const run = docker(['up', '-d', '--wait', SERVICE], {
         stdio: 'inherit',

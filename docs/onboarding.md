@@ -57,8 +57,9 @@ npx playwright show-report
 - `juice-shop:up` starts the container and waits until it is healthy; `juice-shop:down` removes it,
   and the next start has an empty database.
 - The Spree pack runs the same way: set `SPREE_ADMIN_EMAIL` and `SPREE_ADMIN_PASSWORD` in `.env`,
-  then `npm run spree:up` starts Spree and its database, makes that admin and loads the sample data;
-  `spree:down` removes both. The `local` environment of the example configuration names it, so a
+  then `npm run spree:up` starts Spree, its database and the mail catcher Spree sends every email
+  to (Mailpit, `http://localhost:8025`), makes that admin and loads the sample data; `spree:down`
+  removes all three. The `local` environment of the example configuration names it, so a
   plain `npm test` expects it to be running.
 - A project name is `<pack>-<device>`, such as `juice-shop-desktop-chromium`. The `local`
   environment runs the devices it names in `qa-config`; the full list is in

@@ -24,6 +24,7 @@ the locator order in ADR 0007; `apps/juice-shop/` is the worked example.
 | Visual | the `visual` fixture: `visual.expectToMatch(target, name, mask, { wholePage })`; masks belong to the page object; `wholePage` when the case claims more than the first screen; `visual.expectNotToMatch` with the same arguments when the case claims a view differs from a baseline another step wrote | carries `@visual`; runs only in the visual lane |
 | Keyboard, overflow, time, files | `helpers/keyboard.ts`, `helpers/layout.ts`, `helpers/time.ts`, `helpers/files.ts` | asserts on what they return |
 | Two-factor codes | `helpers/totp.ts` (RFC 6238), from the secret of an account the case created; `freshTotp` when the code must stay in its step until the server reads it | types a code it made, never one written in the spec |
+| Mail the application sent | the `mail` fixture (`helpers/mail-catcher.ts`, ADR 0014) over the mail catcher qa-config names for the pack: `waitForMessage(address, { subject })`, then `linkMatching(message, pattern)` | reads only the mail of an address its builder made, and follows the link as the person would; never asks the application for the token |
 
 ## Locators
 

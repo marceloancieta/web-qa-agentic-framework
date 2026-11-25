@@ -18,3 +18,4 @@ decision changes through a new ADR that supersedes the old one; accepted ADRs ar
 | [0011](0011-security-headers-and-zap-lane.md) | Security headers in every run, and a ZAP baseline lane for local packs only | Accepted |
 | [0012](0012-performance-lanes.md) | Web vitals and Lighthouse run in lanes of their own, against budgets per environment | Accepted |
 | [0013](0013-exploration-mode.md) | Chartered exploratory sessions are a third mode, with limits a check enforces | Accepted |
+| [0014](0014-codes-and-mail-from-test-channels.md) | One-time codes and mail come only from channels the test controls | Accepted |

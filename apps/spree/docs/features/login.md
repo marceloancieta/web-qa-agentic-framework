@@ -159,8 +159,8 @@ Pixel 7 and filed on 2026-11-14.
 
 ## Out of scope
 
-- The password reset: "Send reset link" sends an email, and reading it needs the mail catcher of
-  FUT-07, which adds it.
+- The password reset: it has a contract of its own, [`password-reset.md`](password-reset.md), since
+  FUT-07 added the mail catcher it needs.
 - Signing in through other providers: `auth/providers` lists only email and password.
 - The first-run setup of a new store (`auth/setup` answers `setup_required: false` once
   `spree:up` has made the admin).

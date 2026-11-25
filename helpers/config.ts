@@ -32,11 +32,18 @@ export interface PerformanceConfig {
   };
 }
 
+/** The mail catcher that receives the pack's email in one environment (`helpers/mail-catcher.ts`). */
+export interface MailCatcherConfig {
+  provider: 'mailpit';
+  base_url: string;
+}
+
 interface PackEntry {
   base_url: string;
   allow_writes?: boolean;
   recovery?: RecoveryConfig;
   performance?: PerformanceConfig;
+  mail_catcher?: MailCatcherConfig;
   actors: Record<string, ActorConfig>;
   default_actor?: string;
 }
@@ -77,6 +84,8 @@ export interface QaRuntime extends QaSettings {
   allowWrites: boolean;
   recovery: RecoveryConfig | null;
   performance: PerformanceConfig | null;
+  /** The pack's mail catcher; null when no case of the pack reads mail in this environment. */
+  mailCatcher: MailCatcherConfig | null;
   actors: Record<string, ActorConfig>;
   defaultActor: string;
 }
@@ -182,6 +191,9 @@ export function loadRuntime(
     allowWrites: entry.allow_writes ?? false,
     recovery: entry.recovery ?? null,
     performance: entry.performance ?? null,
+    mailCatcher: entry.mail_catcher
+      ? { ...entry.mail_catcher, base_url: entry.mail_catcher.base_url.replace(/\/+$/, '') }
+      : null,
     actors: entry.actors ?? {},
     defaultActor: entry.default_actor ?? actorNames[0] ?? ANONYMOUS_ACTOR,
   };

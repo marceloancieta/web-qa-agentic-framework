@@ -48,7 +48,8 @@
               "orders-reader": { "account": "provisioned" },
               "catalog-editor": { "account": "provisioned" }
             },
-            "default_actor": "admin"
+            "default_actor": "admin",
+            "mail_catcher": { "provider": "mailpit", "base_url": "http://localhost:8025" }
           },
           "saucedemo": {
             "base_url": "https://www.saucedemo.com",
@@ -144,7 +145,8 @@
               "orders-reader": { "account": "provisioned" },
               "catalog-editor": { "account": "provisioned" }
             },
-            "default_actor": "admin"
+            "default_actor": "admin",
+            "mail_catcher": { "provider": "mailpit", "base_url": "http://localhost:8025" }
           }
         }
       }

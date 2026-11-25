@@ -35,6 +35,17 @@ export class AuthApi {
     return body.email ?? body.user?.email ?? null;
   }
 
+  /**
+   * The status a sign-in with `account` answers, without keeping its session: `200` for a right
+   * pair, `401` for a refused one. For a case that checks which password an account has.
+   */
+  async signInStatus(account: Account): Promise<number> {
+    const response = await this.api.post('api/v3/admin/auth/login', {
+      data: { email: account.username, password: account.password },
+    });
+    return response.status();
+  }
+
   async login(account: Account): Promise<AdminSignIn> {
     const response = await this.api.post('api/v3/admin/auth/login', {
       data: { email: account.username, password: account.password },
