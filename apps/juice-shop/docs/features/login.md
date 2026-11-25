@@ -137,7 +137,7 @@ account menu. Every page also loads `/rest/admin/application-configuration`, the
 - "Login with Google": it hands over to a third party, which the walk and the cases block.
 - "Remember me": what it changes shows only after the browser closes or a session expires; it
   waits for the session-timeout cases (`page.clock`).
-- Two-factor login: v0.2 (architecture section 6b).
+- Two-factor login: the [two-factor authentication](two-factor.md) contract.
 - Lockout after repeated failures: nothing on the page or in its texts mentions one.
 
 ## Assumptions to confirm
