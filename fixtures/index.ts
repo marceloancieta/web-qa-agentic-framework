@@ -18,6 +18,8 @@
 //   securityHeaders test securityHeaders.expectNoNewGaps(page) checks the responses of the pack's
 //                        origin the page received against headers-known.json; every page the
 //                        fixtures open is recorded from its first navigation
+//   mail        test     the mail the application sent to an address the case created, from the
+//                        pack's mail catcher (helpers/mail-catcher.ts); link tokens are redacted
 //   visual      test     visual.expectToMatch(target, name, mask, { wholePage }) with the pack's settings,
 //                        and expectNotToMatch for a view that must differ from a baseline
 //   vitals      test     vitals.expectWithinBudget(subject, { load, interact }, { role }) measures LCP,
@@ -77,6 +79,7 @@ import {
   type HeaderComparison,
 } from '../helpers/security-headers';
 import { newApiContext } from '../helpers/api-context';
+import { MailCatcher } from '../helpers/mail-catcher';
 import { applyCaseMeta } from '../helpers/case-meta';
 import { rememberSecret } from '../helpers/run-secrets';
 import {
@@ -149,6 +152,12 @@ export interface CoreTestFixtures {
       options?: { wholePage?: boolean },
     ): Promise<void>;
   };
+  /**
+   * The mail the pack's application sent, from the mail catcher qa-config names for the pack in
+   * this environment (`helpers/mail-catcher.ts`): only addresses on a reserved domain, and every token a
+   * link carries is redacted from the run's artifacts. Fails when the environment names none.
+   */
+  mail: MailCatcher;
   vitals: {
     /**
      * Visit a page several times, each in a new context of `role` (anonymous by default), and
@@ -411,6 +420,24 @@ export function createTest(provider: ActorProvider) {
           return comparison;
         },
       });
+    },
+
+    mail: async ({ qa, redaction }, use) => {
+      if (!qa.mailCatcher) {
+        throw new Error(
+          `mail: ${qa.source} gives the pack "${qa.pack}" no mail catcher in the environment ` +
+            `"${qa.environment}" (app.environments.${qa.environment}.packs.${qa.pack}.mail_catcher).`,
+        );
+      }
+      await use(
+        new MailCatcher(qa.mailCatcher, {
+          // A link's token signs whoever holds it in: the run's artifacts are redacted of it.
+          onSecret(value) {
+            redaction.knownSecrets.push(value);
+            rememberSecret(value);
+          },
+        }),
+      );
     },
 
     visual: async ({ app }, use) => {

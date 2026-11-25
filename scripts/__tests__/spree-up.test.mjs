@@ -7,7 +7,15 @@ import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { parse } from 'yaml';
 import { REPO_ROOT } from '../lib/cli.mjs';
-import { ACTOR, adminVariables, PACK, RUNNER, SERVICE, spreeUp } from '../spree-up.mjs';
+import {
+  ACTOR,
+  adminVariables,
+  MAIL_SERVICE,
+  PACK,
+  RUNNER,
+  SERVICE,
+  spreeUp,
+} from '../spree-up.mjs';
 
 const ENTRY = {
   actors: {
@@ -127,7 +135,16 @@ test('the compose service, the qa-config actor and the scripts agree', () => {
   assert.equal(spree.environment.SECRET_KEY_BASE, '${SPREE_SECRET_KEY_BASE:-}');
   assert.equal(spree.ports[0].split(':')[0], '127.0.0.1');
   assert.equal(compose.services['spree-db'].ports, undefined, 'the database has no host port');
-  assert.deepEqual(spree.depends_on, { 'spree-db': { condition: 'service_healthy' } });
+  assert.deepEqual(spree.depends_on, {
+    'spree-db': { condition: 'service_healthy' },
+    [MAIL_SERVICE]: { condition: 'service_healthy' },
+  });
+  // Every email goes to the mail catcher, which answers on the host for helpers/mail-catcher.ts only.
+  const mail = compose.services[MAIL_SERVICE];
+  assert.match(mail.image, /^axllent\/mailpit:v\d+\.\d+\.\d+@sha256:[0-9a-f]{64}$/);
+  assert.equal(spree.environment.SMTP_HOST, MAIL_SERVICE);
+  assert.deepEqual(mail.expose, [spree.environment.SMTP_PORT]);
+  assert.deepEqual(mail.ports, ['127.0.0.1:8025:8025']);
 
   const example = JSON.parse(readFileSync(join(REPO_ROOT, 'qa-config.example.json'), 'utf8'));
   const entry = example.app.environments.local.packs[PACK];
@@ -145,6 +162,6 @@ test('the compose service, the qa-config actor and the scripts agree', () => {
   assert.equal(scripts['spree:up'], 'node scripts/spree-up.mjs');
   assert.equal(
     scripts['spree:down'],
-    'docker compose -f docker/compose.yml rm --stop --force --volumes spree spree-db',
+    'docker compose -f docker/compose.yml rm --stop --force --volumes spree spree-db mailpit',
   );
 });

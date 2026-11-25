@@ -106,6 +106,24 @@
       "links": [
         "/dashboard/forgot-password"
       ]
+    },
+    {
+      "route": "/dashboard/reset-password",
+      "title": "Spree Admin",
+      "landmarks": [
+        "region \"Notifications\""
+      ],
+      "headings": [],
+      "interactive": [
+        "link \"Request a new reset link\""
+      ],
+      "fields": [],
+      "api_calls": [
+        "POST /api/v3/admin/auth/refresh"
+      ],
+      "links": [
+        "/dashboard/forgot-password"
+      ]
     }
   ],
   "blocked_writes": []

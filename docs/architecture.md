@@ -294,7 +294,7 @@ say how a case runs rather than which dimension it covers.
 **Also in v0.1:** controlled time with `page.clock` (session timeout, countdowns, dates) and file
 upload and download. **Rejected in an ADR:** self-healing locators, because they hide defects.
 **v0.2 or later:** TOTP two-factor login (Juice Shop has it; the test generates the code), a mail
-catcher pattern (Mailpit) for applications that verify by email, and the `qa-explore` skill
+catcher pattern (Mailpit, [ADR 0014](adr/0014-codes-and-mail-from-test-channels.md)) for applications that verify by email, and the `qa-explore` skill
 (chartered exploratory sessions whose findings feed intake; an ADR first decides its mode, since it
 submits forms).
 

@@ -29,6 +29,8 @@ services:
     depends_on:
       spree-db:
         condition: service_healthy
+      mailpit:
+        condition: service_healthy
     ports:
       - '127.0.0.1:3100:3000'
     environment:
@@ -42,6 +44,11 @@ services:
       SPREE_RATE_LIMIT_LOGIN: '1000'
       SPREE_RATE_LIMIT_REFRESH: '1000'
       SPREE_RATE_LIMIT_PER_KEY: '100000'
+      SPREE_RATE_LIMIT_PASSWORD_RESET: '1000'
+      # Every email Spree sends goes to the mail catcher below and nowhere else (FUT-07, ADR 0014).
+      # Jobs, mail included, run inside Puma (the image's SOLID_QUEUE_IN_PUMA), so no worker is needed.
+      SMTP_HOST: mailpit
+      SMTP_PORT: '1025'
     healthcheck: &spree-health
       test: ['CMD', 'curl', '-fsS', '-o', '/dev/null', 'http://localhost:3000/up']
       interval: 3s
@@ -58,6 +65,26 @@ services:
       PGDATA: /var/lib/postgresql/18/docker
     healthcheck: &spree-db-health
       test: ['CMD', 'pg_isready', '-h', '127.0.0.1', '-U', 'postgres']
+      interval: 3s
+      timeout: 4s
+      retries: 20
+
+  # The mail catcher of the Spree pack (FUT-07, ADR 0014): Mailpit 1.34.0, pinned by digest. It
+  # accepts any SMTP message on the compose network (port 1025) and delivers none; its API and web
+  # page answer on 127.0.0.1:8025 only, where helpers/mail-catcher.ts reads what a case was sent. It keeps
+  # messages in memory, so a restart empties it.
+  mailpit:
+    image: axllent/mailpit:v1.34.0@sha256:23a2ef85bc50853ab3093645d1d64679afd8887e89da5e48a88940c172591a4e
+    ports:
+      - '127.0.0.1:8025:8025'
+    expose:
+      - '1025'
+    environment:
+      MP_MAX_MESSAGES: '5000'
+      MP_SMTP_AUTH_ACCEPT_ANY: 'true'
+      MP_SMTP_AUTH_ALLOW_INSECURE: 'true'
+    healthcheck:
+      test: ['CMD', '/mailpit', 'readyz']
       interval: 3s
       timeout: 4s
       retries: 20

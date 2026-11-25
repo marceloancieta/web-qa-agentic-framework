@@ -34,7 +34,29 @@ messages, how sessions work, what is safe to change. Each one says how it was ob
   The default order of the products list changes as background jobs update products, so no case
   relies on a row's position.
 - Staff are invited, not created: a role, an invitation in it, the invitation's acceptance link
-  (read by an admin through the API) and its acceptance with a password. No email has to be read.
+  (read by an admin through the API) and its acceptance with a password. No email has to be read,
+  though the invitation is also sent: every provisioned member has been sent an "Invitation to join
+  Shop" before anything else, so a case picks its messages by subject. Observed in the mail catcher,
+  2026-11-25.
+
+## Mail
+
+- Every email goes to the mail catcher of `docker/compose.yml` (`SMTP_HOST=mailpit`) and nowhere
+  else. Spree sends it from a job that runs inside its web process, after the request that caused it
+  has answered: a reset email arrived 1.6 s after "Send reset link". Cases wait for the message
+  (`mail.waitForMessage`), never for a fixed time. Observed with a probe account, 2026-11-25.
+- The sender is the store's own address, `no-reply@example.com` in the sample data, whatever the SMTP
+  settings say; subjects start with the store's name ("Shop Password Reset Instructions"). Observed,
+  2026-11-25.
+- A reset link stays valid for 15 minutes or until the password changes, whichever comes first;
+  every link sent before a change is refused afterwards. Asking twice gives two links that both work
+  until one is used. Spree's `generates_token_for :password_reset`; observed with a probe account,
+  2026-11-25.
+- The reset link in the email leads to `<base_url>/reset-password`, which answers `404`; the page is
+  `<base_url>/dashboard/reset-password` (G1 of `docs/features/password-reset.md`). The dashboard
+  builds the link from its origin alone. Observed, 2026-11-25.
+- A signed-in member who opens a reset link is sent to the dashboard instead of the form, so a case
+  opens the links in a context without a session. Observed, 2026-11-25.
 
 ## Pages
 

@@ -1,5 +1,5 @@
 {
-  "next": 67,
+  "next": 70,
   "issues": {
     "LOCAL-1": {
       "title": "Basket: a customer can read another customer's basket by its id",
@@ -507,7 +507,8 @@
       "status": "open",
       "category": "open",
       "comments": [
-        "Probe detail, 2026-11-14, desktop-chromium and mobile-chrome (same result).\n\n- After an empty submit, accessibility tree of the form:\n  `textbox \"Email\" [invalid]` → `paragraph: Invalid email address`; `textbox \"Password\" [invalid]` → `paragraph: Password is required`.\n- Inputs after the empty submit: `aria-invalid=\"true\"`, `aria-describedby` absent, `required` absent.\n- After a wrong password (one attempt, the probe's own staff account): `paragraph: Invalid email or password` above the fields; its ancestor chain is `p > div > form > div > div > div`, with no `role` or `aria-live` on any of them.\n- Elements with `role=alert|status` or `aria-live` on the page, before and after: two, both `aria-live=\"polite\"` (one is `region \"Notifications\"`), both empty.\n"
+        "Probe detail, 2026-11-14, desktop-chromium and mobile-chrome (same result).\n\n- After an empty submit, accessibility tree of the form:\n  `textbox \"Email\" [invalid]` → `paragraph: Invalid email address`; `textbox \"Password\" [invalid]` → `paragraph: Password is required`.\n- Inputs after the empty submit: `aria-invalid=\"true\"`, `aria-describedby` absent, `required` absent.\n- After a wrong password (one attempt, the probe's own staff account): `paragraph: Invalid email or password` above the fields; its ancestor chain is `p > div > form > div > div > div`, with no `role` or `aria-live` on any of them.\n- Elements with `role=alert|status` or `aria-live` on the page, before and after: two, both `aria-live=\"polite\"` (one is `region \"Notifications\"`), both empty.\n",
+        "The same gap is on the admin's password reset pages (contract `apps/spree/docs/features/password-reset.md`, G3), seen with a throwaway probe spec on 2026-11-25, desktop-chromium and mobile-chrome:\n\n- `<base_url>/dashboard/forgot-password`: \"Invalid email address\" under Email is a `P` with no role, outside any live region; Email gets `aria-invalid=\"true\"` and no `aria-describedby`.\n- `<base_url>/dashboard/reset-password?token=…`: \"Password must be at least 8 characters\" and \"Passwords do not match\" are the same kind of paragraph, and \"Password reset token is invalid or has expired.\" above the fields too; the password fields get `aria-invalid` and no `aria-describedby`.\n- The confirmation after \"Send reset link\" (\"Check your email …\") replaces the form without a `status` role, so it is not announced either.\n\nOne fix in the dashboard's shared form message component would cover the login and both reset pages.\n"
       ]
     },
     "LOCAL-46": {
@@ -519,7 +520,9 @@
       ],
       "status": "open",
       "category": "open",
-      "comments": []
+      "comments": [
+        "The same gap is on the admin's password reset pages (contract `apps/spree/docs/features/password-reset.md`, G4), seen with a throwaway probe spec on 2026-11-25, desktop-chromium and mobile-chrome:\n\n- `<base_url>/dashboard/forgot-password`: Email (`type=email`, `name=email`) has no `autocomplete` and no `required`.\n- `<base_url>/dashboard/reset-password?token=…`: \"New password\" and \"Confirm new password\" (`type=password`, `name=password` and `password_confirmation`) have no `autocomplete`, `required` or `minlength`, though the page refuses fewer than 8 characters. With `autocomplete=\"new-password\"` a password manager would offer to make and save the new password.\n"
+      ]
     },
     "LOCAL-47": {
       "title": "Spree dashboard: write controls are shown to roles that cannot write",
@@ -753,6 +756,39 @@
     "LOCAL-66": {
       "title": "Two-factor setup: an empty token field says it is invalid and an empty password field says nothing",
       "body": "**What happens.** On `<base_url>/#/privacy-security/two-factor-authentication`, the Initial Token\nfield left empty says \"The token appears to be invalid.\" instead of asking for the token, and the\nCurrent Password field left empty says nothing.\n\n**What should happen.** An empty required field says what is missing, as the login form does\n(\"Please provide a password.\"). Contract: TWOFACTOR G7.\n\n**Steps.**\n1. Sign in as a customer with two-factor authentication off and open the setup page.\n2. Focus Current Password, then Initial Token, then Current Password again, typing nothing.\n3. Read the field messages.\n\n**Devices.** desktop Chromium, mobile Chrome.\n\n**Evidence.** The FUT-07 intake probes, 2026-11-24: no message after leaving the password empty,\n\"The token appears to be invalid.\" after leaving the token empty, in 8 of 8 confirmation runs.\n",
+      "labels": [
+        "ui",
+        "severity:S4"
+      ],
+      "status": "open",
+      "category": "open",
+      "comments": []
+    },
+    "LOCAL-67": {
+      "title": "Spree password reset: the link in the email answers 404 (missing /dashboard)",
+      "body": "**What happens.** The password reset email of the Spree admin links to `<base_url>/reset-password?token=…`, which answers `404`. No staff member can reset a password from the email. The dashboard asks for the reset with `redirect_url` set to its origin followed by `/reset-password`, without the `/dashboard` path it is served under, and the API accepts it because it compares only the origin. The mailer appends the token to that URL.\n\n**What should happen.** The link opens the dashboard's \"Choose a new password\" page, `<base_url>/dashboard/reset-password?token=…` (contract `apps/spree/docs/features/password-reset.md`, REQ-PWRESET-05, G1). Opened under `/dashboard`, the same token works and the reset completes.\n\n**Steps**\n1. As the admin, invite a staff member on an address the mail catcher receives (an `example.test` address) and accept the invitation.\n2. Open `<base_url>/dashboard/forgot-password`, type that address and press \"Send reset link\".\n3. Open the \"Shop Password Reset Instructions\" email in the mail catcher and follow \"Reset Password\": `<base_url>/reset-password?token=…` answers `404`.\n4. Put `/dashboard` before `/reset-password` in the same link: the form opens and a new password is accepted.\n\n**Devices.** desktop-chromium and mobile-chrome (local environment, Spree 6.0.3, dashboard under `/dashboard`). The link is the same on both: it is built by the page's script, not by the device.\n\n**Evidence.** Throwaway probe specs, 2026-11-25 (staff accounts created and removed by the probes; mail read from Mailpit): the request body of `POST /api/v3/admin/auth/password_resets` (`redirect_url` = origin + `/reset-password`), the link in the email, the `404` of the link as sent and the `200` under `/dashboard`. The dashboard's script builds it as `` `${window.location.origin}/reset-password` ``. No trace kept.\n\n**Severity S2**: the feature's main task fails for every staff member on an install that serves the dashboard under a path; a member who edits the link by hand gets through.\n",
+      "labels": [
+        "ui",
+        "severity:S2"
+      ],
+      "status": "open",
+      "category": "open",
+      "comments": []
+    },
+    "LOCAL-68": {
+      "title": "Spree reset password page: no heading, and the title does not name the page",
+      "body": "**What happens.** The Spree admin's reset page, `/dashboard/reset-password`, has no heading: \"Choose a new password\" (and \"Invalid reset link\" without a token) is plain text. Its title is \"Spree Admin\" in every state, where the forgot page has `heading \"Reset your password\"` at level 1 and the title \"Reset your password · Spree Admin\".\n\n**What should happen.** The page's purpose is announced and navigable: a level-1 heading for \"Choose a new password\" and for \"Invalid reset link\", and a title that names the page (WCAG 2.1 SC 2.4.2 Page Titled, A; SC 2.4.6 Headings and Labels, AA). Contract `apps/spree/docs/features/password-reset.md`, G2.\n\n**Steps**\n1. Open `<base_url>/dashboard/reset-password?token=any`.\n2. Read the accessibility tree: no heading; the document title is \"Spree Admin\".\n3. Open `<base_url>/dashboard/reset-password` (no token): the same, with \"Invalid reset link\" as text.\n\n**Devices.** desktop-chromium and mobile-chrome (local environment, Spree 6.0.3). Reproduced on both.\n\n**Evidence.** The app map (`apps/spree/docs/app-map.json`, `/dashboard/reset-password`: `headings: []`, title \"Spree Admin\"), 2026-11-25; throwaway probe spec reading the page on both devices, 2026-11-25. No trace kept.\n\n**Severity S3**: a screen reader user can still find the fields and the button; the page's purpose is not announced.\n",
+      "labels": [
+        "ui",
+        "severity:S3"
+      ],
+      "status": "open",
+      "category": "open",
+      "comments": []
+    },
+    "LOCAL-69": {
+      "title": "Spree reset password page: a dead link shows the form and is refused only on submit",
+      "body": "**What happens.** The Spree admin's reset page shows the \"Choose a new password\" form for any token: one already used, one sent before the password changed, or one Spree never issued. The member learns that the link is dead only after typing a new password twice and pressing \"Reset password\", which then says \"Password reset token is invalid or has expired.\" (`PATCH /api/v3/admin/auth/password_resets/<token>` answers `422`).\n\n**What should happen.** A dead link says so when it opens, with the way to ask for a new one, as the page already does for a link with no token (\"Invalid reset link\", \"Request a new reset link\"). Contract `apps/spree/docs/features/password-reset.md`, REQ-PWRESET-09, REQ-PWRESET-10, G5.\n\n**Steps**\n1. Open `<base_url>/dashboard/reset-password?token=not-a-token` in a browser without a session.\n2. The form shows like for a valid link.\n3. Type the same 8-character password twice and press \"Reset password\": \"Password reset token is invalid or has expired.\" appears above the fields, and the page offers no link to ask again.\n\n**Devices.** desktop-chromium (local environment, Spree 6.0.3).\n\n**Evidence.** Throwaway probe spec, 2026-11-25 (a staff account created and removed by the probe): a used link, a link superseded by a password change and a made-up token, each answered `422` only on submit. No trace kept.\n\n**Severity S4**: the member gets the right answer one step late and has to find \"Forgot password?\" again; nothing is changed or exposed.\n",
       "labels": [
         "ui",
         "severity:S4"
