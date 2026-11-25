@@ -67,7 +67,7 @@ API, so a spec never branches on the device.
 
 ## Known defects
 
-Filed in the local tracker at the intake gates (2026-10-25, 2026-10-26) and the automate gate (2026-10-26). Juice
+Filed in the local tracker at the intake gates (2026-10-25, 2026-10-26, 2026-11-24) and the automate gate (2026-10-26). Juice
 Shop's training vulnerabilities are filed like any defect, so the cases that check them run as known
 gaps. The registries' Defect column says which cases cite each key.
 
@@ -100,6 +100,13 @@ gaps. The registries' Defect column says which cases cite each key.
 | LOCAL-41 (S3) | a long email in the basket title runs out of its card and the viewport |
 | LOCAL-42 (S4) | a very long search term runs out of the title of the product list |
 | LOCAL-43 (S4) | an empty catalogue shows "All Products" and "0 of 0" without "No results found" |
+| LOCAL-60 (S2) | the two-factor QR code has no text alternative, and the secret is never shown as text |
+| LOCAL-61 (S3) | every load of the two-factor setup page logs a QR code console error |
+| LOCAL-62 (S2) | the invalid-token message of `/#/2fa/enter` is not announced |
+| LOCAL-63 (S2) | a used two-factor code is accepted again, and a pending-login token completes more than one login |
+| LOCAL-64 (S3) | `totp_tmp_token` stays in local storage after the sign-in |
+| LOCAL-65 (S3) | a failure message of the two-factor setup stays after a later success |
+| LOCAL-66 (S4) | an empty token field says it is invalid, and an empty password field says nothing |
 
 ## Accessibility baseline
 

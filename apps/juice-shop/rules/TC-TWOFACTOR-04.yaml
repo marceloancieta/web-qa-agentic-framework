@@ -1,0 +1,18 @@
+# REQ-TWOFACTOR-01: Save stays disabled until both fields of the setup form are valid: the current
+# password has a value and the initial token is six digits (`pattern=^[\d]{6}$`).
+conditions:
+  password: [empty, filled]
+  token: [empty, five_digits, six_letters, six_digits]
+actions:
+  save: [disabled, enabled]
+rules:
+  - when: { password: empty, token: '-' }
+    then: { save: disabled }
+  - when: { password: filled, token: empty }
+    then: { save: disabled }
+  - when: { password: filled, token: five_digits }
+    then: { save: disabled }
+  - when: { password: filled, token: six_letters }
+    then: { save: disabled }
+  - when: { password: filled, token: six_digits }
+    then: { save: enabled }

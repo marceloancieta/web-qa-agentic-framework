@@ -28,7 +28,8 @@
       "/#/contact",
       "/#/about",
       "/#/photo-wall",
-      "/#/deluxe-membership"
+      "/#/deluxe-membership",
+      "/#/2fa/enter"
     ],
     "exclude": ["^/redirect", "logout", "score-board", "/ftp", "/api-docs", "/metrics"],
     "actors": {
@@ -40,7 +41,8 @@
           "/#/delivery-method",
           "/#/payment/shop",
           "/#/order-summary",
-          "/#/order-history"
+          "/#/order-history",
+          "/#/privacy-security/two-factor-authentication"
         ]
       }
     }

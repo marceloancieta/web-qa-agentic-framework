@@ -65,6 +65,7 @@ banners and fix the language. Accounts are not removed; the [application notes](
 | `BASKET` | [basket](docs/features/basket.md) | [basket cases](registry/basket.md) |
 | `SEARCH` | [product search](docs/features/search.md) | [search cases](registry/search.md) |
 | `CHECKOUT` | [checkout](docs/features/checkout.md) | [checkout cases](registry/checkout.md) |
+| `TWOFACTOR` | [two-factor authentication](docs/features/two-factor.md) | [two-factor cases](registry/two-factor.md) |
 | `JOURNEY` | [journeys](docs/features/journeys.md), across the features above | [journey cases](registry/journeys.md), tagged `@e2e` |
 
 ## Facts about the application

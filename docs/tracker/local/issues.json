@@ -1,5 +1,5 @@
 {
-  "next": 60,
+  "next": 67,
   "issues": {
     "LOCAL-1": {
       "title": "Basket: a customer can read another customer's basket by its id",
@@ -414,7 +414,8 @@
       "status": "open",
       "category": "open",
       "comments": [
-        "The width of this issue, from TC-SIGNUP-13 on 2026-11-06: the same colours on `/#/register`.\n\n- The field messages (`mat-error`) and the labels of invalid fields (`mat-label`) read `#f44336` on `#3e3e3e`, 2.9:1 at 16px, on every field left empty.\n- Seen in `color-contrast` on the device projects of the case, and measured apart by axe on desktop Chromium.\n\nSo the cause is the shop's error colour on its card, not the login's message alone. `a11y-known.json` lists both on `/#/register` under this key.\n"
+        "The width of this issue, from TC-SIGNUP-13 on 2026-11-06: the same colours on `/#/register`.\n\n- The field messages (`mat-error`) and the labels of invalid fields (`mat-label`) read `#f44336` on `#3e3e3e`, 2.9:1 at 16px, on every field left empty.\n- Seen in `color-contrast` on the device projects of the case, and measured apart by axe on desktop Chromium.\n\nSo the cause is the shop's error colour on its card, not the login's message alone. `a11y-known.json` lists both on `/#/register` under this key.\n",
+        "**Another page with the same error colour.** On `<base_url>/#/2fa/enter`, the message a refused\ntwo-factor code shows, \"The token appears to be invalid.\" (`div.two-factor-error`), fails axe's\n`color-contrast` rule (serious), like the login refusal and the registration messages this issue\ncovers.\n\n**Steps.**\n1. Sign in at `<base_url>/#/login` with an account that has two-factor authentication on.\n2. On `/#/2fa/enter`, enter six digits that are not the current code and press Log in.\n3. Run axe on the page.\n\n**Devices.** desktop Chromium, mobile Chrome.\n\n**Evidence.** TC-TWOFACTOR-21, 2026-11-24 (FUT-07a automate): one new violation, `[serious]\ncolor-contrast at .error`, on both devices. `apps/juice-shop/a11y-known.json` now lists it under\nthis key with the same expiry (2027-02-04).\n"
       ]
     },
     "LOCAL-38": {
@@ -678,6 +679,83 @@
       "labels": [
         "security",
         "type:false-positive"
+      ],
+      "status": "open",
+      "category": "open",
+      "comments": []
+    },
+    "LOCAL-60": {
+      "title": "Two-factor setup: the QR code has no text alternative and the secret is never shown as text",
+      "body": "**What happens.** The setup page `<base_url>/#/privacy-security/two-factor-authentication` shows the\nTOTP secret only as a QR code: a `canvas` inside `qrcode`, with no accessible name and no text\nalternative. The secret is never shown as text, so a customer who cannot scan the code (a screen\nreader user, or an authenticator app on the device that shows the page) cannot set up two-factor authentication.\n\n**What should happen.** The QR code has a text alternative, and the secret (or the `otpauth://`\naddress) can be read and copied as text (WCAG 2.1 SC 1.1.1, level A). Contract: TWOFACTOR G1,\nREQ-TWOFACTOR-01.\n\n**Steps.**\n1. Sign in as a customer with two-factor authentication off.\n2. Open `<base_url>/#/privacy-security/two-factor-authentication`.\n3. Read the accessibility tree: the instructions say \"Scan the QR code\", and no element carries the\n   secret or names the canvas.\n\n**Devices.** desktop Chromium, mobile Chrome.\n\n**Evidence.** The FUT-07 intake probes, 2026-11-24: the QR element is\n`<qrcode><div class=\"qrcode\"><canvas height=\"300\" width=\"300\">` with no `aria-label`, `title` or\n`alt`; the page text does not contain the secret of `GET /rest/2fa/status`.\n",
+      "labels": [
+        "ui",
+        "severity:S2"
+      ],
+      "status": "open",
+      "category": "open",
+      "comments": []
+    },
+    "LOCAL-61": {
+      "title": "Two-factor setup: every load of the page logs a QR code console error",
+      "body": "**What happens.** Every load of `<base_url>/#/privacy-security/two-factor-authentication` logs a\nconsole error: `[angularx-qrcode] Error generating QR Code: [angularx-qrcode] Field qrdata is empty`.\nIt is logged before `GET /rest/2fa/status` answers, and on every load while two-factor\nauthentication is on (when there is no QR code to draw).\n\n**What should happen.** The page logs no error: the QR component is not rendered until it has\ndata, or not at all while two-factor authentication is on. Contract: TWOFACTOR G2; the page health\nguard fails every case on this page while it logs the error.\n\n**Steps.**\n1. Sign in as a customer and open the setup page: one console error.\n2. Turn two-factor authentication on and reload the page: the error again.\n\n**Devices.** desktop Chromium, mobile Chrome.\n\n**Evidence.** The FUT-07 intake probes, 2026-11-24: the error on the first load and after a reload\nwith two-factor authentication on, in every run.\n",
+      "labels": [
+        "ui",
+        "severity:S3"
+      ],
+      "status": "open",
+      "category": "open",
+      "comments": []
+    },
+    "LOCAL-62": {
+      "title": "Two-factor login: the invalid-token message is not announced to screen readers",
+      "body": "**What happens.** On `<base_url>/#/2fa/enter`, a refused code shows \"The token appears to be\ninvalid.\" in a plain `div` (`class=\"error two-factor-error\"`) with no `alert` role and no live\nregion. The field stays `aria-invalid=\"false\"` and is described only by its hint, so a screen reader\nis not told that the code was refused. The login form announces its own refusal as an alert.\n\n**What should happen.** The refusal is announced (an `alert` or a live region) and tied to the\nfield (`aria-invalid`, `aria-describedby`): WCAG 2.1 SC 3.3.1 (A) and 4.1.3 (AA). Contract: TWOFACTOR\nG3, REQ-TWOFACTOR-06.\n\n**Steps.**\n1. Open `<base_url>/#/2fa/enter`, or reach it through the login of an account with two-factor\n   authentication on.\n2. Enter six digits that are not the current code and press Log in.\n3. Read the message element and the field's ARIA attributes.\n\n**Devices.** desktop Chromium, mobile Chrome.\n\n**Evidence.** The FUT-07 intake probes, 2026-11-24: `getByRole('alert')` finds nothing after the\nrefusal; the field has `aria-invalid=\"false\"` and `aria-describedby` naming the hint only.\n",
+      "labels": [
+        "ui",
+        "severity:S2"
+      ],
+      "status": "open",
+      "category": "open",
+      "comments": []
+    },
+    "LOCAL-63": {
+      "title": "Two-factor login: a used code is accepted again, and a pending-login token completes more than one login",
+      "body": "**What happens.** A two-factor code is accepted again after it signed someone in.\n`POST /rest/2fa/verify` accepted the code that had just completed a login a second time with the\nsame pending-login token (`tmpToken`), and once more with the token of a new login.\n\n**What should happen.** Once a code has been validated, the server refuses it for the rest of its\ntime step (RFC 6238 section 5.2), and a pending-login token completes one login at most. Contract:\nTWOFACTOR G4.\n\n**Steps.**\n1. Turn two-factor authentication on for an account created for the test.\n2. Sign in at `<base_url>/#/login` with the password and the current code on `/#/2fa/enter`.\n3. Within the same 30 seconds, send `POST /rest/2fa/verify` with the same `tmpToken` and code, then\n   sign in again with the password and send the same code with the new `tmpToken`.\n\n**Devices.** desktop Chromium, mobile Chrome (the server's answer; it does not depend on the device).\n\n**Evidence.** The FUT-07 intake probes, 2026-11-24: both replays answered `200` with an\nauthentication, in 11 of 11 runs.\n",
+      "labels": [
+        "ui",
+        "severity:S2"
+      ],
+      "status": "open",
+      "category": "open",
+      "comments": []
+    },
+    "LOCAL-64": {
+      "title": "Two-factor login: the pending-login token stays in local storage after the sign-in",
+      "body": "**What happens.** After the code on `<base_url>/#/2fa/enter` signs the customer in, the pending-login\ntoken stays in local storage as `totp_tmp_token`, beside the session's `token`. Together with the\nreplay of a used code (filed separately), it can complete a login again.\n\n**What should happen.** The page removes `totp_tmp_token` once the second step succeeds. Contract:\nTWOFACTOR G5.\n\n**Steps.**\n1. Turn two-factor authentication on for an account created for the test.\n2. Sign in at `<base_url>/#/login`, enter the current code on `/#/2fa/enter`.\n3. On `/#/search`, read the keys of local storage.\n\n**Devices.** desktop Chromium, mobile Chrome.\n\n**Evidence.** The FUT-07 intake probes, 2026-11-24: local storage held `token` and\n`totp_tmp_token` after the sign-in, in 11 of 11 runs.\n",
+      "labels": [
+        "ui",
+        "severity:S3"
+      ],
+      "status": "open",
+      "category": "open",
+      "comments": []
+    },
+    "LOCAL-65": {
+      "title": "Two-factor setup: a failure message stays on screen after a later success",
+      "body": "**What happens.** On `<base_url>/#/privacy-security/two-factor-authentication`, a failure message\nstays on screen after a later success. After a refused setup, the successful one shows \"Failed to\nchange 2FA setup. Check if you entered your password (and token) correctly.\" beside \"You have\nenabled 2FA for your account.\"; the same happens after a refused removal followed by a successful\none.\n\n**What should happen.** A success clears the earlier failure message. Contract: TWOFACTOR G6,\nREQ-TWOFACTOR-02, REQ-TWOFACTOR-09.\n\n**Steps.**\n1. Sign in as a customer with two-factor authentication off and open the setup page.\n2. Save with a wrong password and the current code: the failure message appears.\n3. Save with the right password and the current code: the page says it is enabled, and the failure\n   message is still there.\n\n**Devices.** desktop Chromium, mobile Chrome.\n\n**Evidence.** The FUT-07 intake probes, 2026-11-24: the failure message visible after the success\nin every run where the setup succeeded (11 of 11), and after a successful removal (1 of 1).\n",
+      "labels": [
+        "ui",
+        "severity:S3"
+      ],
+      "status": "open",
+      "category": "open",
+      "comments": []
+    },
+    "LOCAL-66": {
+      "title": "Two-factor setup: an empty token field says it is invalid and an empty password field says nothing",
+      "body": "**What happens.** On `<base_url>/#/privacy-security/two-factor-authentication`, the Initial Token\nfield left empty says \"The token appears to be invalid.\" instead of asking for the token, and the\nCurrent Password field left empty says nothing.\n\n**What should happen.** An empty required field says what is missing, as the login form does\n(\"Please provide a password.\"). Contract: TWOFACTOR G7.\n\n**Steps.**\n1. Sign in as a customer with two-factor authentication off and open the setup page.\n2. Focus Current Password, then Initial Token, then Current Password again, typing nothing.\n3. Read the field messages.\n\n**Devices.** desktop Chromium, mobile Chrome.\n\n**Evidence.** The FUT-07 intake probes, 2026-11-24: no message after leaving the password empty,\n\"The token appears to be invalid.\" after leaving the token empty, in 8 of 8 confirmation runs.\n",
+      "labels": [
+        "ui",
+        "severity:S4"
       ],
       "status": "open",
       "category": "open",

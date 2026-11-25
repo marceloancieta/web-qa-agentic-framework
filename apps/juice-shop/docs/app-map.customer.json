@@ -58,6 +58,65 @@
       ]
     },
     {
+      "route": "/#/2fa/enter",
+      "title": "OWASP Juice Shop",
+      "landmarks": [],
+      "headings": [
+        "h1 Two Factor Authentication"
+      ],
+      "interactive": [
+        "button \"Back to homepage\"",
+        "button \"Button to confirm the input\"",
+        "button \"Close search\"",
+        "button \"Language selection menu\"",
+        "button \"Open Sidenav\"",
+        "button \"Open search\"",
+        "button \"Show the shopping cart\"",
+        "button \"Show/hide account menu\"",
+        "textbox \"\"",
+        "textbox \"Field for entering the Two Factor token\""
+      ],
+      "fields": [
+        {
+          "tag": "input",
+          "type": "text",
+          "label": "",
+          "constraints": {}
+        },
+        {
+          "tag": "input",
+          "type": "text",
+          "label": "Field for entering the Two Factor token",
+          "constraints": {
+            "required": true,
+            "minlength": "6",
+            "maxlength": "6",
+            "pattern": "^[\\d]{6}$"
+          }
+        }
+      ],
+      "api_calls": [
+        "GET /api/Challenges/",
+        "GET /assets/i18n/en.json",
+        "GET /rest/admin/application-configuration",
+        "GET /rest/admin/application-version",
+        "GET /rest/basket/:id",
+        "GET /rest/languages",
+        "GET /rest/user/whoami",
+        "GET /socket.io/",
+        "POST /socket.io/"
+      ],
+      "links": [
+        "/#/about",
+        "/#/chatbot",
+        "/#/complain",
+        "/#/contact",
+        "/#/deluxe-membership",
+        "/#/photo-wall",
+        "/redirect"
+      ]
+    },
+    {
       "route": "/#/about",
       "title": "OWASP Juice Shop",
       "landmarks": [
@@ -1089,6 +1148,76 @@
         "GET /rest/basket/:id",
         "GET /rest/languages",
         "GET /rest/memories/",
+        "GET /rest/user/whoami",
+        "GET /socket.io/",
+        "POST /socket.io/"
+      ],
+      "links": [
+        "/#/about",
+        "/#/chatbot",
+        "/#/complain",
+        "/#/contact",
+        "/#/deluxe-membership",
+        "/#/photo-wall",
+        "/redirect"
+      ]
+    },
+    {
+      "route": "/#/privacy-security/two-factor-authentication",
+      "title": "OWASP Juice Shop",
+      "landmarks": [],
+      "headings": [
+        "h1 2FA Configuration"
+      ],
+      "interactive": [
+        "button \"Back to homepage\"",
+        "button \"Button to complete the two-factor configuration\"",
+        "button \"Close search\"",
+        "button \"Language selection menu\"",
+        "button \"Open Sidenav\"",
+        "button \"Open search\"",
+        "button \"Show the shopping cart\"",
+        "button \"Show/hide account menu\"",
+        "textbox \"\"",
+        "textbox \"Field to enter the current password\"",
+        "textbox \"Field to enter the initial token. This must have 6 digits.\""
+      ],
+      "fields": [
+        {
+          "tag": "input",
+          "type": "text",
+          "label": "",
+          "constraints": {}
+        },
+        {
+          "tag": "input",
+          "type": "password",
+          "label": "Field to enter the current password",
+          "constraints": {
+            "required": true,
+            "autocomplete": "off"
+          }
+        },
+        {
+          "tag": "input",
+          "type": "text",
+          "label": "Field to enter the initial token. This must have 6 digits.",
+          "constraints": {
+            "required": true,
+            "minlength": "6",
+            "maxlength": "6",
+            "pattern": "^[\\d]{6}$"
+          }
+        }
+      ],
+      "api_calls": [
+        "GET /api/Challenges/",
+        "GET /assets/i18n/en.json",
+        "GET /rest/2fa/status",
+        "GET /rest/admin/application-configuration",
+        "GET /rest/admin/application-version",
+        "GET /rest/basket/:id",
+        "GET /rest/languages",
         "GET /rest/user/whoami",
         "GET /socket.io/",
         "POST /socket.io/"

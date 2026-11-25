@@ -54,6 +54,62 @@
       ]
     },
     {
+      "route": "/#/2fa/enter",
+      "title": "OWASP Juice Shop",
+      "landmarks": [],
+      "headings": [
+        "h1 Two Factor Authentication"
+      ],
+      "interactive": [
+        "button \"Back to homepage\"",
+        "button \"Button to confirm the input\"",
+        "button \"Close search\"",
+        "button \"Language selection menu\"",
+        "button \"Open Sidenav\"",
+        "button \"Open search\"",
+        "button \"Show the shopping cart\"",
+        "button \"Show/hide account menu\"",
+        "textbox \"\"",
+        "textbox \"Field for entering the Two Factor token\""
+      ],
+      "fields": [
+        {
+          "tag": "input",
+          "type": "text",
+          "label": "",
+          "constraints": {}
+        },
+        {
+          "tag": "input",
+          "type": "text",
+          "label": "Field for entering the Two Factor token",
+          "constraints": {
+            "required": true,
+            "minlength": "6",
+            "maxlength": "6",
+            "pattern": "^[\\d]{6}$"
+          }
+        }
+      ],
+      "api_calls": [
+        "GET /api/Challenges/",
+        "GET /assets/i18n/en.json",
+        "GET /rest/admin/application-configuration",
+        "GET /rest/admin/application-version",
+        "GET /rest/languages",
+        "GET /socket.io/",
+        "POST /socket.io/"
+      ],
+      "links": [
+        "/#/about",
+        "/#/chatbot",
+        "/#/contact",
+        "/#/login",
+        "/#/photo-wall",
+        "/redirect"
+      ]
+    },
+    {
       "route": "/#/about",
       "title": "OWASP Juice Shop",
       "landmarks": [
