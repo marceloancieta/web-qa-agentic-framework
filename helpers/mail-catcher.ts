@@ -58,13 +58,22 @@ export function isReservedAddress(address: string): boolean {
   return RESERVED_TLDS.has(tld) || RESERVED_DOMAINS.has(registered);
 }
 
-function decodeEntities(text: string): string {
-  return text
-    .replace(/&amp;/g, '&')
-    .replace(/&#(\d+);/g, (_, code: string) => String.fromCharCode(Number(code)))
-    .replace(/&#x([0-9a-f]+);/gi, (_, code: string) => String.fromCharCode(parseInt(code, 16)))
-    .replace(/&quot;/g, '"')
-    .replace(/&#39;|&apos;/g, "'");
+const NAMED_ENTITIES: Readonly<Record<string, string>> = {
+  amp: '&',
+  quot: '"',
+  apos: "'",
+  lt: '<',
+  gt: '>',
+};
+
+/** Decodes each entity once, in one pass, so `&amp;#39;` stays `&#39;` and is not unescaped twice. */
+export function decodeEntities(text: string): string {
+  return text.replace(/&(#x[0-9a-f]+|#\d+|[a-z]+);/gi, (entity, name: string) => {
+    if (name.startsWith('#x') || name.startsWith('#X'))
+      return String.fromCodePoint(parseInt(name.slice(2), 16));
+    if (name.startsWith('#')) return String.fromCodePoint(Number(name.slice(1)));
+    return NAMED_ENTITIES[name.toLowerCase()] ?? entity;
+  });
 }
 
 /** The http and https links of a message: the HTML's `href`s, then the text's, without repeats. */

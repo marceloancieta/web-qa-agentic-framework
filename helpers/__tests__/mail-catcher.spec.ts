@@ -1,5 +1,6 @@
 import { expect, test } from '@playwright/test';
 import {
+  decodeEntities,
   isReservedAddress,
   linkMatching,
   linksIn,
@@ -94,6 +95,15 @@ test('links come from the hrefs and the text, decoded, once each, http and https
     'http://shop.test/third',
   ]);
   expect(linksIn({ html: '', text: '' })).toEqual([]);
+});
+
+test('each entity of an href is decoded once: an escaped entity stays an entity', () => {
+  expect(decodeEntities('a&amp;b &quot;q&quot; &#39;s&apos; &#x41;&#66; &lt;&gt;')).toBe(
+    'a&b "q" \'s\' AB <>',
+  );
+  // Decoded twice, the first would turn into an apostrophe and the second into an ampersand.
+  expect(decodeEntities('&amp;#39; &amp;amp;')).toBe('&#39; &amp;');
+  expect(decodeEntities('&unknown; & plain')).toBe('&unknown; & plain');
 });
 
 test('query values are what a link carries; a link without a query carries none', () => {
