@@ -22,6 +22,10 @@
 //                   was never merged, or one a rewritten history dropped. The history is read with
 //                   `git rev-list HEAD`; a shallow clone cannot answer, so the linter stops (exit 2).
 //                   A row of that table with no hash in the column is reported too.
+//   session-sheet   a sheet of an exploratory session (`apps/<pack>/docs/sessions/*.md`) whose
+//                   charter or findings break the format `scripts/lib/session-sheet.mjs` owns: a
+//                   missing or wrong charter key, a time box past its limit, a finding without its
+//                   steps, what was expected and seen, or evidence under the session's record.
 //
 // Usage:
 //   node scripts/lint-docs.mjs [--root <dir>]     every file of the repository, or another tree
@@ -40,6 +44,7 @@ import { parseArgs } from 'node:util';
 import { REPO_ROOT } from './lib/cli.mjs';
 import { gitEnv } from './lib/git.mjs';
 import { finding, report, selfTest } from './lib/lint.mjs';
+import { SESSIONS_DIR, parseSheet } from './lib/session-sheet.mjs';
 import { describeExit, spawnFailure } from './lib/spawn.mjs';
 import { withoutHtmlComments } from './lib/text.mjs';
 
@@ -51,6 +56,7 @@ export const RULES = [
   'closing-commit',
   'host-in-notes',
   'public-wording',
+  'session-sheet',
 ];
 export const BACKLOG = 'docs/backlog.md';
 // The history the fixture tree is checked against, so the self-test never depends on the commits
@@ -350,6 +356,10 @@ export function lintFile(root, file, hosts = configuredHosts(root), history = ()
   if (AGENT_FILE.test(file)) brokenReferences(root, file, text, add);
   if (NOTES_FILE.test(file)) hostsInNotes(text, hosts, add);
   if (file === BACKLOG) closingCommitFindings(text, history, add);
+  if (SESSIONS_DIR.test(file)) {
+    for (const { line, message } of parseSheet(text, file).problems)
+      add('session-sheet', line, message);
+  }
   if (!FIXED_TEXT.has(file)) {
     for (const { line, phrase } of wordingFindings(text)) {
       add(

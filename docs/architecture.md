@@ -11,7 +11,7 @@ A generic framework for testing web user interfaces, the sibling of
 same process and guardrails, applied to the browser:
 
 - Five phases, each ending at a human review gate: intake → design → automate → publish → run.
-- Design and execution never mix.
+- Design, execution and exploration never mix.
 - Each application under test is an **app pack** in `apps/<pack>/`; the core never imports a pack.
 - External systems sit behind adapters chosen in `qa-config`: test management (`allure-testops`,
   `allure-report`, `local`) and tracker (`jira`, `github`, `local`).
@@ -29,7 +29,7 @@ same process and guardrails, applied to the browser:
 | v0.1 scope | Complete foundation: five phases, adapters, desktop and mobile projects, accessibility, visual regression in a container, network mocking, state injection |
 | UI pattern | Page Object Model with components, role fixtures and optional flows. Screenplay is documented as a rejected alternative in the architecture ADR |
 | Quality dimensions | Seven UI quality dimensions (section 6b): the core in v0.1, the rest in v0.2. Each feature declares which apply and a linter checks it |
-| Exploratory sessions | A `qa-explore` skill comes in v0.2, after intake is stable and an ADR decides its mode. In v0.1 the intake template accepts notes from manual exploration as a source |
+| Exploratory sessions | A third mode ([ADR 0013](adr/0013-exploration-mode.md)): the `qa-explore` skill runs a chartered, time-boxed session in a browser `npm run explore` guards and records, writing only on a disposable copy, and its sheet feeds intake. The intake template also accepts notes from manual exploration |
 | Runtime | Node and TypeScript only; Playwright Test |
 | License | Apache-2.0, with a NOTICE file ([ADR 0004](adr/0004-apache-2-license.md)) |
 | Language | Everything in the repository is in English |
@@ -295,8 +295,8 @@ say how a case runs rather than which dimension it covers.
 upload and download. **Rejected in an ADR:** self-healing locators, because they hide defects.
 **v0.2 or later:** TOTP two-factor login (Juice Shop has it; the test generates the code), a mail
 catcher pattern (Mailpit, [ADR 0014](adr/0014-codes-and-mail-from-test-channels.md)) for applications that verify by email, and the `qa-explore` skill
-(chartered exploratory sessions whose findings feed intake; an ADR first decides its mode, since it
-submits forms).
+(chartered exploratory sessions whose findings feed intake, in a mode of their own,
+[ADR 0013](adr/0013-exploration-mode.md)).
 
 ## 7. The five phases for a UI
 

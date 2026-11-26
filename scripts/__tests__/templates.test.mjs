@@ -4,6 +4,7 @@ import { readdirSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { REPO_ROOT } from '../lib/cli.mjs';
 import { parseRegistry } from '../lib/registry.mjs';
+import { parseSheet } from '../lib/session-sheet.mjs';
 import { DIMENSIONS } from '../lib/tags.mjs';
 
 const template = (name) => readFileSync(join(REPO_ROOT, 'docs', 'templates', name), 'utf8');
@@ -50,4 +51,12 @@ test('every pack skill keeps the sections of the pack skill template, in order',
     const text = readFileSync(join(SKILLS, folder, 'SKILL.md'), 'utf8');
     assert.deepEqual(headings(text), sections, folder);
   }
+});
+
+test('the session sheet template example is a valid sheet', () => {
+  const example = /```markdown\n([\s\S]*?)\n```/.exec(template('session-sheet.md'))?.[1];
+  assert.ok(example, 'docs/templates/session-sheet.md has a markdown example');
+  const sheet = parseSheet(`${example}\n`, 'apps/saucedemo/docs/sessions/2026-11-26-cart-badge.md');
+  assert.deepEqual(sheet.problems, []);
+  assert.equal(sheet.charter.pack, 'saucedemo');
 });
