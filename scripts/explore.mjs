@@ -28,8 +28,12 @@
  * The record, in reports/explore/<session>/ (never tracked): `trace-NN.zip` (a Playwright trace,
  * saved every two minutes so a closed window loses little), `requests.jsonl` (method, path, status,
  * no query strings), `blocked.json`, `session.json` (the plan and the state) and `launcher.log`.
- * Writing sessions, which need a disposable copy of the application, are refused until the pack
- * declares one (app.json `explore.copy`).
+ *
+ * A writing session (`writes: allowed`) runs on a disposable copy: the compose service
+ * `<pack>-explore`, started fresh in a compose project of its own (`web-qa-explore-<pack>`) before
+ * the browser, and removed when the browser closes, whatever happened; `close` removes it again
+ * and fails if it could not. The guard then lets every method through, to the copy's origin only.
+ * The copy starts empty, so a writing session starts anonymous.
  *
  * Exit codes: 0 done; 1 refused, or a check failed at close; 2 usage error.
  */
@@ -37,7 +41,7 @@
 // The functions passed to addInitScript and page.evaluate run in the browser.
 /* global window */
 
-import { spawn } from 'node:child_process';
+import { spawn, spawnSync } from 'node:child_process';
 import {
   appendFileSync,
   existsSync,
@@ -60,6 +64,8 @@ import { deviceProjects } from './lib/devices.mjs';
 import {
   DEFAULT_CDP_PORT,
   OPEN_FILE,
+  composeArgs,
+  composeServices,
   guardDecision,
   planSession,
   recordDir,
@@ -96,6 +102,21 @@ function removeProfile(profile) {
   } catch (error) {
     return `the browser profile ${profile} could not be removed (${error.code}); delete it by hand`;
   }
+}
+
+/** Run docker with `args` from the repository root: `{ ok, detail }`. */
+function docker(args, root) {
+  const result = spawnSync('docker', args, { cwd: root, encoding: 'utf8', windowsHide: true });
+  const detail = (result.stderr || result.error?.message || '').trim().split('\n').slice(-3);
+  return { ok: result.status === 0, detail: detail.join(' ') };
+}
+
+/** Remove a writing session's copy: null when it is gone, else what to run by hand. */
+function removeCopy(plan, root) {
+  if (!plan?.copy) return null;
+  const down = composeArgs(plan.copy, 'down');
+  if (docker(down, root).ok) return null;
+  return `the copy ${plan.copy.project} could not be removed; run docker ${down.join(' ')}`;
 }
 
 /** Whether a process still runs. */
@@ -147,7 +168,13 @@ async function open({ sheet, headed, cdpPort, root = REPO_ROOT }) {
     );
   const app = readJson(at(root, `apps/${charter.pack}/app.json`));
   const environment = activeEnvironment(root);
-  const decided = planSession({ charter, environment, app, projects: deviceProjects(root) });
+  const decided = planSession({
+    charter,
+    environment,
+    app,
+    projects: deviceProjects(root),
+    services: composeServices(root),
+  });
   if (decided.refusal) throw new Refusal(decided.refusal);
   const { plan } = decided;
   let stateFile = null;
@@ -161,6 +188,23 @@ async function open({ sheet, headed, cdpPort, root = REPO_ROOT }) {
   }
   if (!(await portFree(cdpPort)))
     throw new Refusal(`port ${cdpPort} is taken; pass --cdp-port <a free port>.`);
+  if (plan.copy) {
+    removeCopy(plan, root); // a copy an earlier session left never stands in for a fresh one
+    if (!(await portFree(plan.copy.port)))
+      throw new Refusal(
+        `port ${plan.copy.port} of ${plan.copy.service} is taken by something else; free it first.`,
+      );
+    console.log(
+      `${TOOL}: starting a fresh ${plan.copy.service} (${plan.copy.project}) for the writes`,
+    );
+    const up = docker(composeArgs(plan.copy, 'up'), root);
+    if (!up.ok) {
+      const leftover = removeCopy(plan, root);
+      throw new Refusal(
+        `${plan.copy.service} did not start healthy: ${up.detail}${leftover ? `; ${leftover}` : ''}`,
+      );
+    }
+  }
 
   const dir = at(root, recordDir(id));
   rmSync(dir, { recursive: true, force: true }); // a start that never ran leaves only its own record
@@ -195,7 +239,9 @@ async function open({ sheet, headed, cdpPort, root = REPO_ROOT }) {
   }
   if (state.status !== 'running') {
     if (alive(child.pid)) process.kill(child.pid);
+    const leftover = removeCopy(plan, root);
     const tail = readFileSync(join(dir, 'launcher.log'), 'utf8').trim().split('\n').slice(-8);
+    if (leftover) tail.push(leftover);
     throw new Refusal(`the session's browser did not start:\n  ${tail.join('\n  ')}`);
   }
   writeJson(at(root, OPEN_FILE), { id, pid: child.pid });
@@ -335,8 +381,10 @@ async function serve(id, root = REPO_ROOT) {
       await context.tracing.stop().catch(() => {});
       await context.close().catch(() => {});
       const leftover = removeProfile(profile);
+      // The copy goes with the browser, so nothing a writing session did outlives it.
+      const copyLeftover = removeCopy(plan, root);
       writeJson(join(dir, 'blocked.json'), blocked);
-      save({ status: 'stopped', ended, stoppedAt: now(), counts, leftover });
+      save({ status: 'stopped', ended, stoppedAt: now(), counts, leftover, copyLeftover });
       process.exit(0);
     })());
   context.on('close', () => finish('window closed'));
@@ -389,6 +437,9 @@ async function close({ root = REPO_ROOT }) {
   rmSync(at(root, OPEN_FILE), { force: true });
 
   const problems = [];
+  // Again here, for a browser that died before it could remove the copy itself.
+  const copyLeftover = removeCopy(state.plan, root);
+  if (copyLeftover) problems.push(copyLeftover);
   const counts = state.counts ?? { documents: 0, inputs: 0, requests: 0, blocked: 0 };
   if (counts.documents === 0 && counts.inputs === 0)
     problems.push(

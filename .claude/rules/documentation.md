@@ -33,6 +33,8 @@ Each fact has one owner. Other files link to it or name it; they never restate i
 | Where an application departs from what it shows | `apps/<pack>/docs/app-notes.md` |
 | The security header and cookie rules | `helpers/security-headers.ts`; the decision in ADR 0011 |
 | Which packs the ZAP lane may scan, and that it scans only their disposable copy | `targetProblem` and `scanServiceOf` in `scripts/zap-lane.mjs` |
+| Where an exploratory session may run, and which packs take writing sessions on a copy | `planSession` and `exploreServiceOf` in `scripts/lib/explore-session.mjs`; the decision in ADR 0013 |
+| The session sheet format: the charter and the findings | `scripts/lib/session-sheet.mjs`; described in `docs/templates/session-sheet.md` |
 | Counts of cases by status and dimension | `npm run coverage:status` |
 | Which requirements and rules are covered | `npm run traceability` |
 | Whether the tracker keys the packs cite are still open, and which files count as citing | `npm run cited-status`; meaning in `.claude/rules/registry.md` |

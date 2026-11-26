@@ -4,9 +4,11 @@
 (`scripts/explore.mjs`) with its guard, time box, record and checks at close, and the sheet format
 with its `lint-docs` rule ([the session sheet template](../templates/session-sheet.md)), and
 `explore-guard` (`.claude/hooks/explore-guard.mjs`), which names the one browser server an agent may
-use in a session, `explore-browser`. Still to come: writing sessions on a disposable copy, the
-`qa-explore` skill and the change to `.claude/rules/modes.md`. The charter names one role, not
-several: a session signs in once, and another role is another charter.
+use in a session, `explore-browser`; and writing sessions on a disposable copy, the compose service
+`juice-shop-explore` with a port of its own, started fresh in its own compose project and removed
+when the session ends. Still to come: the `qa-explore` skill and the change to
+`.claude/rules/modes.md`. The charter names one role, not several: a session signs in once, and
+another role is another charter. A writing session starts anonymous, since its copy starts empty.
 
 **Proved before building:** a client that attaches to the launcher's browser over CDP, including
 Playwright MCP with `--cdp-endpoint`, stays behind the guard on the launcher's context. Its fetches,

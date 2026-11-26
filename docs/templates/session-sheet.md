@@ -21,7 +21,7 @@ mission gets a charter of its own; the lead goes under **Proposed charters**, no
 | `role` | one actor of the pack in that environment, signed in from the newest state a spec run wrote, or `anonymous` |
 | `device` | a device project that runs on Chromium, since an agent attaches over CDP |
 | `driver` | `person`, `agent` or `both` |
-| `writes` | `none`: every request that is not GET, HEAD or OPTIONS is stopped in the browser. `allowed` needs a disposable copy of the application the pack declares |
+| `writes` | `none`: every request that is not GET, HEAD or OPTIONS is stopped in the browser. `allowed`: the session runs on a disposable copy, the service `<pack>-explore` of `docker/compose.yml`, started fresh for it and removed when it ends; it needs `allow_writes: true`, and its role is `anonymous`, since the copy starts empty |
 | `out_of_bounds` | what the session leaves alone, as a list; `[]` when nothing is |
 | `minutes` | the time box: a person 60 by default and 90 at most, an agent or both 30 by default and 60 at most |
 

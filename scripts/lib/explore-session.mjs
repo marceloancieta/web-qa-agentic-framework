@@ -3,6 +3,10 @@
 //   planSession    whether a charter may start here and now, and with what: the target, the device,
 //                  the signed-in role. A refusal names the reason.
 //   guardDecision  what the route guard does with one request of the session's browser.
+//   exploreServiceOf / composeArgs
+//                  the disposable copy a writing session runs on: the compose service
+//                  `<pack>-explore` (profile `explore`, a port published on 127.0.0.1), started in a
+//                  compose project of its own, `web-qa-explore-<pack>`, and removed at the end.
 //   repoSnapshot / repoChanges
 //                  what changed in the repository between `open` and `close`, outside the sheet.
 //
@@ -13,6 +17,7 @@ import { createHash } from 'node:crypto';
 import { spawnSync } from 'node:child_process';
 import { existsSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
+import { parse as parseYaml } from 'yaml';
 import { normalizePath } from '../app-map.mjs';
 import { gitEnv } from './git.mjs';
 import { packVariable } from './qa-config.mjs';
@@ -22,9 +27,49 @@ export const EXPLORE_DIR = 'reports/explore';
 export const OPEN_FILE = `${EXPLORE_DIR}/open.json`;
 export const READ_METHODS = new Set(['GET', 'HEAD', 'OPTIONS']);
 export const DEFAULT_CDP_PORT = 9322;
+export const EXPLORE_PROFILE = 'explore';
+const LOOPBACK_PORT = /^127\.0\.0\.1:(\d+):\d+$/;
 
 /** The folder of a session's record, relative to the repository root. */
 export const recordDir = (id) => `${EXPLORE_DIR}/${id}`;
+
+/** The services of docker/compose.yml under `root`, by name. */
+export function composeServices(root) {
+  return parseYaml(readFileSync(join(root, 'docker', 'compose.yml'), 'utf8'))?.services ?? {};
+}
+
+/**
+ * The disposable copy of a pack for writing sessions: the compose service `<pack>-explore` in the
+ * `explore` profile, with the host port it publishes on 127.0.0.1. Null when the pack has none.
+ * @returns {{ service: string, port: number } | null}
+ */
+export function exploreServiceOf(services, pack) {
+  const service = `${pack}-explore`;
+  const entry = services[service];
+  if (!entry || !(entry.profiles ?? []).includes(EXPLORE_PROFILE)) return null;
+  const published = (entry.ports ?? [])
+    .map((port) => LOOPBACK_PORT.exec(String(port)))
+    .find(Boolean);
+  return published ? { service, port: Number(published[1]) } : null;
+}
+
+/** The `docker compose` arguments that start or remove a session's copy, in its own project. */
+export function composeArgs(copy, step) {
+  const base = ['compose', '-p', copy.project, '-f', join('docker', 'compose.yml')];
+  const profile = ['--profile', EXPLORE_PROFILE];
+  if (step === 'up')
+    return [
+      ...base,
+      ...profile,
+      'up',
+      '-d',
+      '--wait',
+      '--force-recreate',
+      '--renew-anon-volumes',
+      copy.service,
+    ];
+  return [...base, ...profile, 'down', '--volumes', '--remove-orphans'];
+}
 
 /**
  * Whether a charter may start, and with what.
@@ -33,10 +78,18 @@ export const recordDir = (id) => `${EXPLORE_DIR}/${id}`;
  * @param {object} input.environment    `activeEnvironment`: `{ source, name, packs }`
  * @param {object} input.app            the pack's app.json
  * @param {{ name: string, browser: string }[]} input.projects  the device projects (`deviceProjects`)
+ * @param {object} [input.services]     the services of docker/compose.yml (`composeServices`)
  * @param {object} [input.env]          the process environment, for QA_<PACK>_BASE_URL
  * @returns {{ refusal: string } | { plan: object }}
  */
-export function planSession({ charter, environment, app, projects, env = process.env }) {
+export function planSession({
+  charter,
+  environment,
+  app,
+  projects,
+  services = {},
+  env = process.env,
+}) {
   const { pack, role, device, driver, writes, minutes } = charter;
   const { source, name, packs } = environment;
   if (/^prod/i.test(name))
@@ -56,14 +109,20 @@ export function planSession({ charter, environment, app, projects, env = process
     return {
       refusal: `${packVariable(pack, 'BASE_URL')} points at ${new URL(override).origin}, not ${configured} as ${source} names; a session runs only on the hosts qa-config names.`,
     };
+  let copy = null;
   if (writes === 'allowed') {
     if (entry.allow_writes !== true)
       return {
         refusal: `${pack} does not allow writes in "${name}" (allow_writes); this charter must say writes: none.`,
       };
-    if (!app.explore?.copy)
+    copy = exploreServiceOf(services, pack);
+    if (!copy)
       return {
-        refusal: `a writing session runs on a disposable copy of the application, and ${pack} declares none (app.json explore.copy); this charter must say writes: none.`,
+        refusal: `a writing session runs on a disposable copy of the application, and docker/compose.yml has no service ${pack}-explore in the ${EXPLORE_PROFILE} profile with a port published on 127.0.0.1; this charter must say writes: none.`,
+      };
+    if (role !== 'anonymous')
+      return {
+        refusal: `a writing session starts on an empty copy, where the accounts of "${name}" do not exist; its role is anonymous, and an account it needs is registered in the session with invented data and listed under Data created.`,
       };
   }
   if (role !== 'anonymous' && !Object.hasOwn(entry.actors ?? {}, role))
@@ -84,12 +143,15 @@ export function planSession({ charter, environment, app, projects, env = process
     return {
       refusal: `the time box is ${minutes} minutes; ${driver} sessions last ${most} at most.`,
     };
+  const shared = new URL(entry.base_url);
+  const copyOrigin = copy ? `${shared.protocol}//${shared.hostname}:${copy.port}` : null;
   return {
     plan: {
       pack,
       environment: name,
-      baseUrl: (override || entry.base_url).replace(/\/+$/, ''),
-      origin: configured,
+      baseUrl: copyOrigin ?? (override || entry.base_url).replace(/\/+$/, ''),
+      origin: copyOrigin ?? configured,
+      copy: copy ? { ...copy, project: `web-qa-explore-${pack}` } : null,
       routes: charter.routes,
       role,
       device,

@@ -4,7 +4,15 @@ import { spawnSync } from 'node:child_process';
 import { mkdtempSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { guardDecision, planSession, repoChanges, repoSnapshot } from '../lib/explore-session.mjs';
+import {
+  composeArgs,
+  composeServices,
+  exploreServiceOf,
+  guardDecision,
+  planSession,
+  repoChanges,
+  repoSnapshot,
+} from '../lib/explore-session.mjs';
 import { gitEnv } from '../lib/git.mjs';
 
 const CHARTER = {
@@ -35,8 +43,22 @@ const PROJECTS = [
   { name: 'desktop-webkit', browser: 'webkit' },
 ];
 const APP = { cookies: { banner: 'dismissed' }, app_map: { session_writes: ['POST /api/renew'] } };
-const plan = (charter = {}, { environment = ENVIRONMENT, app = APP, env = {} } = {}) =>
-  planSession({ charter: { ...CHARTER, ...charter }, environment, app, projects: PROJECTS, env });
+const SERVICES = {
+  shop: { image: 'shop' },
+  'shop-explore': { profiles: ['explore'], image: 'shop', ports: ['127.0.0.1:4010:3000'] },
+};
+const plan = (
+  charter = {},
+  { environment = ENVIRONMENT, app = APP, env = {}, services = SERVICES } = {},
+) =>
+  planSession({
+    charter: { ...CHARTER, ...charter },
+    environment,
+    app,
+    projects: PROJECTS,
+    services,
+    env,
+  });
 
 test('a charter that fits the configuration gets a plan', () => {
   const { plan: got, refusal } = plan();
@@ -46,6 +68,7 @@ test('a charter that fits the configuration gets a plan', () => {
     environment: 'local',
     baseUrl: 'http://localhost:4000',
     origin: 'http://localhost:4000',
+    copy: null,
     routes: ['/inventory'],
     role: 'customer',
     device: 'desktop-chromium',
@@ -72,18 +95,75 @@ test('a session never runs where qa-config does not name the target', () => {
   assert.equal(plan({}, samePlace).plan.baseUrl, 'http://localhost:4000/app');
 });
 
-test('a writing session needs writes allowed and a disposable copy', () => {
+test('a writing session needs writes allowed, a disposable copy and no account', () => {
+  const writing = { writes: 'allowed', role: 'anonymous' };
   const readOnly = {
     ...ENVIRONMENT,
     packs: { shop: { ...ENVIRONMENT.packs.shop, allow_writes: false } },
   };
+  assert.match(plan(writing, { environment: readOnly }).refusal, /does not allow writes/);
   assert.match(
-    plan({ writes: 'allowed' }, { environment: readOnly }).refusal,
-    /does not allow writes/,
+    plan(writing, { services: { shop: {} } }).refusal,
+    /docker\/compose.yml has no service shop-explore in the explore profile/,
   );
-  assert.match(plan({ writes: 'allowed' }).refusal, /declares none \(app.json explore.copy\)/);
-  const withCopy = { app: { ...APP, explore: { copy: 'shop-explore' } } };
-  assert.equal(plan({ writes: 'allowed' }, withCopy).plan.writes, 'allowed');
+  assert.match(plan({ writes: 'allowed' }).refusal, /its role is anonymous/);
+  const { plan: got } = plan(writing);
+  assert.equal(got.baseUrl, 'http://localhost:4010');
+  assert.equal(got.origin, 'http://localhost:4010');
+  assert.deepEqual(got.copy, {
+    service: 'shop-explore',
+    port: 4010,
+    project: 'web-qa-explore-shop',
+  });
+});
+
+test('only a service of the explore profile with a port on 127.0.0.1 is a copy', () => {
+  const cases = [
+    [
+      { ports: ['127.0.0.1:4010:3000'], profiles: ['explore'] },
+      { service: 'shop-explore', port: 4010 },
+    ],
+    [{ ports: ['127.0.0.1:4010:3000'] }, null],
+    [{ ports: ['0.0.0.0:4010:3000'], profiles: ['explore'] }, null],
+    [{ ports: ['4010:3000'], profiles: ['explore'] }, null],
+    [{ expose: ['3000'], profiles: ['explore'] }, null],
+  ];
+  for (const [entry, expected] of cases)
+    assert.deepEqual(exploreServiceOf({ 'shop-explore': entry }, 'shop'), expected);
+  assert.equal(exploreServiceOf({}, 'shop'), null);
+});
+
+test('the copy starts fresh and is removed in a compose project of its own', () => {
+  const copy = { service: 'shop-explore', port: 4010, project: 'web-qa-explore-shop' };
+  const head = ['compose', '-p', 'web-qa-explore-shop', '-f', join('docker', 'compose.yml')];
+  assert.deepEqual(composeArgs(copy, 'up'), [
+    ...head,
+    '--profile',
+    'explore',
+    'up',
+    '-d',
+    '--wait',
+    '--force-recreate',
+    '--renew-anon-volumes',
+    'shop-explore',
+  ]);
+  assert.deepEqual(composeArgs(copy, 'down'), [
+    ...head,
+    '--profile',
+    'explore',
+    'down',
+    '--volumes',
+    '--remove-orphans',
+  ]);
+});
+
+test('the repository compose file gives Juice Shop a copy on a port of its own', () => {
+  const services = composeServices(join(import.meta.dirname, '..', '..'));
+  const copy = exploreServiceOf(services, 'juice-shop');
+  assert.ok(copy, 'docker/compose.yml has juice-shop-explore');
+  assert.equal(services['juice-shop-explore'].image, services['juice-shop'].image);
+  assert.notEqual(copy.port, 3000);
+  assert.equal(exploreServiceOf(services, 'spree'), null);
 });
 
 test('the role, the device and the time box are checked', () => {
