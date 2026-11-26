@@ -1,7 +1,16 @@
 # 0013 - Chartered exploratory sessions are a third mode, with limits a check enforces
 
-**Status:** Accepted (2026-11-05). Nothing below is built yet: FUT-08 builds it, and
-`.claude/rules/modes.md` changes in that work.
+**Status:** Accepted (2026-11-05). FUT-08 builds it in stages. Built so far: the launcher
+(`scripts/explore.mjs`) with its guard, time box, record and checks at close, and the sheet format
+with its `lint-docs` rule ([the session sheet template](../templates/session-sheet.md)). Still to
+come: `explore-guard`, writing sessions on a disposable copy, the `qa-explore` skill and the change
+to `.claude/rules/modes.md`. The charter names one role, not several: a session signs in once, and
+another role is another charter.
+
+**Proved before building:** a client that attaches to the launcher's browser over CDP, including
+Playwright MCP with `--cdp-endpoint`, stays behind the guard on the launcher's context. Its fetches,
+form posts, navigations to another origin, new tabs and even a context of its own were aborted, and
+none reached the server. An agent therefore keeps the look-and-act loop of a browser tool.
 
 ## Context
 

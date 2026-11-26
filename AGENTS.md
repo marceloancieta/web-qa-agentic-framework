@@ -62,7 +62,7 @@ A request that needs both is split, and each half stops at its own gate.
 | open work, stages and acceptance criteria | [`docs/backlog.md`](docs/backlog.md) |
 | the rules each phase follows | [`.claude/rules/`](.claude/rules/modes.md), starting with the modes |
 | how each phase is carried out, and the facts of each pack | [`.claude/skills/`](.claude/skills/qa-intake/SKILL.md), one `SKILL.md` per phase and per pack; a defect found in either mode goes through `qa-report-bug` |
-| the intake request, feature contract, registry and pack skill formats | [`docs/templates/`](docs/templates/feature-contract.md): [intake](docs/templates/intake.md), [feature contract](docs/templates/feature-contract.md), [registry](docs/templates/registry.md), [pack skill](docs/templates/pack-skill.md) |
+| the intake request, feature contract, registry, pack skill and session sheet formats | [`docs/templates/`](docs/templates/feature-contract.md): [intake](docs/templates/intake.md), [feature contract](docs/templates/feature-contract.md), [registry](docs/templates/registry.md), [pack skill](docs/templates/pack-skill.md), [session sheet](docs/templates/session-sheet.md) |
 | the agents that write specs, review them and investigate a requirement, each with its limits | [`.claude/agents/`](.claude/agents/spec-author.md), listed in [`CLAUDE.md`](CLAUDE.md) |
 | the Claude Code hooks | [`.claude/hooks/README.md`](.claude/hooks/README.md) |
 | how a change is proposed, how a vulnerability is reported, and the code of conduct | [`CONTRIBUTING.md`](CONTRIBUTING.md), [`SECURITY.md`](SECURITY.md), [`CODE_OF_CONDUCT.md`](CODE_OF_CONDUCT.md) |

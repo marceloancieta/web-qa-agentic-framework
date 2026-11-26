@@ -9,6 +9,8 @@
 //             names a `login_path`, whether that page answers with a success or a redirect
 //   coverage  the designed / automated / published totals and the number of findings, once
 //             scripts/coverage-status.mjs exists; "unknown" with the reason when it cannot say
+//   explore   an exploratory session that is still open or was interrupted (ADR 0013), as
+//             `npm run explore -- status` says it; nothing when none is
 //
 // This event cannot block a session. Anything that cannot be determined is reported as unknown.
 
@@ -109,6 +111,24 @@ function coverageTotals(root) {
   );
 }
 
+/**
+ * The open exploratory session, as `explore status` words it, when reports/explore/open.json says
+ * one is open; null otherwise. An interrupted session stays open until `explore close` checks it.
+ */
+function explorationLine(root) {
+  if (!existsSync(join(root, 'reports', 'explore', 'open.json'))) return null;
+  try {
+    return execFileSync(process.execPath, [join(root, 'scripts', 'explore.mjs'), 'status'], {
+      cwd: root,
+      encoding: 'utf8',
+      stdio: ['ignore', 'pipe', 'ignore'],
+      timeout: COVERAGE_TIMEOUT_MS,
+    }).trim();
+  } catch {
+    return 'Exploration: a session is open (reports/explore/open.json), but explore status failed; run npm run explore -- close.';
+  }
+}
+
 function setupNotes(root, configSource) {
   const notes = [];
   if (configSource === null)
@@ -168,5 +188,7 @@ env.packs.forEach((pack, i) => {
 
 const totals = coverageTotals(root);
 if (totals) report.push(`Coverage (scripts/coverage-status.mjs): ${totals}`);
+const exploration = explorationLine(root);
+if (exploration) report.push(exploration);
 
 respond('SessionStart', { additionalContext: report.join('\n') });
