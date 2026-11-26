@@ -15,9 +15,17 @@ export class UserMenu {
     return this.page.getByRole('menu', { name: 'User menu' });
   }
 
+  /**
+   * Open the menu and return once it has finished opening. It grows in from a starting style that
+   * declares no transition and no opacity, and Linux WebKit can still be in that first frame when
+   * the menu becomes visible, so a read of its style then sees neither its transition nor its
+   * final look. Opened is fully opaque, with or without reduced motion.
+   */
   async open(): Promise<void> {
     await this.button().click();
     await this.menu().waitFor();
+    const menu = await this.menu().elementHandle();
+    await this.page.waitForFunction((element) => getComputedStyle(element!).opacity === '1', menu);
   }
 
   logOut(): Locator {
