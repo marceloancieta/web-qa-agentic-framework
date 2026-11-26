@@ -85,8 +85,11 @@ Registered in `.claude/settings.json` and described in `.claude/hooks/README.md`
 - `git-policy` applies the commit and pull-request rules configured in qa-config.
 - `browser-guard` holds a browser tool to the limits of design: reads and the configured
   environments pass, an upload is refused, and a click, typing or code in the page asks the user.
-- `session-probe` reports the setup state and whether each pack's application answers when a
-  session starts.
+- `explore-guard` holds an agent to an open exploratory session (ADR 0013): the session's browser
+  through the `explore-browser` server on its own origin, no code in the page, repository writes to
+  the sheet only, nothing reported to test management.
+- `session-probe` reports the setup state, whether each pack's application answers and an
+  exploratory session left open when a session starts.
 
 ## Working habits
 

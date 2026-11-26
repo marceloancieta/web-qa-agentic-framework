@@ -7,7 +7,8 @@
  *                          [--cdp-port <port>]
  *       checks the charter and the target, then starts the session's browser in the background,
  *       signed in as the charter's role, on its first route. An agent attaches to it over CDP
- *       (Playwright MCP with --cdp-endpoint <the endpoint it prints>). One session at a time.
+ *       through the MCP server named explore-browser (Playwright MCP with --cdp-endpoint <the
+ *       endpoint it prints>), the one browser explore-guard lets it use. One session at a time.
  *   npm run explore -- status
  *       the open session: its time left and whether its browser is still there
  *   npm run explore -- close
@@ -204,7 +205,7 @@ async function open({ sheet, headed, cdpPort, root = REPO_ROOT }) {
     `  ${plan.pack} at ${plan.baseUrl}, ${plan.device}, as ${plan.role}, writes: ${plan.writes}`,
   );
   console.log(
-    `  CDP endpoint ${state.cdp}: an agent's Playwright MCP attaches with --cdp-endpoint.`,
+    `  CDP endpoint ${state.cdp}: an agent drives it through the explore-browser MCP server (Playwright MCP --cdp-endpoint).`,
   );
   console.log(`  record: ${recordDir(id)}/   close: npm run explore -- close`);
 }

@@ -2,10 +2,11 @@
 
 **Status:** Accepted (2026-11-05). FUT-08 builds it in stages. Built so far: the launcher
 (`scripts/explore.mjs`) with its guard, time box, record and checks at close, and the sheet format
-with its `lint-docs` rule ([the session sheet template](../templates/session-sheet.md)). Still to
-come: `explore-guard`, writing sessions on a disposable copy, the `qa-explore` skill and the change
-to `.claude/rules/modes.md`. The charter names one role, not several: a session signs in once, and
-another role is another charter.
+with its `lint-docs` rule ([the session sheet template](../templates/session-sheet.md)), and
+`explore-guard` (`.claude/hooks/explore-guard.mjs`), which names the one browser server an agent may
+use in a session, `explore-browser`. Still to come: writing sessions on a disposable copy, the
+`qa-explore` skill and the change to `.claude/rules/modes.md`. The charter names one role, not
+several: a session signs in once, and another role is another charter.
 
 **Proved before building:** a client that attaches to the launcher's browser over CDP, including
 Playwright MCP with `--cdp-endpoint`, stays behind the guard on the launcher's context. Its fetches,

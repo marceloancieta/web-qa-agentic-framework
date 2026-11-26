@@ -15,13 +15,15 @@ what a command does. `__tests__/settings.test.mjs` keeps the read and edit lists
 | `secret-guard.mjs` | `UserPromptSubmit`, `PreToolUse` (every tool), `PostToolUse` (every tool) | Refuses prompts and tool calls that contain credentials, refuses access to files that usually hold secrets, refuses network commands or web/subagent calls carrying secrets, and masks credentials in tool output. Encoded media in the output (an image or PDF the Read tool returns, an MCP block with a `mimeType`) is left whole, since masking its bytes would corrupt the file without hiding any text. |
 | `git-policy.mjs` | `PreToolUse` (`Bash`, `PowerShell`) | Optional commit and pull-request rules read from `qa-config` (`tracker`, `policies`). Each rule applies once configured; with no qa-config at all, none applies. |
 | `browser-guard.mjs` | `PreToolUse` (Playwright MCP `browser_*`, Claude in Chrome) | Holds an agent's browser to the browser limits of design in [`modes.md`](../rules/modes.md); see [Browser tools](#browser-tools). |
-| `session-probe.mjs` | `SessionStart` | Adds a short status report to the session: setup state, application reachability (one line per pack the active environment configures, with its login page when app.json names one), coverage totals once the coverage report exists. |
+| `explore-guard.mjs` | `PreToolUse` (`Write`, `Edit`, `MultiEdit`, `NotebookEdit`, `Bash`, `PowerShell`, every MCP tool) | Holds an agent to the limits of an exploratory session (ADR 0013) while one is open, and refuses the session browser when none is; see [Exploratory sessions](#exploratory-sessions). |
+| `session-probe.mjs` | `SessionStart` | Adds a short status report to the session: setup state, application reachability (one line per pack the active environment configures, with its login page when app.json names one), coverage totals once the coverage report exists, and an exploratory session left open. |
 
 Shared modules in `lib/`:
 
 - `io.mjs` reads the event payload and writes verdicts;
 - `config.mjs` reads `qa-config` without third-party packages;
 - `browser.mjs` holds the verdict of every browser tool call `browser-guard` knows;
+- `explore.mjs` reads the open exploratory session and holds the verdicts of `explore-guard`;
 - `secrets.mjs` holds every credential pattern, so there is one place to extend;
 - `shell.mjs` splits a command line into words.
 
@@ -88,6 +90,23 @@ A Claude in Chrome `browser_batch` gets the verdict of its strictest step. The r
 Playwright MCP under any server name that contains `playwright` (a plugin's included) and
 Claude in Chrome; a browser tool of another server is not matched, and a script started through
 Bash is seen by no hook, so `behaviour-investigator` probes keep their own route guard.
+
+## Exploratory sessions
+
+`npm run explore -- open <sheet>` (ADR 0013) starts a browser whose context guards the network:
+other origins, and writes in a session without them, never leave it. `explore-guard` keeps the
+agent's tools to that browser and to the sheet while `reports/explore/open.json` names a session:
+
+| Verdict | Calls |
+|---|---|
+| allow | every tool of the MCP server named `explore-browser` (Playwright MCP with `--cdp-endpoint` set to the endpoint `explore open` prints): clicks, typing and keys included, since the guard stops what they would send; navigation to the session's origin; Write and Edit of the session's sheet and of files outside the repository |
+| deny | navigation of the session browser to any other origin, code run in the page, uploads; any other Playwright MCP server, which drives a browser of its own; Claude in Chrome, which holds the person's real sign-ins; Write and Edit of any other file in the repository; `tm:*` scripts |
+
+With no session open it refuses only the `explore-browser` tools. A session whose `session.json`
+cannot be read keeps the refusals and allows no navigation and no repository write. A script started
+through Bash is seen by neither the hook nor the guard; `explore close` fails on any change to the
+repository besides the sheet, and on an empty record, which is what a session driven in another
+browser leaves.
 
 ## Configuration
 
