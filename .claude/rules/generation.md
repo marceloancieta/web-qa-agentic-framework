@@ -16,7 +16,7 @@ the locator order in ADR 0007; `apps/juice-shop/` is the worked example.
 | A signed-in user | the pack's role fixtures (`customer`) or `actor(role)`; `actor(role, { fresh: true })` for an account of the case's own | starts signed in; only the case about the login form goes through it |
 | State before and after | `api/` clients bound to the actor's session | prepares data and checks what the UI claims through them; never sends HTTP itself (`lint-layers` spec-sends-request) |
 | Data | `builders/`, unique per run, with boundary and very long texts | never types an email or a password |
-| Answers the application will not give on demand (500, timeout, empty) | `mocks/`, over `helpers/network.ts` (`mockJson`, `failWith`, `delay`, `offline`, `blockThirdParties`) | calls a mock by name and carries `@mocked`; never calls `page.route` (`lint-layers` spec-routes-network) |
+| Answers the application will not give on demand (500, timeout, empty) | `mocks/`, over `helpers/network.ts` (`mockJson`, `failWith`, `delay`, `hold`, `offline`, `blockThirdParties`) | calls a mock by name and carries `@mocked`; never calls `page.route` (`lint-layers` spec-routes-network) |
 | A business task used by two or more specs | `flows/` | calls the flow; a flow does not assert |
 | Combinations of conditions | `rules/<case id>.yaml` decision tables | iterates `loadDecisionTable` (`scripts/lib/decision-table.mjs`), one step per combination |
 | Accessibility | the `a11y` fixture: `a11y.expectNoNewViolations(page)` against `a11y-known.json` | scans the state the case is about, after it settles |
@@ -24,6 +24,8 @@ the locator order in ADR 0007; `apps/juice-shop/` is the worked example.
 | Visual | the `visual` fixture: `visual.expectToMatch(target, name, mask, { wholePage })`; masks belong to the page object; `wholePage` when the case claims more than the first screen; `visual.expectNotToMatch` with the same arguments when the case claims a view differs from a baseline another step wrote | carries `@visual`; runs only in the visual lane |
 | Keyboard, overflow, time, files | `helpers/keyboard.ts`, `helpers/layout.ts`, `helpers/time.ts`, `helpers/files.ts` | asserts on what they return |
 | Two-factor codes | `helpers/totp.ts` (RFC 6238), from the secret of an account the case created; `freshTotp` when the code must stay in its step until the server reads it | types a code it made, never one written in the spec |
+| Design tokens | `helpers/design-tokens.ts` (ADR 0015): `loadDesignTokens` on the pack's `design-tokens.json`, then `tokenMismatches(component, { property: token }, tokens)` | asserts the mismatches are `[]`; the property-to-token map is the case's expected result, never read from the page |
+| Reduced motion | `reducedMotion: 'reduce'` through `test.use` or `page.emulateMedia`, then `helpers/motion.ts`: `motionOf(locator, { subtree })`, `pageMotion(page)`, and `animationsOf(locator, { subtree })` for an animation that is not motion, such as a pulse (ADR 0015) | shows the motion without the preference before it claims the preference removes it |
 | Mail the application sent | the `mail` fixture (`helpers/mail-catcher.ts`, ADR 0014) over the mail catcher qa-config names for the pack: `waitForMessage(address, { subject })`, then `linkMatching(message, pattern)` | reads only the mail of an address its builder made, and follows the link as the person would; never asks the application for the token |
 
 ## Locators

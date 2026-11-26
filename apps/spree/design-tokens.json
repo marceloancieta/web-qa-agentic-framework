@@ -1,0 +1,86 @@
+{
+  "$description": "The light theme of the Spree 6.0.3 admin dashboard, written from the custom properties its stylesheet declares on :root and the Tailwind utilities its components use (read 2026-11-25). Each token's $description names the variable or utility it comes from. Read by helpers/design-tokens.ts (ADR 0015); the contract is docs/features/design.md.",
+  "color": {
+    "$type": "color",
+    "background": {
+      "$value": "oklch(98.5% .001 106.423)",
+      "$description": "--background: the page behind every card."
+    },
+    "foreground": {
+      "$value": "oklch(14.7% .004 49.25)",
+      "$description": "--foreground: body text and headings."
+    },
+    "card": {
+      "$value": "oklch(100% 0 0)",
+      "$description": "--card: cards and the inside of form controls."
+    },
+    "primary": {
+      "$value": "{color.foreground}",
+      "$description": "--primary, which the stylesheet sets to var(--foreground): the primary button."
+    },
+    "primary-foreground": {
+      "$value": "{color.card}",
+      "$description": "--primary-foreground, which the stylesheet sets to var(--card): text on the primary button."
+    },
+    "border": {
+      "$value": "oklch(92.3% .003 48.717)",
+      "$description": "--border-base, through --border: the border of a form control at rest."
+    },
+    "ring": {
+      "$value": "oklch(59.67% .2212 258)",
+      "$description": "--brand-blue, through --ring: the border of a focused form control and the outline of a focused link."
+    },
+    "link": {
+      "$value": "oklch(51.06% .1868 257.7)",
+      "$description": "--link: a text link at rest."
+    },
+    "link-hover": {
+      "$value": "oklch(44% .16 257.7)",
+      "$description": "--link-hover: a text link under the pointer."
+    }
+  },
+  "font": {
+    "family": {
+      "sans": {
+        "$type": "fontFamily",
+        "$value": ["Geist Variable", "ui-sans-serif", "system-ui", "sans-serif"],
+        "$description": "--default-font-family: every text of the dashboard."
+      }
+    },
+    "size": {
+      "$type": "dimension",
+      "sm": { "$value": "0.8125rem", "$description": ".text-sm: buttons, labels and links." },
+      "base": {
+        "$value": "0.875rem",
+        "$description": "--text-base, and the font size of body: body text and form controls."
+      },
+      "touch-control": {
+        "$value": "1rem",
+        "$description": "max(1rem, var(--text-base)) on a coarse pointer: the smallest size of a form control on a touch screen."
+      },
+      "xl": {
+        "$value": "1.25rem",
+        "$description": ".text-xl: the heading of a section below 640 px."
+      },
+      "2xl": {
+        "$value": "1.5rem",
+        "$description": ".text-2xl: the heading of a page, and of a section from 640 px."
+      }
+    },
+    "weight": {
+      "$type": "fontWeight",
+      "normal": { "$value": 400, "$description": "--font-weight-normal: form controls." },
+      "medium": { "$value": 500, "$description": "--font-weight-medium: buttons and labels." },
+      "semibold": {
+        "$value": 600,
+        "$description": "--font-weight-semibold: the heading of a section."
+      },
+      "bold": { "$value": 700, "$description": "--font-weight-bold: the heading of a page." }
+    }
+  },
+  "radius": {
+    "$type": "dimension",
+    "md": { "$value": "0.5rem", "$description": "--radius-md, .rounded-md: form controls." },
+    "lg": { "$value": "0.625rem", "$description": ".rounded-lg: buttons." }
+  }
+}

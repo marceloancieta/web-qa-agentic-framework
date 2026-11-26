@@ -62,6 +62,23 @@ export async function delay(page: Page, url: UrlMatch, ms: number): Promise<void
   });
 }
 
+/**
+ * Hold matching requests until `release()`, then let them continue to the real server: a loading
+ * state that lasts as long as the case needs it, where `delay` would end at a fixed time. Release
+ * before the case ends, so no request is left without an answer.
+ */
+export async function hold(page: Page, url: UrlMatch): Promise<{ release(): void }> {
+  let release!: () => void;
+  const released = new Promise<void>((resolve) => {
+    release = resolve;
+  });
+  await page.route(url, async (route: Route) => {
+    await released;
+    await route.fallback();
+  });
+  return { release };
+}
+
 /** Take the browser context offline (true) or back online (false). */
 export async function offline(context: BrowserContext, value = true): Promise<void> {
   await context.setOffline(value);

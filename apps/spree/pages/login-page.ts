@@ -35,6 +35,11 @@ export class LoginPage {
     return this.page.getByRole('textbox', { name: 'Email' });
   }
 
+  /** The label that names Email. */
+  emailLabel(): Locator {
+    return this.page.getByText('Email', { exact: true });
+  }
+
   password(): Locator {
     return this.page.getByRole('textbox', { name: 'Password' });
   }

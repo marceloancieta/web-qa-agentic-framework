@@ -1,4 +1,4 @@
-import { blockThirdParties, delay, failWith, mockJson, offline } from '../network';
+import { blockThirdParties, delay, failWith, hold, mockJson, offline } from '../network';
 import { expect, test, THIRD_PARTY_HOST } from './fake-app';
 
 test('the third-party script is blocked and listed; the application still loads', async ({
@@ -33,6 +33,21 @@ test('a delayed answer shows the loading indicator, which then goes away', async
   // load event would spend part of those 800 ms, and a busy machine all of them.
   await page.goto(`${fakeApp.url}/products`, { waitUntil: 'commit' });
   await expect(page.getByRole('status')).toHaveText('Loading products');
+  await expect(page.getByRole('status')).toBeHidden();
+  await expect(page.getByRole('listitem')).toHaveCount(2);
+});
+
+test('a held answer keeps the loading indicator until it is released', async ({
+  page,
+  fakeApp,
+}) => {
+  const held = await hold(page, '**/api/products');
+  await page.goto(`${fakeApp.url}/products`, { waitUntil: 'commit' });
+  await expect(page.getByRole('status')).toHaveText('Loading products');
+  // Longer than any fixed delay a case would choose, and the indicator is still there.
+  await page.waitForTimeout(1_500);
+  await expect(page.getByRole('status')).toHaveText('Loading products');
+  held.release();
   await expect(page.getByRole('status')).toBeHidden();
   await expect(page.getByRole('listitem')).toHaveCount(2);
 });
