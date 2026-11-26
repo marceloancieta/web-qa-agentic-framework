@@ -62,6 +62,13 @@ test('tokens resolve groups, inherited types, { value, unit } and aliases into C
   expect(tokens.size).toBe(8);
 });
 
+test('a family name is quoted with its quotes and backslashes escaped', () => {
+  const tokens = parseDesignTokens({
+    font: { odd: { $type: 'fontFamily', $value: ['Say "Hi"', 'Back\\slash', 'serif'] } },
+  });
+  expect(tokens.get('font.odd')?.css).toBe('"Say \\"Hi\\"", "Back\\\\slash", serif');
+});
+
 test('a broken document is refused with every problem, by token', () => {
   const broken = {
     color: {

@@ -53,7 +53,8 @@ const isObject = (value: unknown): value is Raw =>
 
 /** One family as CSS writes it: quoted when it is not a single identifier. */
 function familyCss(family: string): string {
-  return /^[a-z-]+$/i.test(family) ? family : `"${family.replace(/"/g, '\\"')}"`;
+  // A CSS string escapes the backslash before the quote, or a name ending in one would end the string.
+  return /^[a-z-]+$/i.test(family) ? family : `"${family.replace(/["\\]/g, '\\$&')}"`;
 }
 
 /** The CSS text of a literal `$value` of `type`, or a problem. */
