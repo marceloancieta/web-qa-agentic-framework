@@ -104,6 +104,19 @@ function removeProfile(profile) {
   }
 }
 
+/**
+ * A file's text, or null when it does not exist. Reading straight away, instead of checking first,
+ * leaves no moment in which the file can change between the check and the use.
+ */
+function readIfPresent(file) {
+  try {
+    return readFileSync(file, 'utf8');
+  } catch (error) {
+    if (error.code === 'ENOENT') return null;
+    throw error;
+  }
+}
+
 /** Run docker with `args` from the repository root: `{ ok, detail }`. */
 function docker(args, root) {
   const result = spawnSync('docker', args, { cwd: root, encoding: 'utf8', windowsHide: true });
@@ -155,8 +168,8 @@ async function open({ sheet, headed, cdpPort, root = REPO_ROOT }) {
   if (current)
     throw new Refusal(`session ${current.id} is open; close it first (npm run explore -- close).`);
   const sheetPath = relative(root, resolve(sheet)).replace(/\\/g, '/');
-  if (!existsSync(at(root, sheetPath))) throw new Refusal(`no sheet at ${sheetPath}.`);
-  const text = readFileSync(at(root, sheetPath), 'utf8');
+  const text = readIfPresent(at(root, sheetPath));
+  if (text === null) throw new Refusal(`no sheet at ${sheetPath}.`);
   const { id, charter, problems } = parseSheet(text, sheetPath);
   if (problems.length > 0)
     throw new Refusal(
@@ -448,11 +461,9 @@ async function close({ root = REPO_ROOT }) {
   for (const change of repoChanges(state.snapshot, repoSnapshot(root), [state.sheet]))
     problems.push(`the repository changed outside the sheet: ${change}`);
   const sheetFile = at(root, state.sheet);
-  if (existsSync(sheetFile)) {
-    const stamped = stampSheet(readFileSync(sheetFile, 'utf8'), {
-      closed: now(),
-      ended: state.ended,
-    });
+  const sheetText = readIfPresent(sheetFile);
+  if (sheetText !== null) {
+    const stamped = stampSheet(sheetText, { closed: now(), ended: state.ended });
     writeFileSync(sheetFile, stamped);
     for (const p of parseSheet(stamped, state.sheet).problems)
       problems.push(`${state.sheet}:${p.line}  ${p.message}`);
