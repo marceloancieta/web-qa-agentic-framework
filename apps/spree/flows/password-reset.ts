@@ -31,7 +31,7 @@ export async function requestResetLink(
   const before = await resetEmailsTo(mail, email);
   const forgot = new ForgotPasswordPage(page);
   await forgot.open();
-  await forgot.request(email);
+  await forgot.requestSent(email);
   await forgot.confirmation().waitFor();
   const message = await mail.waitForMessage(email, { subject: RESET_SUBJECT, except: before });
   return linkMatching(message, RESET_LINK);

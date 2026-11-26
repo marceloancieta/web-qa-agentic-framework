@@ -3,6 +3,10 @@
 // confirmation, which replaces the form (contract `docs/features/password-reset.md`).
 
 import type { Locator, Page } from '@playwright/test';
+import { RESET_REQUEST } from '../mocks/auth-mocks';
+
+/** How long after the click the reset request must have left; the page sends it at once. */
+const SENT_MS = 5_000;
 
 export class ForgotPasswordPage {
   constructor(private readonly page: Page) {}
@@ -82,5 +86,26 @@ export class ForgotPasswordPage {
   async request(email: string): Promise<void> {
     await this.email().fill(email);
     await this.send().click();
+  }
+
+  /**
+   * Ask for a reset of `email` and wait until the page has sent the request. A click that starts
+   * nothing (seen once in CI on Firefox: the button stayed "Send reset link" and no request left)
+   * then fails here at once and says so, instead of as a missing confirmation at the test timeout.
+   */
+  async requestSent(email: string): Promise<void> {
+    const sent = this.page
+      .waitForRequest(
+        (request) =>
+          request.method() === 'POST' && RESET_REQUEST.test(new URL(request.url()).pathname),
+        { timeout: SENT_MS },
+      )
+      .then(
+        () => true,
+        () => false,
+      );
+    await this.request(email);
+    if (!(await sent))
+      throw new Error(`"Send reset link" sent no reset request within ${SENT_MS} ms of the click`);
   }
 }
