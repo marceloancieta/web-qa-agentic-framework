@@ -23,7 +23,8 @@ with an account that is there before the session; never submit another form or c
   routes, landmarks, the summarized accessibility tree, forms with their HTML constraints, the
   endpoints each page calls.
 - Optional: a story or issue (`npm run tracker -- get <KEY>`), an intake request written from
-  [the intake template](../../../docs/templates/intake.md), manual exploration notes.
+  [the intake template](../../../docs/templates/intake.md), manual exploration notes, the sheet of
+  an exploratory session (`apps/<pack>/docs/sessions/`, written by `qa-explore`).
 
 ## Steps
 
@@ -45,8 +46,9 @@ with an account that is there before the session; never submit another form or c
    that only a submitted form or a write reaches is marked **unobserved**; when it matters before
    design, propose a spec or an execution run that creates its own data, and write what it showed
    back here.
-5. **Take every source in turn**: the story, the intake request, the exploration notes. Each claim
-   is compared with the live page before it enters the contract. A claim the page contradicts is a
+5. **Take every source in turn**: the story, the intake request, the exploration notes and session
+   sheets. Each claim is compared with the live page before it enters the contract; a state only a
+   session's write reached, on a copy that is gone, rests on the evidence the sheet names. A claim the page contradicts is a
    gap; one nobody can check yet goes to the assumptions. A disagreement that needs more than a
    quick look (several roles, devices or routes) goes to a
    [`behaviour-investigator`](../../agents/behaviour-investigator.md), one question per launch; its

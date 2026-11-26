@@ -1,16 +1,16 @@
-# Modes: design and execution never mix
+# Modes: design, execution and exploration never mix
 
-Work on an application happens in one of two modes. A request that needs both, such as "design the
-login cases and run them", is split in two. The first mode finishes and shows its result at its gate,
-and only then does the second start.
+Work on an application happens in one of three modes. A request that needs two, such as "design the
+login cases and run them" or "explore the basket, then write its cases", is split. The first mode
+finishes and shows its result at its gate, and only then does the second start.
 
-| | Design | Execution |
-|---|---|---|
-| Phases | intake, design, automate, publish (`qa-intake`, `qa-design`, `qa-automate`, `qa-publish`) | run (`qa-run`) |
-| May do in the application | navigate and read: open routes, follow links, read the accessibility tree, `npm run app:map`; sign in through the pack's login; run the specs being built, which create their own data | run the suite as written, and the lanes within their own write rules |
-| May write files | feature contracts, registries, specs, pages, components, flows, mocks, builders, pack docs, visual baselines (automate only) | run reports only |
-| Test management | publish case definitions | report the results of a run |
-| Never | submit a form, sign up or change data outside a spec run; report a run's results | edit a spec, a registry, a contract, a case definition or a baseline because of what a run showed |
+| | Design | Execution | Exploration |
+|---|---|---|---|
+| Phases | intake, design, automate, publish (`qa-intake`, `qa-design`, `qa-automate`, `qa-publish`) | run (`qa-run`) | a chartered session (`qa-explore`, ADR 0013) |
+| May do in the application | navigate and read: open routes, follow links, read the accessibility tree, `npm run app:map`; sign in through the pack's login; run the specs being built, which create their own data | run the suite as written, and the lanes within their own write rules | use every control of the session's browser, which `npm run explore -- open` starts; its writes are stopped in the browser, or, with `writes: allowed`, land on a disposable copy that the session removes |
+| May write files | feature contracts, registries, specs, pages, components, flows, mocks, builders, pack docs, visual baselines (automate only) | run reports only | the session's sheet, and its record under `reports/explore/` |
+| Test management | publish case definitions | report the results of a run | nothing |
+| Never | submit a form, sign up or change data outside a spec run; report a run's results | edit a spec, a registry, a contract, a case definition or a baseline because of what a run showed | touch the application other work uses, drive another browser, edit a definition, file a defect or report a result |
 
 Why:
 
@@ -25,8 +25,14 @@ Why:
 - **Visual baselines are design.** Only the automate phase rewrites them
   (`npm run lanes:visual -- --phase automate --update`), and the diff images are shown at its gate.
   The visual lane refuses `--update-snapshots` in a run (ADR 0009).
-- **Reporting a defect** (`qa-report-bug`) can follow either mode. It writes to the tracker, never
-  to the application.
+- **Exploration learns without leaving anything behind.** A case checks what someone thought of; a
+  session looks for what nobody did, choosing each step from the page's last answer. It may act,
+  because its browser's guard keeps its writes from the application others use, and `explore
+  close` checks that the repository changed only in the sheet. What it found leaves at the debrief,
+  each finding through its own phase: a contract gap to `qa-intake`, a disagreement to
+  `qa-report-bug`, a question to a `behaviour-investigator`.
+- **Reporting a defect** (`qa-report-bug`) can follow any mode. It writes to the tracker, never to
+  the application.
 
 ## What counts as reading
 
@@ -49,9 +55,28 @@ Why:
   navigating to its address.
 - **Manual exploration notes** that someone else wrote are a source for intake like a story or an
   issue. They do not make a write in design acceptable.
+- **A session's sheet is a source for intake too.** Intake checks each claim on the live page, like
+  any note; a state only a write reached, on a copy that is gone, rests on the session's evidence.
+
+## What holds an exploratory session
+
+A session's limits are checks, not sentences (ADR 0013):
+
+- **`npm run explore -- open <sheet>`** refuses a charter whose target qa-config does not name,
+  one named like production, or a time box past its limit; it starts the browser, signs the role in
+  from a spec run's state, and records the session under `reports/explore/<session>/`. The guard on
+  the browser's context aborts other origins, and the writes of a session without them.
+- **`explore-guard`** keeps an agent, while a session is open, to the `explore-browser` server of
+  `.mcp.json` (the session's browser, over CDP) on the session's origin, with no code run in the
+  page; to the sheet among the repository's files; and away from `tm:*`.
+- **`npm run explore -- close`** fails on an empty record, on any change to the repository besides
+  the sheet, on a malformed sheet, and on a copy it could not remove. The time box and a closed
+  window end the session too; `session-probe` reports one left open.
 
 ## Gates
 
 Every phase ends at a **review gate**: its skill shows what it produced and waits for approval
-before the next phase starts. A gate is skipped only when the user says so for that step. An agent
-never holds a gate; approvals happen in the conversation.
+before the next phase starts. A gate is skipped only when the user says so for that step. An
+exploratory session has two: the charter, shown with its environment before `explore open`, and
+the debrief of its sheet after `explore close`. An agent never holds a gate; approvals happen in
+the conversation.

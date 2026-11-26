@@ -20,6 +20,17 @@ services:
       retries: 40
       start_period: 15s
 
+  # The copy a writing exploratory session runs on (ADR 0013): the image above, published on a port
+  # of its own. `npm run explore -- open` starts it fresh in a compose project of its own
+  # (web-qa-explore-juice-shop) and `close` removes it, so a session's writes never reach the
+  # Juice Shop other work uses.
+  juice-shop-explore:
+    profiles: ['explore']
+    image: *juice-shop-image
+    ports:
+      - '127.0.0.1:3010:3000'
+    healthcheck: *juice-shop-health
+
   # Spree Commerce (FUT-01): its API and admin dashboard in one image, on a database of its own.
   # `npm run spree:up` starts both, signs the admin of SPREE_ADMIN_EMAIL in and loads the sample
   # data once (scripts/spree-up.mjs); it also gives SPREE_SECRET_KEY_BASE a new value for the

@@ -90,6 +90,18 @@
             "statusMessage": "Checking the browser limits of design"
           }
         ]
+      },
+      {
+        "matcher": "Write|Edit|MultiEdit|NotebookEdit|Bash|PowerShell|mcp__.*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node",
+            "args": ["${CLAUDE_PROJECT_DIR}/.claude/hooks/explore-guard.mjs"],
+            "timeout": 10,
+            "statusMessage": "Checking the limits of an exploratory session"
+          }
+        ]
       }
     ],
     "PostToolUse": [

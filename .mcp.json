@@ -1,0 +1,8 @@
+{
+  "mcpServers": {
+    "explore-browser": {
+      "command": "node",
+      "args": ["scripts/explore-browser.mjs"]
+    }
+  }
+}

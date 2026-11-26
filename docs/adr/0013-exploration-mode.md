@@ -1,7 +1,20 @@
 # 0013 - Chartered exploratory sessions are a third mode, with limits a check enforces
 
-**Status:** Accepted (2026-11-05). Nothing below is built yet: FUT-08 builds it, and
-`.claude/rules/modes.md` changes in that work.
+**Status:** Accepted (2026-11-05), built by FUT-08: the launcher (`scripts/explore.mjs`) with its
+guard, time box, record and checks at close; the sheet format with its `lint-docs` rule
+([the session sheet template](../templates/session-sheet.md)); `explore-guard`
+(`.claude/hooks/explore-guard.mjs`), which names the one browser server an agent may use in a
+session, `explore-browser`, declared in `.mcp.json` (`scripts/explore-browser.mjs`, Playwright MCP
+attached over CDP); writing sessions on a disposable copy, the compose service `juice-shop-explore`
+with a port of its own, started fresh in its own compose project and removed when the session ends;
+the `qa-explore` skill; and the third column of `.claude/rules/modes.md`. The charter names one
+role, not several: a session signs in once, and another role is another charter. A writing session
+starts anonymous, since its copy starts empty.
+
+**Proved before building:** a client that attaches to the launcher's browser over CDP, including
+Playwright MCP with `--cdp-endpoint`, stays behind the guard on the launcher's context. Its fetches,
+form posts, navigations to another origin, new tabs and even a context of its own were aborted, and
+none reached the server. An agent therefore keeps the look-and-act loop of a browser tool.
 
 ## Context
 
@@ -97,9 +110,10 @@ one. A case designed from a finding reports when it runs.
 - **To prove first:** that an MCP browser client attached to the launcher's browser keeps the guard.
   If not, an agent drives through scripts on the guarded context, as `behaviour-investigator` probes
   do, and loses the look-and-act loop of a browser tool.
-- A hook sees a tool's arguments, not what a click sends; only the guard sees the network. A browser
-  tool of an unknown server is not matched (the repository has no `.mcp.json`), and a script started
-  through Bash is seen by neither: `explore close` catches its repository changes, not its traffic.
+- A hook sees a tool's arguments, not what a click sends; only the guard sees the network. During a
+  session `explore-guard` refuses every Playwright MCP server but `explore-browser`, and Claude in
+  Chrome; a browser tool of a server named otherwise is not matched, and a script started through
+  Bash is seen by neither: `explore close` catches its repository changes, and its empty record.
 - A pack that takes writing sessions needs a compose service for them. `juice-shop-scan` (ADR 0011)
   has no host port, so a browser on the host cannot reach it and it is not reused as it stands.
 - Nothing a writing session did survives its close, so a finding that depends on that state rests on

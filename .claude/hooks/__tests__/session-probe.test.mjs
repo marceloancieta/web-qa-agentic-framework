@@ -218,3 +218,24 @@ test('a login page that fails is reported with a hint, and a pack without one is
     app.server.close();
   }
 });
+
+test('an open exploratory session is reported as explore status words it, and only then', async () => {
+  const dir = tempProject({ config: configFor({ saucedemo: 'http://127.0.0.1:1/api' }) });
+  mkdirSync(join(dir, 'scripts'));
+  writeFileSync(
+    join(dir, 'scripts', 'explore.mjs'),
+    "if (process.argv[2] !== 'status') process.exit(2);\nconsole.log('Exploration: session 2026-11-26-cart is open, 12 minutes left');\n",
+  );
+  const closed = context(await runHook('session-probe.mjs', {}, { projectDir: dir }));
+  assert.doesNotMatch(closed, /Exploration/);
+  mkdirSync(join(dir, 'reports', 'explore'), { recursive: true });
+  writeFileSync(join(dir, 'reports', 'explore', 'open.json'), '{"id":"2026-11-26-cart"}');
+  const open = context(await runHook('session-probe.mjs', {}, { projectDir: dir }));
+  assert.match(open, /^Exploration: session 2026-11-26-cart is open, 12 minutes left$/m);
+  writeFileSync(join(dir, 'scripts', 'explore.mjs'), 'process.exit(1);\n');
+  const failing = context(await runHook('session-probe.mjs', {}, { projectDir: dir }));
+  assert.match(
+    failing,
+    /a session is open \(reports\/explore\/open.json\), but explore status failed/,
+  );
+});

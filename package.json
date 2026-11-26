@@ -35,6 +35,7 @@
     "test:smoke": "playwright test --grep @smoke",
     "scaffold:app": "node scripts/scaffold-app.mjs",
     "app:map": "node scripts/app-map.mjs",
+    "explore": "node scripts/explore.mjs",
     "app:map:check": "node scripts/app-map.mjs --check",
     "app:drift": "node scripts/app-map-drift.mjs",
     "lint:layers": "node scripts/lint-layers.mjs",

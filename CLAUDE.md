@@ -53,9 +53,11 @@ In `.claude/skills/`. One per phase, each ending at its review gate, plus one pe
 | [`qa-automate`](.claude/skills/qa-automate/SKILL.md) | 2 automate | design | specs and their building blocks, visual baselines, rows `automated` |
 | [`qa-publish`](.claude/skills/qa-publish/SKILL.md) | 3 publish | design | case definitions in test management, rows `published` |
 | [`qa-run`](.claude/skills/qa-run/SKILL.md) | 4 run | execution | a reported run |
-| [`qa-report-bug`](.claude/skills/qa-report-bug/SKILL.md) | defects | either | a triaged issue in the tracker, cases mapped to it |
-| [`juice-shop-ui`](.claude/skills/juice-shop-ui/SKILL.md) | every phase | either | what the Juice Shop app map does not show |
-| [`saucedemo-ui`](.claude/skills/saucedemo-ui/SKILL.md) | every phase | either | what the Swag Labs app map does not show |
+| [`qa-explore`](.claude/skills/qa-explore/SKILL.md) | exploratory session | exploration | a session sheet with its findings and their evidence, debriefed |
+| [`qa-report-bug`](.claude/skills/qa-report-bug/SKILL.md) | defects | any | a triaged issue in the tracker, cases mapped to it |
+| [`juice-shop-ui`](.claude/skills/juice-shop-ui/SKILL.md) | every phase | any | what the Juice Shop app map does not show |
+| [`saucedemo-ui`](.claude/skills/saucedemo-ui/SKILL.md) | every phase | any | what the Swag Labs app map does not show |
+| [`spree-ui`](.claude/skills/spree-ui/SKILL.md) | every phase | any | what the Spree admin app map does not show |
 
 A new pack gets its skill from `npm run scaffold:app`, written from
 [the pack skill template](docs/templates/pack-skill.md).
@@ -67,7 +69,7 @@ govern.
 
 | Rule | Covers |
 |---|---|
-| [`modes`](.claude/rules/modes.md) | design versus execution, what counts as reading, the gates |
+| [`modes`](.claude/rules/modes.md) | design, execution and exploration, what counts as reading, what holds a session, the gates |
 | [`reachability`](.claude/rules/reachability.md) | stopping when a system does not answer, never substituting |
 | [`app-packs`](.claude/rules/app-packs.md) | which pack and environment, what a pack holds, a new pack |
 | [`registry`](.claude/rules/registry.md) | case ids, the registry format, the cited status of contract rules, the tracker keys the packs cite, statuses |
@@ -85,8 +87,11 @@ Registered in `.claude/settings.json` and described in `.claude/hooks/README.md`
 - `git-policy` applies the commit and pull-request rules configured in qa-config.
 - `browser-guard` holds a browser tool to the limits of design: reads and the configured
   environments pass, an upload is refused, and a click, typing or code in the page asks the user.
-- `session-probe` reports the setup state and whether each pack's application answers when a
-  session starts.
+- `explore-guard` holds an agent to an open exploratory session (ADR 0013): the session's browser
+  through the `explore-browser` server on its own origin, no code in the page, repository writes to
+  the sheet only, nothing reported to test management.
+- `session-probe` reports the setup state, whether each pack's application answers and an
+  exploratory session left open when a session starts.
 
 ## Working habits
 
