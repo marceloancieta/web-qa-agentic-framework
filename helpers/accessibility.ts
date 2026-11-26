@@ -116,11 +116,42 @@ export function selectorsFor(baseline: readonly KnownViolation[], route: string)
   ];
 }
 
+// How long a scan waits for the page's animations to end before it reads the page as it is.
+const SETTLE_MS = 5_000;
+
 /**
- * Run axe on the page and return its violations, one per element, plus the raw results. Each
- * violation lists which of `selectors` (the baseline's, `selectorsFor`) its element matches.
+ * Wait until no animation that ends is still running: axe reads colours as they are drawn, so text
+ * caught in a fade (a notification that slides in after a save) has the blended colours of its
+ * frame and fails the contrast rule its final colours pass. An endless animation (a spinner) is
+ * not waited for. A page still animating after `timeout` is scanned as it is.
+ */
+export async function animationsSettled(page: Page, timeout = SETTLE_MS): Promise<boolean> {
+  return page
+    .waitForFunction(
+      () =>
+        document
+          .getAnimations()
+          .every(
+            (animation) =>
+              animation.playState !== 'running' ||
+              animation.effect?.getComputedTiming().endTime === Infinity,
+          ),
+      undefined,
+      { timeout },
+    )
+    .then(
+      () => true,
+      () => false,
+    );
+}
+
+/**
+ * Run axe on the page, once its animations have ended (`animationsSettled`), and return its
+ * violations, one per element, plus the raw results. Each violation lists which of `selectors`
+ * (the baseline's, `selectorsFor`) its element matches.
  */
 export async function scan(page: Page, options: ScanOptions, selectors: readonly string[] = []) {
+  await animationsSettled(page);
   let builder = new AxeBuilder({ page }).withTags([...options.tags]);
   for (const selector of options.include ?? []) builder = builder.include(selector);
   for (const selector of options.exclude ?? []) builder = builder.exclude(selector);

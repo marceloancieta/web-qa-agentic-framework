@@ -1,8 +1,10 @@
 import { mkdtempSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
+import AxeBuilder from '@axe-core/playwright';
 import { expect, test } from '@playwright/test';
 import {
+  animationsSettled,
   compareWithBaseline,
   loadBaseline,
   routeOf,
@@ -119,6 +121,43 @@ test('a scan finds seeded violations and include narrows it', async ({ page }) =
   expect(rules).toEqual(['button-name .icon', 'image-alt img']);
   const good = await scan(page, { tags: ['wcag2a'], include: ['#good'] });
   expect(good.violations).toEqual([]);
+});
+
+// Dark text on a light panel that fades in, like a notification after a save: its final colours pass
+// the contrast rule, the colours of a frame in the middle of the fade do not.
+const FADING = `<!doctype html><html lang="en"><head><title>Fading</title><style>
+  @keyframes appear { from { opacity: 0 } to { opacity: 1 } }
+  #note { background: #e3e2e6; color: #2f3033; animation: appear 1.5s linear; }
+  #spinner { width: 8px; height: 8px; animation: appear 1s linear infinite; }
+  </style></head><body><main><h1>Fading</h1><div id="spinner"></div>
+  <div id="note">Setup successfully completed.</div></main></body></html>`;
+
+test('a scan in the middle of a fade reads blended colours; scan waits for the fade to end', async ({
+  page,
+}) => {
+  // A fade long enough that axe, however slow to start, reads a frame in the middle of it.
+  await page.setContent(FADING.replace('appear 1.5s linear;', 'appear 20s linear;'));
+  const midFade = await new AxeBuilder({ page })
+    .include('#note')
+    .withRules(['color-contrast'])
+    .analyze();
+  expect(midFade.violations.map((v) => v.id)).toEqual(['color-contrast']);
+
+  await page.setContent(FADING);
+  const { violations } = await scan(page, { tags: ['wcag2aa'], include: ['#note'] });
+  expect(violations).toEqual([]);
+});
+
+test('an endless animation is not waited for, and a fade that outlasts the wait is scanned as it is', async ({
+  page,
+}) => {
+  await page.setContent(FADING.replace('appear 1.5s linear;', 'none;'));
+  const started = Date.now();
+  expect(await animationsSettled(page)).toBe(true);
+  expect(Date.now() - started).toBeLessThan(1_000);
+
+  await page.setContent(FADING);
+  expect(await animationsSettled(page, 200)).toBe(false);
 });
 
 test('a scan says which baseline selectors each element matches, and refuses an invalid one', async ({
