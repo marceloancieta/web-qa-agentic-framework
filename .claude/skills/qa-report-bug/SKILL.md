@@ -11,7 +11,8 @@ description: >-
 
 # qa-report-bug: triage and file
 
-Follows either mode. It writes to the tracker, never to the application. Commands and providers
+Follows any mode, a session's debrief included (`qa-explore`). It writes to the tracker, never to
+the application. Commands and providers
 are in [test management](../../../docs/test-management.md#trackers).
 
 ## Triage, in this order

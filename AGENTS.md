@@ -25,13 +25,19 @@ before the next phase starts.
 | 3 publish | case definitions in the test-management tool | design | `qa-publish` |
 | 4 run | a reported run | execution | `qa-run` |
 
-**Design and execution never mix:**
+Beside the phases, a chartered exploratory session (`qa-explore`, ADR 0013) looks for what no case
+thought of. It produces a session sheet, `apps/<pack>/docs/sessions/<date>-<slug>.md`, whose
+findings reach the phases at its debrief.
+
+**Design, execution and exploration never mix:**
 
 - Design navigates and reads the application, plus the pack's login. It submits no forms and creates
   no accounts outside a spec run.
 - Execution never edits specs, registries, definitions or visual baselines.
+- Exploration acts only in the browser `npm run explore -- open` starts, whose guard keeps its writes
+  off the application other work uses, and writes only its sheet.
 
-A request that needs both is split, and each half stops at its own gate.
+A request that needs two of them is split, and each part stops at its own gate.
 
 ## Rules that apply to every change
 

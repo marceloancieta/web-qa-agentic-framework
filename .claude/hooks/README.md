@@ -99,7 +99,7 @@ agent's tools to that browser and to the sheet while `reports/explore/open.json`
 
 | Verdict | Calls |
 |---|---|
-| allow | every tool of the MCP server named `explore-browser` (Playwright MCP with `--cdp-endpoint` set to the endpoint `explore open` prints): clicks, typing and keys included, since the guard stops what they would send; navigation to the session's origin; Write and Edit of the session's sheet and of files outside the repository |
+| allow | every tool of the MCP server named `explore-browser`, which `.mcp.json` declares (`scripts/explore-browser.mjs`: Playwright MCP with `--cdp-endpoint` set to the endpoint `explore open` prints): clicks, typing and keys included, since the guard stops what they would send; navigation to the session's origin; Write and Edit of the session's sheet and of files outside the repository |
 | deny | navigation of the session browser to any other origin, code run in the page, uploads; any other Playwright MCP server, which drives a browser of its own; Claude in Chrome, which holds the person's real sign-ins; Write and Edit of any other file in the repository; `tm:*` scripts |
 
 With no session open it refuses only the `explore-browser` tools. A session whose `session.json`
