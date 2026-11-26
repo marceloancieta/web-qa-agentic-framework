@@ -58,7 +58,31 @@ messages, how sessions work, what is safe to change. Each one says how it was ob
 - A signed-in member who opens a reset link is sent to the dashboard instead of the form, so a case
   opens the links in a context without a session. Observed, 2026-11-25.
 
+## Design and motion
+
+- The design system is the stylesheet's own: Tailwind 4 with custom properties on `:root`
+  (`--background`, `--foreground`, `--primary`, `--border`, `--ring`, `--link`…), colours in oklch.
+  `design-tokens.json` holds the ones the DESIGN cases read, each naming its variable
+  (`docs/features/design.md`). Browsers report these colours as `oklch(…)`, `oklab(…)` or `rgb(…)`,
+  so the cases compare them as pixels, never as text. Read 2026-11-25.
+- On a coarse pointer (every touch device project) form controls are at least 1rem, against
+  0.875rem with a mouse: the stylesheet's `@media (pointer: coarse)` rule.
+- `prefers-reduced-motion: reduce` limits every transition to colour, shadow and opacity properties
+  and runs every animation once in 0.01 ms, except `.animate-spin`. Menus then fade instead of
+  scaling in. Read 2026-11-25.
+- Two heading styles: the sign-in, the forgot-password page and the home dashboard use a bold
+  2xl heading; a section (Orders, Products…) a semibold one, xl below 640 px and 2xl from 640 px.
+  `/dashboard/orders` is not a route: it opens the home dashboard. Read 2026-11-25.
+- The stylesheet also has a `.dark` theme, chosen through "Theme" in the user menu; a fresh context
+  starts in the light theme.
+
 ## Pages
+
+- The `spree` service keeps its uploaded files (product images) inside its container, and the
+  `spree-db` service its rows; neither has a volume. When compose recreates `spree` alone (a change
+  to its settings) the rows still name images whose files are gone, and the dashboard's product
+  images answer `404`, which the page health guard reports as broken images. `npm run spree:down`
+  then `npm run spree:up` starts both again with the sample data. Seen 2026-11-25.
 
 - The dashboard is drawn by its scripts after the page loads; a page's heading can appear a moment
   before its form or its rows. The app map waits until the accessibility tree stops changing.

@@ -18,6 +18,7 @@ Created by `npm run scaffold:app`. Still to fill in, through the phases:
 | `LOGIN` | [admin sign-in](docs/features/login.md) |
 | `ROLES` | [staff roles](docs/features/roles.md) |
 | `PWRESET` | [admin password reset](docs/features/password-reset.md) |
+| `DESIGN` | [design system and reduced motion](docs/features/design.md), against [`design-tokens.json`](design-tokens.json) |
 
 ## Layout
 
@@ -28,11 +29,13 @@ Created by `npm run scaffold:app`. Still to fill in, through the phases:
 | `api/staff-api.ts`, `api/catalog-api.ts` | roles, invitations and members; the status of a section's list; the products' names |
 | `builders/staff-builder.ts` | members, their names and roles, each actor's permissions, unknown addresses |
 | `builders/password-builder.ts` | passwords of a chosen length, tokens Spree never issued |
-| `pages/`, `components/` | the login, the forgot and reset password pages, a dashboard section, the settings, the page of a member without a store; the sidebar and the user menu |
+| `pages/`, `components/` | the login, the forgot and reset password pages, a dashboard section, the settings, the page of a member without a store; the sidebar, the user menu and the page frame (the body the design cases read) |
 | `flows/password-reset.ts` | asking for a reset and taking the link from the member's email in the mail catcher |
 | `mocks/auth-mocks.ts` | a delayed sign-in answer, and a count of the sign-ins, reset requests and password changes sent |
+| `mocks/dashboard-mocks.ts` | the home dashboard's reports held back, so its loading placeholders stay |
+| `design-tokens.json` | the design system's tokens the DESIGN cases compare components with (ADR 0015) |
 | `rules/TC-ROLES-07.yaml` | the admin API's answer per role and section |
-| `registry/`, `specs/login/`, `specs/roles/`, `specs/password-reset/` | the LOGIN, ROLES and PWRESET cases and their specs |
+| `registry/`, `specs/login/`, `specs/roles/`, `specs/password-reset/`, `specs/design/` | the LOGIN, ROLES, PWRESET and DESIGN cases and their specs |
 | `docs/app-map.json`, `docs/app-map.admin.json` | the app maps, anonymous and as the admin |
 | `docs/app-notes.md` | sessions, the store's ids, the sample data, page behaviour |
 

@@ -47,7 +47,7 @@ Every item of v0.1.0 is done; each is in **Done**.
 |---|---|---|---|
 | GATE-15 | The web vitals lane gates changes: the `ci` budgets of Juice Shop are calibrated on the weekly `performance` runs (ADR 0012, Calibration), and once three more weekly runs pass on them, `lanes:web-vitals` moves into the CI lane matrix and the Jenkins lanes stage, so a page that slows past its budget fails the required check. | ADR 0012 | in-progress |
 | FUT-04 | i18n: projects per `locale` and `timezoneId`, pseudo-localization, right-to-left. | practice | todo |
-| FUT-05 | Design-token checks from the pack's `design-tokens.json`; `prefers-reduced-motion` emulation. | plan | todo |
+| FUT-05 | Design-token checks from the pack's `design-tokens.json`; `prefers-reduced-motion` emulation. | plan | in-progress |
 | FUT-07 | TOTP two-factor login and a mail-catcher pattern (Mailpit). | plan | in-progress |
 | FUT-08 | `qa-explore` skill for chartered exploratory sessions, after an ADR decides its mode. | plan | todo |
 | CI-09 | Staged publishing for `create-web-qa`: the trusted publisher may only stage a version (`npm stage publish`, npm 11.15.0 or later), so a version reaches the registry only after the owner approves it on npm with two-factor authentication, beside the approval of the `npm` environment; the read-back waits for that approval or reads the version back by hand. | exp | in-progress |

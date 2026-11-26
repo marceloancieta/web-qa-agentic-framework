@@ -31,6 +31,11 @@ export class ForgotPasswordPage {
     return this.page.getByRole('textbox', { name: 'Email' });
   }
 
+  /** The label that names Email. */
+  emailLabel(): Locator {
+    return this.page.getByText('Email', { exact: true });
+  }
+
   send(): Locator {
     return this.page.getByRole('button', { name: 'Send reset link', exact: true });
   }

@@ -48,6 +48,27 @@ export class SectionPage {
     return (await answer).status();
   }
 
+  /**
+   * Open the store's home and wait until its reports have answered: every widget asks
+   * `POST /api/v3/admin/reporting/query` (docs/app-notes.md, Pages), and until the answers the
+   * content holds placeholders. Returns once the content has none left.
+   */
+  async openHomeAndWaitForReports(): Promise<void> {
+    // Only an answer to the new document counts: one the page already open was waiting for could
+    // arrive before the navigation and end the wait too early.
+    let navigated = false;
+    const reported = this.page.waitForResponse(
+      (response) =>
+        navigated &&
+        response.request().method() === 'POST' &&
+        new URL(response.url()).pathname.endsWith('/api/v3/admin/reporting/query'),
+    );
+    await this.page.goto(`dashboard/${this.storeId}`, { waitUntil: 'commit' });
+    navigated = true;
+    await reported;
+    await this.contentPlaceholders().first().waitFor({ state: 'detached', timeout: 15_000 });
+  }
+
   /** The address of `path` under the store, as the page shows it. */
   url(path = ''): RegExp {
     const literal = (text: string) => text.replace(/[\\^$.*+?()[\]{}|/]/g, '\\$&');
@@ -57,6 +78,20 @@ export class SectionPage {
 
   heading(name: string): Locator {
     return this.page.getByRole('main').getByRole('heading', { name, level: 1, exact: true });
+  }
+
+  /**
+   * The grey placeholders the page draws while its data loads, in the content and in the sidebar.
+   * They are decorative boxes with no role or name, found by the attribute the dashboard's
+   * component library gives them.
+   */
+  loadingPlaceholders(): Locator {
+    return this.page.locator('[data-slot="skeleton"]');
+  }
+
+  /** The placeholders of the section's content alone, not the sidebar's. */
+  contentPlaceholders(): Locator {
+    return this.main().locator('[data-slot="skeleton"]');
   }
 
   /**

@@ -3,7 +3,7 @@
   "version": "6.0.3",
   "title": "Spree Commerce admin",
   "login_path": "/dashboard/login",
-  "breakpoints": { "sidebar": 768, "settings_navigation": 1024 },
+  "breakpoints": { "sidebar": 768, "settings_navigation": 1024, "section_heading": 640 },
   "third_party_hosts": [],
   "secret_keys": [],
   "identity_fields": [],
