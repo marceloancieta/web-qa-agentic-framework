@@ -5,7 +5,14 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { loadAdapter } from '../tm/adapters/index.mjs';
 import { buildManifest } from '../tm/manifest.mjs';
-import { publish, report, testManagementConfig } from '../tm/run.mjs';
+import {
+  holdsAnyCase,
+  NOTHING_HELD,
+  NOTHING_HELD_EXIT,
+  publish,
+  report,
+  testManagementConfig,
+} from '../tm/run.mjs';
 
 const ROOT = join(import.meta.dirname, '..', '__fixtures__', 'tm-repo');
 const T0 = Date.UTC(2026, 9, 9, 12);
@@ -110,11 +117,88 @@ test('the run is closed even when reporting fails', async () => {
     },
   };
   const manifest = manifestWith([{ testCaseId: 'shop-v1-TC-ITEM-03', status: 'passed' }]);
+  await publish({ adapter, manifest, log: quietLog() });
   await assert.rejects(
     report({ adapter: failing, manifest, log: quietLog(), name: 'x' }),
     /rejected the batch/,
   );
   assert.equal(closed.length, 1);
+});
+
+// A run sent to a project that holds none of its cases, like a Jenkins build that took another
+// job's project id, used to start a run, skip every result and end green with reported=0.
+test('a tool that holds none of the run cases gets no run, and the report says where it asked', async () => {
+  const adapter = await localAdapter();
+  const manifest = manifestWith([
+    { testCaseId: 'shop-v1-TC-ITEM-03', status: 'passed' },
+    { testCaseId: 'shop-v1-TC-ITEM-01', status: 'failed' },
+  ]);
+  const log = quietLog();
+  let started = 0;
+  const outcome = await report({
+    adapter: { ...adapter, startRun: async (...args) => (started++, adapter.startRun(...args)) },
+    manifest,
+    log,
+    name: 'x',
+  });
+  assert.equal(started, 0, 'no run is started');
+  assert.equal(outcome.reason, NOTHING_HELD);
+  assert.equal(outcome.cases, 2);
+  assert.equal(outcome.target, adapter.target);
+  assert.match(adapter.target, /^the local store at .*store$/);
+  const error = log.lines.find((l) => l.level === 'error');
+  assert.match(
+    error?.message ?? '',
+    /nothing reported: the local store at .* holds none of the run's 2 case\(s\)/,
+  );
+  assert.match(error?.hint ?? '', /npm run tm:publish/);
+  assert.equal(NOTHING_HELD_EXIT, 3);
+});
+
+test('the lookup stops at the first case the tool holds, and one held case is enough to report', async () => {
+  const adapter = await localAdapter();
+  const manifest = manifestWith([
+    { testCaseId: 'shop-v1-TC-ITEM-03', status: 'passed' },
+    { testCaseId: 'shop-v1-TC-ITEM-01', status: 'failed' },
+  ]);
+  await publish({ adapter, manifest, log: quietLog() });
+  const asked = [];
+  const counting = {
+    ...adapter,
+    readDefinitions: async (ids) => (asked.push(...ids), adapter.readDefinitions(ids)),
+  };
+  assert.equal(await holdsAnyCase(counting, ['shop-v1-TC-ITEM-03', 'shop-v1-TC-ITEM-01']), true);
+  assert.deepEqual(asked, ['shop-v1-TC-ITEM-03']);
+  assert.equal(await holdsAnyCase(counting, ['shop-v1-TC-NOPE-01', 'shop-v1-TC-NOPE-01']), false);
+  assert.deepEqual(asked.slice(1), ['shop-v1-TC-NOPE-01'], 'each case is asked once');
+
+  // TC-ITEM-01 is a draft, so it is not published; TC-ITEM-03 is, and the run goes ahead.
+  const outcome = await report({ adapter, manifest, log: quietLog(), name: 'x' });
+  assert.deepEqual(outcome.reported, ['shop-v1-TC-ITEM-03']);
+  assert.deepEqual(
+    outcome.skipped.map((s) => s.identity),
+    ['shop-v1-TC-ITEM-01'],
+  );
+});
+
+test('a tool without definitions is not asked for them', async () => {
+  const adapter = await localAdapter();
+  const resultsFirst = {
+    ...adapter,
+    capabilities: { definitions: false, runs: true },
+    readDefinitions: async () => {
+      throw new Error('a tool without definitions was asked for them');
+    },
+    reportResults: async () => ({ reported: [], skipped: [] }),
+  };
+  const outcome = await report({
+    adapter: resultsFirst,
+    manifest: manifestWith([{ testCaseId: 'shop-v1-TC-ITEM-03', status: 'passed' }]),
+    log: quietLog(),
+    name: 'x',
+  });
+  assert.ok(outcome.run?.id, 'the run is started without a lookup');
+  assert.notEqual(outcome.reason, NOTHING_HELD);
 });
 
 test('no results means no run is started', async () => {

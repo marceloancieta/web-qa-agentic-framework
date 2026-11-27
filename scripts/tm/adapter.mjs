@@ -7,6 +7,8 @@
 //                              runs: the tool records runs and their results
 //                              wholeRun (optional): the tool reports the whole results directory,
 //                              so a run without attributed results is still worth reporting
+//   target (optional)          where the cases live, for messages: "Allure TestOps project 34 at
+//                              <url>"; tm:report names it when the tool holds none of a run's cases
 //   publishDefinitions(cases)  create or update the given cases only; returns
 //                              { published: [{ identity, tmId, url }], unchanged: [identity] }
 //   startRun({ name, runId })  returns a run handle { id, url }

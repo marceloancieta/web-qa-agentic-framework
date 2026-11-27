@@ -42,31 +42,40 @@ def playwrightOptions(boolean withWorkers = true) {
   return '--project="juice-shop-*"' + (workers ? " --workers=${workers}" : '')
 }
 
-/** A parameter, else the agent's or Jenkins' DEFAULT_<name> variable, else empty. */
+/**
+ * A parameter, else this job's DEFAULT_<JOB>_<name> variable, else the agent's or Jenkins'
+ * DEFAULT_<name>, else empty. <JOB> is the job's name in capitals with every other character an
+ * underscore (web-qa-framework-ci: WEB_QA_FRAMEWORK_CI), so a global default another job reads,
+ * such as a sibling project's Allure TestOps project id, can be overridden for this job alone.
+ */
 def setting(String name) {
-  return (params[name] ?: env."DEFAULT_${name}" ?: '').toString().trim()
+  String job = (env.JOB_BASE_NAME ?: '').toUpperCase().replaceAll(/[^A-Z0-9]/, '_')
+  return (params[name] ?: env."DEFAULT_${job}_${name}" ?: env."DEFAULT_${name}" ?: '').toString().trim()
 }
 
 /**
  * Allure TestOps receives the run when its token credential is named (docs/guides/jenkins.md); the
- * token reaches only the step inside. Otherwise the tool in qa-config does.
+ * token reaches only the step inside. Otherwise the tool in qa-config does. Returns what the step
+ * returns.
  */
 def withTestManagement(Closure body) {
   String tokenCredential = setting('ALLURE_TOKEN_CREDENTIALS_ID')
   if (!tokenCredential) {
-    body()
-    return
+    return body()
   }
-  withEnv([
+  return withEnv([
     'QA_TM_PROVIDER=allure-testops',
     "ALLURE_ENDPOINT=${setting('ALLURE_ENDPOINT')}",
     "ALLURE_PROJECT_ID=${setting('ALLURE_PROJECT_ID')}",
   ]) {
-    withCredentials([string(credentialsId: tokenCredential, variable: 'ALLURE_TOKEN')]) {
-      body()
+    return withCredentials([string(credentialsId: tokenCredential, variable: 'ALLURE_TOKEN')]) {
+      return body()
     }
   }
 }
+
+/** tm:report's exit code when the tool holds none of the run's cases (scripts/tm/run.mjs). */
+@Field int NOTHING_HELD_EXIT = 3
 
 // Set once Juice Shop has been started; the post steps stop it only then.
 @Field boolean juiceShopStarted = false
@@ -261,9 +270,18 @@ pipeline {
               echo readFile('reports/quality-gate.md')
             }
           }
+          // A report that sent nothing, since the tool holds none of the run's cases (another
+          // project, cases never published there), leaves the build UNSTABLE instead of green.
           catchError(buildResult: 'FAILURE', stageResult: 'FAILURE') {
-            withTestManagement {
-              shell 'npm run tm:report'
+            script {
+              int reportExit = withTestManagement {
+                shell(returnStatus: true, 'npm run tm:report')
+              }
+              if (reportExit == NOTHING_HELD_EXIT) {
+                unstable('tm:report sent nothing: the test-management tool holds none of the run\'s cases. Check the project it reports to (DEFAULT_<JOB>_ALLURE_PROJECT_ID, docs/guides/jenkins.md) or publish the cases there.')
+              } else if (reportExit != 0) {
+                error("tm:report failed with exit code ${reportExit}")
+              }
             }
           }
         }

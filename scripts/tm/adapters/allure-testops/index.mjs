@@ -310,6 +310,7 @@ export function createAdapter(
   return {
     name: 'allure-testops',
     capabilities: { definitions: true, runs: true },
+    target: `Allure TestOps project ${projectId} at ${endpoint}`,
     readRun,
     readDefinitions,
 

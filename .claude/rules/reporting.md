@@ -41,6 +41,9 @@ the state the page was in are what make it reviewable.
 
 - One test run is one run in the tool: `npm run tm:report` starts it, reports the latest results and
   closes it even when reporting failed.
+- A run is never reported to a tool that holds none of its cases. `tm:report` checks first, then
+  starts no run and exits 3, naming where it asked (another project, cases never published there).
+  Fix the target or publish; never treat a report that sent nothing as done.
 - `npm run tm:publish` sends only `automated` and `published` cases; `--case <id>` repairs one case
   without touching the others.
 - Do not pass `--reporter` to Playwright; it replaces the configured reporters. Every run writes

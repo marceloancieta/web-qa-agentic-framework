@@ -254,7 +254,11 @@ jobs:
       - run: npm run ci:merge
       - name: Quality gate over the suite and the lanes
         run: npm run quality:gate -- --report reports/playwright.json --report reports/lanes/a11y.json --report reports/lanes/a11y-spree.json --report reports/lanes/visual.json --report reports/lanes/visual-spree.json --report reports/lanes/destructive.json
+      # The runner's local store starts empty and holds no case, so tm:report would refuse it
+      # (TM-05): the run goes to allure-report, which keeps no definitions and reports it whole.
       - if: ${{ !cancelled() }}
+        env:
+          QA_TM_PROVIDER: allure-report
         run: npm run tm:report
       - if: ${{ !cancelled() && !env.ACT }}
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2

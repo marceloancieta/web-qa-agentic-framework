@@ -18,13 +18,18 @@ npm run tm:publish -- --case TC-LOGIN-03   # repair one case without touching th
   attributed are listed under `excluded`, each with its reason.
 - `tm:publish` sends only cases whose registry status is `automated` or `published`; drafts,
   approved and blocked cases are listed as held back.
-- `tm:report` starts a run, reports the results, and closes the run even when reporting failed.
+- `tm:report` starts a run, reports the results, and closes the run even when reporting failed. A
+  tool that keeps definitions is first asked whether it holds any of the run's cases; when it holds
+  none (the run goes to another project, or the cases were never published there), `tm:report`
+  starts no run, names where it asked, and exits 3. A run cannot pass while reporting nothing. When
+  only some cases are missing, the others are reported and the missing ones skipped with a reason.
 - Each phase writes `reports/tm/<phase>-<provider>.json` with what was done.
 
 ## Choosing a tool
 
 qa-config `test_management.provider`, with its `options`; `QA_TM_PROVIDER` replaces the provider for
-one run (CI reports to a tool whose credentials only it holds).
+one run (CI reports to a tool whose credentials only it holds). The GitHub workflow reports to
+`allure-report`, since its runner starts with an empty `local` store.
 
 | Provider | Definitions | Runs | Options and credentials |
 |---|---|---|---|

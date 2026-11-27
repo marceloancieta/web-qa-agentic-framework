@@ -12,7 +12,10 @@
  *           scripts/lib/registry.mjs), so drafts, approved and blocked cases stay out; a tool
  *           without definitions skips the phase with a notice
  * report    starts a run, reports the latest results of the packs' specs, and closes the run even
- *           when reporting failed; results that cannot be attributed are listed, never dropped
+ *           when reporting failed; results that cannot be attributed are listed, never dropped.
+ *           A tool that keeps definitions is asked first whether it holds any of the run's cases:
+ *           when it holds none (a run sent to the wrong project, cases never published there), no
+ *           run is started and the phase exits 3, so the run cannot pass while reporting nothing
  *
  * `--case` (repeatable) limits either phase to the named cases, so a repair of their definitions or
  * of one run's results never touches the rest; an id that matches no case is refused.
@@ -21,7 +24,8 @@
  *
  * Exit codes: 0 the phase finished, or was skipped with a notice (a tool without definitions or
  * runs, no results to report); 1 the phase failed (an adapter error, a failed read-back, a report
- * generator that exited non-zero); 2 a usage error.
+ * generator that exited non-zero); 2 a usage error; 3 nothing was reported, since the tool holds
+ * none of the run's cases.
  */
 
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
@@ -35,6 +39,22 @@ import { loadAdapter } from './adapters/index.mjs';
 import { buildManifest } from './manifest.mjs';
 
 export const PUBLISHABLE = ['automated', 'published'];
+
+/** The exit code of a report that sent nothing because the tool holds none of the run's cases. */
+export const NOTHING_HELD_EXIT = 3;
+export const NOTHING_HELD = 'the tool holds none of the cases';
+
+/**
+ * Whether the tool holds at least one of the given cases. It asks one case at a time and stops at
+ * the first it finds, so a tool that holds the run's cases answers after one lookup.
+ */
+export async function holdsAnyCase(adapter, identities) {
+  for (const identity of new Set(identities)) {
+    const found = await adapter.readDefinitions([identity]);
+    if (Object.keys(found).length > 0) return true;
+  }
+  return false;
+}
 
 /**
  * The tool and its options. `QA_TM_PROVIDER` replaces the configured provider for one run, the way
@@ -132,6 +152,25 @@ export async function report({ adapter, manifest, log, name }) {
     });
     return { skipped: true, reason: 'no results' };
   }
+  // A tool that keeps definitions accepts only results of the cases it holds. Holding none means
+  // the run goes to the wrong project or its cases were never published there: no run is started,
+  // so the tool is left without an empty one, and the caller exits NOTHING_HELD_EXIT.
+  if (
+    adapter.capabilities.definitions &&
+    manifest.results.length > 0 &&
+    !(await holdsAnyCase(
+      adapter,
+      manifest.results.map((r) => r.identity),
+    ))
+  ) {
+    const target = adapter.target ?? adapter.name;
+    const cases = new Set(manifest.results.map((r) => r.identity)).size;
+    log.error(`nothing reported: ${target} holds none of the run's ${cases} case(s)`, {
+      provider: adapter.name,
+      hint: 'check the project the run is reported to, or publish the cases there first (npm run tm:publish)',
+    });
+    return { skipped: true, reason: NOTHING_HELD, target, cases };
+  }
   const run = await adapter.startRun({ name, runId: manifest.runId });
   log.info('run started', { provider: adapter.name, run: run.id, url: run.url });
   let outcome;
@@ -197,6 +236,7 @@ async function main() {
     join(dir, `${phase}-${provider}.json`),
     `${JSON.stringify({ runId: log.runId, provider, ...outcome }, null, 2)}\n`,
   );
+  if (outcome.reason === NOTHING_HELD) process.exitCode = NOTHING_HELD_EXIT;
 }
 
 if (import.meta.url === pathToFileURL(process.argv[1] ?? '').href) {
