@@ -135,8 +135,13 @@ const FADING = `<!doctype html><html lang="en"><head><title>Fading</title><style
 test('a scan in the middle of a fade reads blended colours; scan waits for the fade to end', async ({
   page,
 }) => {
-  // A fade long enough that axe, however slow to start, reads a frame in the middle of it.
-  await page.setContent(FADING.replace('appear 1.5s linear;', 'appear 20s linear;'));
+  // The fade held at its middle frame (opacity 0.5), so axe reads the same blend however fast it
+  // runs. A fade that merely runs can be read at its first frame, opacity 0, which axe treats as
+  // hidden and reports nothing about.
+  await page.setContent(FADING.replace('appear 1.5s linear;', 'appear 20s linear -10s paused;'));
+  expect(await page.locator('#note').evaluate((note) => getComputedStyle(note).opacity)).toBe(
+    '0.5',
+  );
   const midFade = await new AxeBuilder({ page })
     .include('#note')
     .withRules(['color-contrast'])
