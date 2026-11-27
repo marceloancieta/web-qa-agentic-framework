@@ -69,8 +69,19 @@ The cases are published to the project first, from a machine (`npm run tm:publis
 skill), since a result of a case the project does not hold is skipped
 ([test management](../test-management.md)). Then each build reports its run there when it names the
 token's credential. The token reaches only the `tm:report` step, through `withTestManagement` in the
-`Jenkinsfile`, and Jenkins masks it in the log. A scheduled build has no parameters of its own: an
-agent or global environment variable `DEFAULT_<parameter>` gives any of the three a default.
+`Jenkinsfile`, and Jenkins masks it in the log. A scheduled build has no parameters of its own, so
+an environment variable gives any of the three a default:
+
+- `DEFAULT_<JOB>_<parameter>` gives a default to this job alone. `<JOB>` is the job's name in capital
+  letters, with every other character turned into an underscore: `web-qa-framework-ci` gives
+  `DEFAULT_WEB_QA_FRAMEWORK_CI_ALLURE_PROJECT_ID`.
+- `DEFAULT_<parameter>`, set on an agent or globally, applies to every job that reads it, the jobs of
+  other projects included. When another job on the same Jenkins reports to its own project, give
+  this job its project with the variable above, which comes first.
+
+When the tool holds none of the run's cases, `tm:report` exits 3 and the build ends **UNSTABLE**
+with a message that names where it asked. That happens with another project's id, or with cases
+that were never published there. Any other failure of the step fails the build.
 
 The pipeline declares its weekly timer for the cited keys and the flake and performance lanes (`cron('H 6 * * 1')`), so Jenkins adds it
 to the job after the first build.

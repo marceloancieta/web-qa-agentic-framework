@@ -278,6 +278,16 @@ test('configuration is required, and a refused token is never echoed', async () 
   assert.ok(!error.message.includes(wrong), 'the token is not in the error');
 });
 
+// tm:report names the target when the project holds none of a run's cases, so a run sent to
+// another job's project says which one it asked.
+test('the target names the project and the instance', () => {
+  const fake = fakeTestOps();
+  assert.equal(
+    adapterOver(fake).target,
+    `Allure TestOps project ${fake.projectId} at https://testops.example`,
+  );
+});
+
 test('a result with no file behind it is uploaded as a minimal result', () => {
   const result = synthesizedResult(
     {

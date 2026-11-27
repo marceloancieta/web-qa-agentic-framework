@@ -10,6 +10,7 @@ import { DEPENDENCY_UPDATES } from '../changelog.mjs';
 import { APT_CACHE_PATH } from '../ci-browsers.mjs';
 import { titleProblem } from '../commit-title.mjs';
 import { LANES } from '../lanes.mjs';
+import { NOTHING_HELD_EXIT } from '../tm/run.mjs';
 
 const scripts = JSON.parse(readFileSync(join(REPO_ROOT, 'package.json'), 'utf8')).scripts;
 const workflow = parse(readFileSync(join(REPO_ROOT, '.github', 'workflows', 'ci.yml'), 'utf8'));
@@ -94,10 +95,36 @@ test('the Jenkinsfile gives the Allure TestOps token to tm:report only', () => {
   const wrapped = [...jenkinsfile.matchAll(/withTestManagement \{([\s\S]*?)\n\s*\}/g)].map((m) =>
     m[1].trim(),
   );
-  assert.deepEqual(wrapped, ["shell 'npm run tm:report'"]);
+  assert.deepEqual(wrapped, ["shell(returnStatus: true, 'npm run tm:report')"]);
   for (const name of ['ALLURE_TOKEN_CREDENTIALS_ID', 'ALLURE_ENDPOINT', 'ALLURE_PROJECT_ID']) {
     assert.match(jenkinsfile, new RegExp(`string\\(name: '${name}'`), name);
   }
+});
+
+// TM-05: a report that sent nothing leaves the build UNSTABLE, on the exit code tm:report uses for
+// it, and any other failure of the step fails the build.
+test("the Jenkinsfile marks the build UNSTABLE on tm:report's nothing-held exit code", () => {
+  assert.match(jenkinsfile, new RegExp(`@Field int NOTHING_HELD_EXIT = ${NOTHING_HELD_EXIT}\\n`));
+  assert.match(jenkinsfile, /if \(reportExit == NOTHING_HELD_EXIT\) \{\n\s*unstable\(/);
+  assert.match(jenkinsfile, /\} else if \(reportExit != 0\) \{\n\s*error\(/);
+});
+
+// A global DEFAULT_<name> is read by every job; this job's own default comes first.
+test("the Jenkinsfile reads this job's DEFAULT_<JOB>_<name> before the global DEFAULT_<name>", () => {
+  const helper = /def setting\([\s\S]*?\n\}\n/.exec(jenkinsfile)?.[0] ?? '';
+  assert.match(
+    helper,
+    /params\[name\] \?: env\."DEFAULT_\$\{job\}_\$\{name\}" \?: env\."DEFAULT_\$\{name\}" \?: ''/,
+  );
+  assert.match(helper, /env\.JOB_BASE_NAME/);
+});
+
+// The GitHub workflow's runner starts with an empty local store, which holds no case: its report
+// goes to allure-report, which keeps no definitions and reports the whole run.
+test('the GitHub workflow reports its run to allure-report', () => {
+  const steps = workflow.jobs.report.steps.filter((step) => step.run === 'npm run tm:report');
+  assert.equal(steps.length, 1);
+  assert.equal(steps[0].env?.QA_TM_PROVIDER, 'allure-report');
 });
 
 // A lane refuses an option it fixes itself (lanes.mjs), so the Jenkinsfile's WORKERS never reaches

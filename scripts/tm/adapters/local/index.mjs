@@ -36,6 +36,7 @@ export function createAdapter(options = {}, { root = process.cwd(), now = () => 
   return {
     name: 'local',
     capabilities: { definitions: true, runs: true },
+    target: `the local store at ${dir}`,
     readDefinitions,
     readRun,
 

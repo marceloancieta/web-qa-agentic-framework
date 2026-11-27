@@ -54,7 +54,9 @@ description: >-
    lane's to `reports/lanes/<lane>.json`; `QA_JSON_REPORT` names another file, `QA_JUNIT_REPORT`
    adds JUnit. Each pack's `preflight-<pack>` project checks its configuration and its host first.
 5. **Report**: `npm run tm:report -- --pack <pack>` with the same `QA_RUN_ID`. It lists the results
-   it could not attribute, and closes the run even when reporting failed.
+   it could not attribute, and closes the run even when reporting failed. Exit 3 means the tool
+   holds none of the run's cases and nothing was sent: name the target it printed and stop there;
+   the fix is the target in qa-config or a publish (`qa-publish`), never part of the run.
 6. **Sum up**, in the language of the conversation:
    - each case once, with the worst status of its devices and each device beside it: passed, failed
      (with the assertion and the trace), failed as an armed known gap, or skipped with its reason;
